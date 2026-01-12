@@ -1140,6 +1140,7 @@ export interface RMHoldParams {
   type?: string;
   parent_id?: number;
   alternate_hold_id?: string;
+  date_applied?: string; // YYYY-MM-DD format, defaults to today
 }
 
 /**

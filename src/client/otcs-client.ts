@@ -2585,47 +2585,55 @@ export class OTCSClient {
    * Get hold details
    */
   async getRMHold(holdId: number): Promise<RMHold> {
-    const response = await this.request<any>('GET', `/v2/holds/${holdId}`);
-    const data = response.data || response.results || response;
+    const response = await this.request<any>('GET', `/v2/hold?id=${holdId}`);
+    // Response structure: { results: { data: { hold: { HoldID, HoldName, ... } } } }
+    const data = response.results?.data?.hold || response.data?.hold || response.data || response;
     return this.parseRMHold(data);
   }
 
   /**
    * Create a new hold
+   * API uses form data with lowercase field names, type value should be uppercase (LEGAL, AUDIT, etc.)
    */
   async createRMHold(params: RMHoldParams): Promise<RMHold> {
     const formData = new URLSearchParams();
     formData.append('name', params.name);
+    formData.append('type', (params.type || 'LEGAL').toUpperCase());
+    formData.append('date_applied', params.date_applied || new Date().toISOString().split('T')[0]);
     if (params.comment) formData.append('comment', params.comment);
-    if (params.type) formData.append('type', params.type);
     if (params.parent_id) formData.append('parent_id', params.parent_id.toString());
-    if (params.alternate_hold_id) formData.append('alternate_hold_id', params.alternate_hold_id);
+    if (params.alternate_hold_id) formData.append('alternate_id', params.alternate_hold_id);
 
     const response = await this.request<any>('POST', `/v1/holds`, undefined, formData);
-    const data = response.data || response.results || response;
-    return this.parseRMHold(data);
+    // Response returns { holdID: number }
+    const holdId = response.holdID || response.hold_id || response.id;
+    // Fetch the created hold to return full details
+    return this.getRMHold(holdId);
   }
 
   /**
    * Update a hold
+   * API uses form data with lowercase field names
    */
   async updateRMHold(holdId: number, params: Partial<RMHoldParams>): Promise<RMHold> {
     const formData = new URLSearchParams();
     formData.append('id', holdId.toString());
     if (params.name) formData.append('name', params.name);
+    if (params.type) formData.append('type', params.type.toUpperCase());
     if (params.comment) formData.append('comment', params.comment);
-    if (params.alternate_hold_id) formData.append('alternate_hold_id', params.alternate_hold_id);
+    if (params.alternate_hold_id) formData.append('alternate_id', params.alternate_hold_id);
 
     const response = await this.request<any>('PUT', `/v1/holds`, undefined, formData);
-    const data = response.data || response.results || response;
-    return this.parseRMHold(data);
+    // Fetch updated hold to return full details
+    return this.getRMHold(holdId);
   }
 
   /**
    * Delete a hold
+   * API uses DELETE /v2/hold with query param id or holdname
    */
   async deleteRMHold(holdId: number): Promise<{ success: boolean }> {
-    await this.request<any>('DELETE', `/v1/holds/${holdId}`);
+    await this.request<any>('DELETE', `/v2/hold?id=${holdId}`);
     return { success: true };
   }
 
@@ -2785,17 +2793,19 @@ export class OTCSClient {
 
   private parseRMHold(data: any): RMHold {
     return {
-      id: data.id || data.hold_id || 0,
-      name: data.name || '',
-      comment: data.comment,
-      type: data.type,
-      type_name: data.type_name,
-      parent_id: data.parent_id,
-      create_date: data.create_date,
-      modify_date: data.modify_date,
-      create_user_id: data.create_user_id,
+      // ID field: HoldID (from v2/hold), id (from v1/holds list), hold_id (from node holds)
+      id: data.HoldID || data.hold_id || data.id || 0,
+      // Name field: HoldName (from v2/hold), hold_name (from node holds), name (fallback)
+      name: data.HoldName || data.hold_name || data.name || '',
+      comment: data.HoldComment || data.hold_comment || data.comment,
+      type: data.HoldType || data.hold_type || data.type,
+      type_name: data.HoldType || data.hold_type || data.type_name,
+      parent_id: data.ParentID || data.parent_id,
+      create_date: data.DateApplied || data.date_applied || data.create_date,
+      modify_date: data.EditDate || data.modify_date,
+      create_user_id: data.ApplyPatron || data.applied_by || data.create_user_id,
       items_count: data.items_count,
-      alternate_hold_id: data.alternate_hold_id,
+      alternate_hold_id: data.AlternateHoldID || data.alternate_hold_id,
     };
   }
 
