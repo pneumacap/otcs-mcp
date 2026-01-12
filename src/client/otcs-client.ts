@@ -711,12 +711,8 @@ export class OTCSClient {
       formData.append('description', params.description);
     }
 
-    // Add business properties as JSON if provided
-    if (params.business_properties) {
-      formData.append('roles', JSON.stringify({
-        categories: params.business_properties,
-      }));
-    }
+    // Note: business_properties are applied AFTER workspace creation via category update
+    // The workspace template already has categories attached with empty values
 
     const response = await this.request<any>('POST', '/v2/businessworkspaces', undefined, formData);
 
@@ -735,8 +731,49 @@ export class OTCSClient {
       throw new Error('Failed to create workspace: No ID in response');
     }
 
+    // If business_properties were provided, update the workspace categories
+    if (params.business_properties && Object.keys(params.business_properties).length > 0) {
+      await this.applyWorkspaceBusinessProperties(workspaceId, params.business_properties);
+    }
+
     // Fetch the full workspace details
     return this.getWorkspace(workspaceId);
+  }
+
+  /**
+   * Apply business properties to a workspace by updating its categories.
+   * Properties should be keyed as {category_id}_{attribute_id} (e.g., "11150_28").
+   * This method groups properties by category and updates each category.
+   */
+  private async applyWorkspaceBusinessProperties(
+    workspaceId: number,
+    properties: Record<string, unknown>
+  ): Promise<void> {
+    // Group properties by category ID
+    const categorizedValues: Record<number, CategoryValues> = {};
+
+    for (const [key, value] of Object.entries(properties)) {
+      // Extract category ID from key format: {category_id}_{attribute_id}
+      const match = key.match(/^(\d+)_/);
+      if (match) {
+        const categoryId = parseInt(match[1], 10);
+        if (!categorizedValues[categoryId]) {
+          categorizedValues[categoryId] = {};
+        }
+        categorizedValues[categoryId][key] = value;
+      }
+    }
+
+    // Update each category with its values
+    for (const [categoryIdStr, values] of Object.entries(categorizedValues)) {
+      const categoryId = parseInt(categoryIdStr, 10);
+      try {
+        await this.updateCategory(workspaceId, categoryId, values);
+      } catch (error) {
+        // Log but don't fail - some categories may not be editable
+        console.warn(`Failed to update category ${categoryId} on workspace ${workspaceId}:`, error);
+      }
+    }
   }
 
   async getWorkspace(workspaceId: number): Promise<WorkspaceInfo> {

@@ -242,7 +242,7 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_create_workspace',
-    description: 'Create a business workspace.',
+    description: 'Create a business workspace. Business properties (category attributes) are automatically applied after creation. Property keys must be in format {category_id}_{attribute_id} (e.g., "11150_28" for Customer Number).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -250,7 +250,7 @@ const allTools: Tool[] = [
         name: { type: 'string', description: 'Workspace name' },
         parent_id: { type: 'number', description: 'Optional parent folder ID' },
         description: { type: 'string', description: 'Optional description' },
-        business_properties: { type: 'object', description: 'Optional business properties' },
+        business_properties: { type: 'object', description: 'Optional business properties keyed as {category_id}_{attribute_id}. These are applied after workspace creation via category update.' },
       },
       required: ['template_id', 'name'],
     },
