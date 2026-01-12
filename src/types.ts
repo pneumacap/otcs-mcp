@@ -483,6 +483,8 @@ export interface WorkflowTaskActionParams {
   action?: string;
   custom_action?: string;
   comment?: string;
+  /** Workflow form field values (e.g., {"WorkflowForm_10": "01/12/2026"}) */
+  form_data?: Record<string, string>;
 }
 
 export interface WorkflowStatusChangeParams {

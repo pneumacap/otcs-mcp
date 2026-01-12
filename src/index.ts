@@ -811,7 +811,7 @@ const tools: Tool[] = [
   },
   {
     name: 'otcs_send_workflow_task',
-    description: 'Execute an action on a workflow task: SendOn (approve/complete), Delegate, SendForReview, or a custom disposition.',
+    description: 'Execute an action on a workflow task: SendOn (approve/complete), Delegate, SendForReview, or a custom disposition. Supports workflow form data for tasks requiring attribute values.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -839,6 +839,10 @@ const tools: Tool[] = [
         comment: {
           type: 'string',
           description: 'Comment to add with the action',
+        },
+        form_data: {
+          type: 'object',
+          description: 'Workflow form field values as key-value pairs (e.g., {"WorkflowForm_10": "01/12/2026"} for date fields). Use otcs_get_workflow_form to discover field names.',
         },
       },
       required: ['process_id', 'subprocess_id', 'task_id'],
@@ -1508,13 +1512,14 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
     }
 
     case 'otcs_send_workflow_task': {
-      const { process_id, subprocess_id, task_id, action, custom_action, comment } = args as {
+      const { process_id, subprocess_id, task_id, action, custom_action, comment, form_data } = args as {
         process_id: number;
         subprocess_id: number;
         task_id: number;
         action?: string;
         custom_action?: string;
         comment?: string;
+        form_data?: Record<string, string>;
       };
 
       await client.sendWorkflowTask({
@@ -1524,13 +1529,14 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         action,
         custom_action,
         comment,
+        form_data,
       });
 
       const actionDesc = action || custom_action || 'action';
       return {
         success: true,
         message: `Task ${task_id} completed with ${actionDesc}`,
-        details: { process_id, subprocess_id, task_id, action: actionDesc, comment },
+        details: { process_id, subprocess_id, task_id, action: actionDesc, comment, form_data },
       };
     }
 

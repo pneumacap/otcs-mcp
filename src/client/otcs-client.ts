@@ -928,7 +928,8 @@ export class OTCSClient {
     const response = await this.request<any>('GET', '/v2/members/assignments');
 
     // Response structure can vary:
-    // - results[].data.assignments[] (typical)
+    // - results[].data.assignments (object per item - actual OTCS format)
+    // - results[].data.assignments[] (array per item)
     // - results.data.assignments[] (alternative)
     // - data.assignments[] (direct)
     const assignments: WorkflowAssignment[] = [];
@@ -937,20 +938,27 @@ export class OTCSClient {
     let items: any[] = [];
 
     if (Array.isArray(response.results)) {
-      // Structure: results[].data.assignments[]
+      // Structure: results[].data.assignments (object or array)
       for (const result of response.results) {
         const data = result.data || result;
-        const resultAssignments = data.assignments || data.properties?.assignments || [];
-        if (Array.isArray(resultAssignments)) {
-          items = items.concat(resultAssignments);
+        const resultAssignments = data.assignments || data.properties?.assignments;
+        if (resultAssignments) {
+          if (Array.isArray(resultAssignments)) {
+            items = items.concat(resultAssignments);
+          } else if (typeof resultAssignments === 'object') {
+            // Single assignment object per result item
+            items.push(resultAssignments);
+          }
         }
       }
     } else if (response.results?.data?.assignments) {
       // Structure: results.data.assignments[]
-      items = response.results.data.assignments;
+      const a = response.results.data.assignments;
+      items = Array.isArray(a) ? a : [a];
     } else if (response.data?.assignments) {
       // Structure: data.assignments[]
-      items = response.data.assignments;
+      const a = response.data.assignments;
+      items = Array.isArray(a) ? a : [a];
     } else if (Array.isArray(response.assignments)) {
       // Direct assignments array
       items = response.assignments;
@@ -1172,6 +1180,7 @@ export class OTCSClient {
 
   /**
    * Send a workflow task action (SendOn, Delegate, SendForReview, custom action)
+   * Supports workflow form data for tasks that require attribute values
    */
   async sendWorkflowTask(params: WorkflowTaskActionParams): Promise<void> {
     const formData = new URLSearchParams();
@@ -1184,6 +1193,13 @@ export class OTCSClient {
     }
     if (params.comment) {
       formData.append('comment', params.comment);
+    }
+    
+    // Append workflow form field values (e.g., WorkflowForm_10 for dates)
+    if (params.form_data) {
+      for (const [key, value] of Object.entries(params.form_data)) {
+        formData.append(key, value);
+      }
     }
 
     await this.request<void>(
