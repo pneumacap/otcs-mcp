@@ -303,19 +303,28 @@ Tool: otcs_permissions(action="effective", node_id=12345, member_id=1001)
 ## Development
 
 ```bash
-npm test        # Run tests against live server
-npm run dev     # Development mode with auto-reload
+npm test              # Run main API connectivity tests
+npm run test:workflows   # Run workflow-specific tests
+npm run test:workspaces  # Run workspace-specific tests
+npm run dev           # Development mode with auto-reload
 ```
 
 ## Architecture
 
 ```
-src/
-├── index.ts              # MCP server entry point (33 consolidated tools)
-├── types.ts              # TypeScript type definitions
-├── client/
-│   └── otcs-client.ts    # OTCS REST API client (unchanged)
-└── test.ts               # API connectivity tests
+otcs-mcp/
+├── src/
+│   ├── index.ts              # MCP server entry point (33 consolidated tools)
+│   ├── types.ts              # TypeScript type definitions
+│   └── client/
+│       └── otcs-client.ts    # OTCS REST API client
+├── tests/
+│   ├── test.ts               # Main API connectivity tests
+│   ├── test-workflows.ts     # Workflow-specific tests
+│   └── test-workspaces.ts    # Workspace-specific tests
+├── docs/
+│   └── ARCHITECTURE_PLAN.md  # Detailed architecture and roadmap
+└── README.md
 ```
 
 ## Roadmap
@@ -334,7 +343,7 @@ src/
 - Compliance reporting
 - Activity summarization
 
-See [ARCHITECTURE_PLAN.md](./ARCHITECTURE_PLAN.md) for detailed specifications.
+See [ARCHITECTURE_PLAN.md](./docs/ARCHITECTURE_PLAN.md) for detailed specifications.
 
 ## License
 

@@ -992,46 +992,36 @@ class OTCSError extends Error {
 
 ## File Structure
 
+### Current Structure
+
 ```
 otcs-mcp/
 ├── src/
-│   ├── index.ts                 # MCP server entry point
-│   ├── config.ts                # Configuration handling
-│   ├── types.ts                 # TypeScript type definitions
-│   ├── client/
-│   │   ├── otcs-client.ts       # Core API client (CS + BW APIs)
-│   │   ├── rm-client.ts         # Records Management API client
-│   │   ├── auth.ts              # Authentication handling
-│   │   └── errors.ts            # Error transformation
-│   ├── tools/
-│   │   ├── index.ts             # Tool registry
-│   │   ├── auth.tools.ts        # Authentication tools
-│   │   ├── navigation.tools.ts  # Browse/navigate tools
-│   │   ├── search.tools.ts      # Search tools
-│   │   ├── document.tools.ts    # Document operations
-│   │   ├── version.tools.ts     # Version management
-│   │   ├── workspace.tools.ts   # Workspace management
-│   │   ├── workflow.tools.ts    # Workflow & assignments tools
-│   │   ├── metadata.tools.ts    # Category/metadata tools
-│   │   ├── permission.tools.ts  # Permission tools
-│   │   ├── rm-classification.tools.ts  # RM classification tools
-│   │   ├── rm-holds.tools.ts    # Legal/admin holds tools
-│   │   ├── rm-disposition.tools.ts     # Disposition tools
-│   │   ├── rm-physical.tools.ts # Physical objects tools
-│   │   └── composite.tools.ts   # High-level operations
-│   ├── schemas/
-│   │   ├── node.schema.ts       # Node type definitions
-│   │   ├── workspace.schema.ts  # Workspace schemas
-│   │   ├── workflow.schema.ts   # Workflow & assignment schemas
-│   │   ├── category.schema.ts   # Category schemas
-│   │   └── rm.schema.ts         # Records management schemas
-│   └── utils/
-│       ├── cache.ts             # Schema caching
-│       └── transform.ts         # Response transformations
+│   ├── index.ts              # MCP server entry point (33 consolidated tools)
+│   ├── types.ts              # TypeScript type definitions
+│   └── client/
+│       └── otcs-client.ts    # OTCS REST API client (CS + BW APIs)
+├── tests/
+│   ├── test.ts               # Main API connectivity tests
+│   ├── test-workflows.ts     # Workflow-specific tests
+│   └── test-workspaces.ts    # Workspace-specific tests
+├── docs/
+│   └── ARCHITECTURE_PLAN.md  # This document
+├── dist/                     # Compiled JavaScript output
 ├── package.json
 ├── tsconfig.json
-├── ARCHITECTURE_PLAN.md         # This document
 └── README.md
+```
+
+### Planned Structure (Future Phases)
+
+Additional modules will be added as Records Management phases are implemented:
+
+```
+src/
+├── client/
+│   └── rm-client.ts          # Records Management API client (Phase 6+)
+└── ...
 ```
 
 ---

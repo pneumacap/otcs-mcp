@@ -6,7 +6,7 @@
 // Allow self-signed certificates for testing
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-import { OTCSClient } from './client/otcs-client.js';
+import { OTCSClient } from '../src/client/otcs-client.js';
 
 const BASE_URL = 'https://vm-geliopou.eimdemo.com/otcs/cs.exe/api';
 const USERNAME = 'Admin';

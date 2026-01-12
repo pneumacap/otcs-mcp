@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { OTCSClient } from './client/otcs-client.js';
+import { OTCSClient } from '../src/client/otcs-client.js';
 
 const config = {
   baseUrl: process.env.OTCS_BASE_URL || 'https://vm-geliopou.eimdemo.com/otcs/cs.exe/api',
