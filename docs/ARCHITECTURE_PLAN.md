@@ -1006,7 +1006,10 @@ otcs-mcp/
 │   ├── test-workflows.ts     # Workflow-specific tests
 │   └── test-workspaces.ts    # Workspace-specific tests
 ├── docs/
-│   └── ARCHITECTURE_PLAN.md  # This document
+│   ├── ARCHITECTURE_PLAN.md                              # This document
+│   ├── content-server-rest-api-2.0.2.yaml                # Content Server REST API spec
+│   ├── opentext-business-workspaces-rest-api-v1-and-v2.yaml  # Business Workspaces API spec
+│   └── opentext-records-management-26.1.json             # Records Management API spec
 ├── dist/                     # Compiled JavaScript output
 ├── package.json
 ├── tsconfig.json
