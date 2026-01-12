@@ -15,9 +15,10 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 | 3. Workflow & Assignments | ✅ Complete | 13 tools |
 | 3a. Workflow Forms & Attributes | ✅ Complete | 6 tools |
 | 4. Metadata & Categories | ✅ Complete | 8 tools |
-| 5-8. Advanced Features | Planned | - |
+| 5. Permissions & Users | ✅ Complete | 13 tools |
+| 6-8. Advanced Features | Planned | - |
 
-**Total: 58 MCP tools implemented**
+**Total: 71 MCP tools implemented**
 
 ## Features
 
@@ -133,6 +134,36 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 |--------|-------------|---------|
 | `{cat_id}_{attr_id}` | Simple attribute | `9830_2` |
 | `{cat_id}_{set_id}_{row}_{attr_id}` | Set attribute | `9830_1_1_5` |
+
+### Phase 5: Permissions & User Management ✅
+
+#### Members (Users & Groups)
+- `otcs_search_members` - Search users and groups (type: 0=user, 1=group)
+- `otcs_get_member` - Get user/group details by ID
+- `otcs_get_user_groups` - Get groups a user belongs to
+- `otcs_get_group_members` - Get members of a group
+- `otcs_add_member_to_group` - Add user/group to a group
+- `otcs_remove_member_from_group` - Remove member from group
+
+#### Permissions
+- `otcs_get_permissions` - Get all permissions on a node (owner, group, public, custom)
+- `otcs_add_permission` - Add custom permission for user/group
+- `otcs_update_permission` - Update existing permission
+- `otcs_remove_permission` - Remove permission from user/group
+- `otcs_get_effective_permissions` - Get computed permissions for a user on a node
+- `otcs_update_owner_permissions` - Update owner permissions (or transfer ownership)
+- `otcs_update_public_permissions` - Update public access permissions
+
+**Permission Strings:**
+`see`, `see_contents`, `modify`, `edit_attributes`, `add_items`, `reserve`, `add_major_version`, `delete_versions`, `delete`, `edit_permissions`
+
+**Apply-To Scope (for folders):**
+| Value | Description |
+|-------|-------------|
+| 0 | This Item Only |
+| 1 | Sub-Items Only |
+| 2 | This Item and Sub-Items |
+| 3 | This Item and Immediate Sub-Items |
 
 ### Coming Soon: Records Management (Phase 6-7)
 

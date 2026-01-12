@@ -1187,6 +1187,340 @@ const tools: Tool[] = [
       required: ['workspace_id', 'values'],
     },
   },
+
+  // ============ Member (Users & Groups) Tools ============
+  {
+    name: 'otcs_search_members',
+    description: 'Search for users and/or groups by name, email, or other criteria. Use type=0 for users, type=1 for groups.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'number',
+          description: 'Member type: 0 for users, 1 for groups. Omit to search both.',
+          enum: [0, 1],
+        },
+        query: {
+          type: 'string',
+          description: 'Search query - searches login name, first name, last name, email (users) or group name (groups)',
+        },
+        where_name: {
+          type: 'string',
+          description: 'Filter by exact login name',
+        },
+        where_first_name: {
+          type: 'string',
+          description: 'Filter by first name',
+        },
+        where_last_name: {
+          type: 'string',
+          description: 'Filter by last name',
+        },
+        where_business_email: {
+          type: 'string',
+          description: 'Filter by business email',
+        },
+        sort: {
+          type: 'string',
+          description: 'Sort by: name, first_name, last_name, mailaddress (prefix with asc_ or desc_)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return (default: 100)',
+          default: 100,
+        },
+        page: {
+          type: 'number',
+          description: 'Page number for pagination',
+          default: 1,
+        },
+      },
+    },
+  },
+  {
+    name: 'otcs_get_member',
+    description: 'Get detailed information about a user or group by their ID.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        member_id: {
+          type: 'number',
+          description: 'The ID of the user or group',
+        },
+      },
+      required: ['member_id'],
+    },
+  },
+  {
+    name: 'otcs_get_user_groups',
+    description: 'Get all groups that a user belongs to.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        user_id: {
+          type: 'number',
+          description: 'The ID of the user',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return',
+          default: 100,
+        },
+        page: {
+          type: 'number',
+          description: 'Page number for pagination',
+          default: 1,
+        },
+      },
+      required: ['user_id'],
+    },
+  },
+  {
+    name: 'otcs_get_group_members',
+    description: 'Get all members (users and/or groups) of a group.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        group_id: {
+          type: 'number',
+          description: 'The ID of the group',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return',
+          default: 100,
+        },
+        page: {
+          type: 'number',
+          description: 'Page number for pagination',
+          default: 1,
+        },
+        sort: {
+          type: 'string',
+          description: 'Sort by: name, first_name, last_name, mailaddress',
+        },
+      },
+      required: ['group_id'],
+    },
+  },
+  {
+    name: 'otcs_add_member_to_group',
+    description: 'Add a user or group to a group.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        group_id: {
+          type: 'number',
+          description: 'The ID of the group to add the member to',
+        },
+        member_id: {
+          type: 'number',
+          description: 'The ID of the user or group to add',
+        },
+      },
+      required: ['group_id', 'member_id'],
+    },
+  },
+  {
+    name: 'otcs_remove_member_from_group',
+    description: 'Remove a user or group from a group.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        group_id: {
+          type: 'number',
+          description: 'The ID of the group',
+        },
+        member_id: {
+          type: 'number',
+          description: 'The ID of the user or group to remove',
+        },
+      },
+      required: ['group_id', 'member_id'],
+    },
+  },
+
+  // ============ Permission Tools ============
+  {
+    name: 'otcs_get_permissions',
+    description: 'Get all permissions on a node including owner, owner group, public access, and custom (assigned access) permissions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node (document, folder, workspace, etc.)',
+        },
+      },
+      required: ['node_id'],
+    },
+  },
+  {
+    name: 'otcs_add_permission',
+    description: 'Add or update permissions for a user/group on a node. Permissions: see, see_contents, modify, edit_attributes, add_items, reserve, add_major_version, delete_versions, delete, edit_permissions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        right_id: {
+          type: 'number',
+          description: 'The ID of the user or group to grant permissions to',
+        },
+        permissions: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['see', 'see_contents', 'modify', 'edit_attributes', 'add_items', 'reserve', 'add_major_version', 'delete_versions', 'delete', 'edit_permissions'],
+          },
+          description: 'Array of permission strings to grant',
+        },
+        apply_to: {
+          type: 'number',
+          description: 'Apply scope: 0=This Item, 1=Sub-Items, 2=This & Sub-Items, 3=This & Immediate Sub-Items',
+          enum: [0, 1, 2, 3],
+          default: 0,
+        },
+      },
+      required: ['node_id', 'right_id', 'permissions'],
+    },
+  },
+  {
+    name: 'otcs_update_permission',
+    description: 'Update existing permissions for a user/group on a node.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        right_id: {
+          type: 'number',
+          description: 'The ID of the user or group',
+        },
+        permissions: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['see', 'see_contents', 'modify', 'edit_attributes', 'add_items', 'reserve', 'add_major_version', 'delete_versions', 'delete', 'edit_permissions'],
+          },
+          description: 'New array of permission strings (replaces existing)',
+        },
+        apply_to: {
+          type: 'number',
+          description: 'Apply scope: 0=This Item, 1=Sub-Items, 2=This & Sub-Items, 3=This & Immediate Sub-Items',
+          enum: [0, 1, 2, 3],
+          default: 0,
+        },
+      },
+      required: ['node_id', 'right_id', 'permissions'],
+    },
+  },
+  {
+    name: 'otcs_remove_permission',
+    description: 'Remove permissions for a user/group from a node.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        right_id: {
+          type: 'number',
+          description: 'The ID of the user or group to remove permissions for',
+        },
+        apply_to: {
+          type: 'number',
+          description: 'Apply scope: 0=This Item, 1=Sub-Items, 2=This & Sub-Items',
+          enum: [0, 1, 2],
+          default: 0,
+        },
+      },
+      required: ['node_id', 'right_id'],
+    },
+  },
+  {
+    name: 'otcs_get_effective_permissions',
+    description: 'Get the effective (computed) permissions a user has on a node, considering all permission sources.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        member_id: {
+          type: 'number',
+          description: 'The ID of the user or group',
+        },
+      },
+      required: ['node_id', 'member_id'],
+    },
+  },
+  {
+    name: 'otcs_update_owner_permissions',
+    description: 'Update or change the owner permissions on a node. Can also change the owner by providing right_id.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        permissions: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['see', 'see_contents', 'modify', 'edit_attributes', 'add_items', 'reserve', 'add_major_version', 'delete_versions', 'delete', 'edit_permissions'],
+          },
+          description: 'Owner permission strings',
+        },
+        right_id: {
+          type: 'number',
+          description: 'Optional: New owner ID to transfer ownership',
+        },
+        apply_to: {
+          type: 'number',
+          description: 'Apply scope for folders: 0=This Item, 1=Sub-Items, 2=This & Sub-Items',
+          enum: [0, 1, 2, 3],
+          default: 0,
+        },
+      },
+      required: ['node_id', 'permissions'],
+    },
+  },
+  {
+    name: 'otcs_update_public_permissions',
+    description: 'Update public access permissions on a node (permissions for all authenticated users).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_id: {
+          type: 'number',
+          description: 'The ID of the node',
+        },
+        permissions: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: ['see', 'see_contents', 'modify', 'edit_attributes', 'add_items', 'reserve', 'add_major_version', 'delete_versions', 'delete', 'edit_permissions'],
+          },
+          description: 'Public access permission strings (use empty array to remove public access)',
+        },
+        apply_to: {
+          type: 'number',
+          description: 'Apply scope for folders: 0=This Item, 1=Sub-Items, 2=This & Sub-Items',
+          enum: [0, 1, 2, 3],
+          default: 0,
+        },
+      },
+      required: ['node_id', 'permissions'],
+    },
+  },
 ];
 
 // ============ Tool Handler ============
@@ -2131,6 +2465,261 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         ...result,
         message: `Workspace ${workspace_id} metadata updated`,
         values_updated: Object.keys(values),
+      };
+    }
+
+    // ============ Member (Users & Groups) Handlers ============
+
+    case 'otcs_search_members': {
+      const { type, query, where_name, where_first_name, where_last_name, where_business_email, sort, limit, page } = args as {
+        type?: 0 | 1;
+        query?: string;
+        where_name?: string;
+        where_first_name?: string;
+        where_last_name?: string;
+        where_business_email?: string;
+        sort?: string;
+        limit?: number;
+        page?: number;
+      };
+
+      const result = await client.searchMembers({
+        type,
+        query,
+        where_name,
+        where_first_name,
+        where_last_name,
+        where_business_email,
+        sort,
+        limit: limit || 100,
+        page: page || 1,
+      });
+
+      return {
+        ...result,
+        message: `Found ${result.total_count} member(s)`,
+        type_searched: type === 0 ? 'users' : type === 1 ? 'groups' : 'all',
+      };
+    }
+
+    case 'otcs_get_member': {
+      const { member_id } = args as { member_id: number };
+
+      const member = await client.getMember(member_id);
+      return {
+        ...member,
+        member_type: member.type === 0 ? 'user' : 'group',
+      };
+    }
+
+    case 'otcs_get_user_groups': {
+      const { user_id, limit, page } = args as {
+        user_id: number;
+        limit?: number;
+        page?: number;
+      };
+
+      const result = await client.getUserGroups(user_id, {
+        limit: limit || 100,
+        page: page || 1,
+      });
+
+      return {
+        ...result,
+        message: `User ${user_id} belongs to ${result.total_count} group(s)`,
+      };
+    }
+
+    case 'otcs_get_group_members': {
+      const { group_id, limit, page, sort } = args as {
+        group_id: number;
+        limit?: number;
+        page?: number;
+        sort?: string;
+      };
+
+      const result = await client.getGroupMembers(group_id, {
+        limit: limit || 100,
+        page: page || 1,
+        sort,
+      });
+
+      return {
+        ...result,
+        message: `Group ${group_id} has ${result.total_count} member(s)`,
+      };
+    }
+
+    case 'otcs_add_member_to_group': {
+      const { group_id, member_id } = args as {
+        group_id: number;
+        member_id: number;
+      };
+
+      const result = await client.addMemberToGroup(group_id, member_id);
+      return {
+        ...result,
+        message: `Member ${member_id} added to group ${group_id}`,
+      };
+    }
+
+    case 'otcs_remove_member_from_group': {
+      const { group_id, member_id } = args as {
+        group_id: number;
+        member_id: number;
+      };
+
+      const result = await client.removeMemberFromGroup(group_id, member_id);
+      return {
+        ...result,
+        message: `Member ${member_id} removed from group ${group_id}`,
+      };
+    }
+
+    // ============ Permission Handlers ============
+
+    case 'otcs_get_permissions': {
+      const { node_id } = args as { node_id: number };
+
+      const permissions = await client.getNodePermissions(node_id);
+
+      // Summarize for easier reading
+      const summary = {
+        has_owner: !!permissions.owner,
+        has_group: !!permissions.group,
+        has_public_access: !!permissions.public_access,
+        custom_permissions_count: permissions.custom_permissions.length,
+      };
+
+      return {
+        ...permissions,
+        summary,
+      };
+    }
+
+    case 'otcs_add_permission': {
+      const { node_id, right_id, permissions, apply_to } = args as {
+        node_id: number;
+        right_id: number;
+        permissions: string[];
+        apply_to?: number;
+      };
+
+      const result = await client.addCustomPermission(
+        node_id,
+        right_id,
+        permissions as any,
+        { apply_to: apply_to as any }
+      );
+
+      return {
+        ...result,
+        message: `Permissions added for member ${right_id} on node ${node_id}`,
+        permissions_granted: permissions,
+      };
+    }
+
+    case 'otcs_update_permission': {
+      const { node_id, right_id, permissions, apply_to } = args as {
+        node_id: number;
+        right_id: number;
+        permissions: string[];
+        apply_to?: number;
+      };
+
+      const result = await client.updateCustomPermission(
+        node_id,
+        right_id,
+        permissions as any,
+        { apply_to: apply_to as any }
+      );
+
+      return {
+        ...result,
+        message: `Permissions updated for member ${right_id} on node ${node_id}`,
+        new_permissions: permissions,
+      };
+    }
+
+    case 'otcs_remove_permission': {
+      const { node_id, right_id, apply_to } = args as {
+        node_id: number;
+        right_id: number;
+        apply_to?: number;
+      };
+
+      const result = await client.removeCustomPermission(
+        node_id,
+        right_id,
+        { apply_to: apply_to as any }
+      );
+
+      return {
+        ...result,
+        message: `Permissions removed for member ${right_id} from node ${node_id}`,
+      };
+    }
+
+    case 'otcs_get_effective_permissions': {
+      const { node_id, member_id } = args as {
+        node_id: number;
+        member_id: number;
+      };
+
+      const result = await client.getEffectivePermissions(node_id, member_id);
+
+      return {
+        ...result,
+        permission_count: result.permissions.length,
+        has_see: result.permissions.includes('see'),
+        has_modify: result.permissions.includes('modify'),
+        has_delete: result.permissions.includes('delete'),
+        has_edit_permissions: result.permissions.includes('edit_permissions'),
+      };
+    }
+
+    case 'otcs_update_owner_permissions': {
+      const { node_id, permissions, right_id, apply_to } = args as {
+        node_id: number;
+        permissions: string[];
+        right_id?: number;
+        apply_to?: number;
+      };
+
+      const result = await client.updateOwnerPermissions(
+        node_id,
+        permissions as any,
+        { right_id, apply_to: apply_to as any }
+      );
+
+      return {
+        ...result,
+        message: right_id
+          ? `Ownership transferred to ${right_id} with permissions on node ${node_id}`
+          : `Owner permissions updated on node ${node_id}`,
+        owner_permissions: permissions,
+      };
+    }
+
+    case 'otcs_update_public_permissions': {
+      const { node_id, permissions, apply_to } = args as {
+        node_id: number;
+        permissions: string[];
+        apply_to?: number;
+      };
+
+      const result = await client.updatePublicPermissions(
+        node_id,
+        permissions as any,
+        { apply_to: apply_to as any }
+      );
+
+      return {
+        ...result,
+        message: permissions.length > 0
+          ? `Public access permissions updated on node ${node_id}`
+          : `Public access removed from node ${node_id}`,
+        public_permissions: permissions,
       };
     }
 

@@ -839,3 +839,178 @@ export interface WorkspaceMetadataFormSchema {
   workspace_id: number;
   categories: CategoryFormSchema[];
 }
+
+// ============ Member (Users & Groups) Types ============
+
+/**
+ * Member type constants
+ */
+export const MemberTypes = {
+  USER: 0,
+  GROUP: 1,
+} as const;
+
+/**
+ * Member info returned from /v2/members/{id} or search results
+ */
+export interface MemberInfo {
+  id: number;
+  name: string;
+  type: number;
+  type_name: string;
+  display_name?: string;
+  first_name?: string;
+  last_name?: string;
+  middle_name?: string;
+  title?: string;
+  business_email?: string;
+  business_phone?: string;
+  business_fax?: string;
+  office_location?: string;
+  time_zone?: number;
+  birth_date?: string;
+  cell_phone?: string;
+  personal_email?: string;
+  group_id?: number;
+  leader_id?: number;
+  photo_url?: string;
+  deleted?: boolean;
+  privileges?: MemberPrivileges;
+}
+
+/**
+ * Member privileges
+ */
+export interface MemberPrivileges {
+  create_users?: boolean;
+  create_groups?: boolean;
+  login_enabled?: boolean;
+  admin?: boolean;
+  system_admin?: boolean;
+}
+
+/**
+ * Search result for members
+ */
+export interface MemberSearchResult {
+  results: MemberInfo[];
+  total_count: number;
+  page: number;
+  page_size: number;
+}
+
+/**
+ * Options for searching members
+ */
+export interface MemberSearchOptions {
+  type?: 0 | 1;  // 0=user, 1=group
+  query?: string;
+  where_name?: string;
+  where_first_name?: string;
+  where_last_name?: string;
+  where_business_email?: string;
+  sort?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Group membership info
+ */
+export interface GroupMembershipInfo {
+  user_id: number;
+  groups: MemberInfo[];
+  total_count: number;
+}
+
+/**
+ * Group members response
+ */
+export interface GroupMembersResponse {
+  group_id: number;
+  members: MemberInfo[];
+  total_count: number;
+}
+
+// ============ Permission Types ============
+
+/**
+ * Permission string constants
+ */
+export const PermissionStrings = {
+  SEE: 'see',
+  SEE_CONTENTS: 'see_contents',
+  MODIFY: 'modify',
+  EDIT_ATTRIBUTES: 'edit_attributes',
+  ADD_ITEMS: 'add_items',
+  RESERVE: 'reserve',
+  ADD_MAJOR_VERSION: 'add_major_version',
+  DELETE_VERSIONS: 'delete_versions',
+  DELETE: 'delete',
+  EDIT_PERMISSIONS: 'edit_permissions',
+} as const;
+
+export type PermissionString = typeof PermissionStrings[keyof typeof PermissionStrings];
+
+/**
+ * Apply-to scope for permission operations
+ */
+export const ApplyToScope = {
+  THIS_ITEM: 0,
+  SUB_ITEMS: 1,
+  THIS_AND_SUB_ITEMS: 2,
+  THIS_AND_IMMEDIATE_SUB_ITEMS: 3,
+} as const;
+
+export type ApplyToScopeValue = typeof ApplyToScope[keyof typeof ApplyToScope];
+
+/**
+ * Permission entry for a user/group on a node
+ */
+export interface PermissionEntry {
+  right_id: number;
+  right_name?: string;
+  right_type?: number;  // 0=user, 1=group
+  right_type_name?: string;
+  permissions: PermissionString[];
+  permission_type?: 'owner' | 'group' | 'public' | 'custom';
+}
+
+/**
+ * Complete permissions on a node
+ */
+export interface NodePermissions {
+  node_id: number;
+  owner?: PermissionEntry;
+  group?: PermissionEntry;
+  public_access?: PermissionEntry;
+  custom_permissions: PermissionEntry[];
+}
+
+/**
+ * Parameters for adding/updating permissions
+ */
+export interface PermissionUpdateParams {
+  node_id: number;
+  right_id?: number;  // User/group ID (required for custom, optional for owner/group)
+  permissions: PermissionString[];
+  apply_to?: ApplyToScopeValue;
+  include_sub_types?: number[];
+}
+
+/**
+ * Response from permission operations
+ */
+export interface PermissionOperationResponse {
+  success: boolean;
+  message?: string;
+}
+
+/**
+ * Effective permissions for a user on a node
+ */
+export interface EffectivePermissions {
+  node_id: number;
+  member_id: number;
+  permissions: PermissionString[];
+}

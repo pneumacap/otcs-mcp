@@ -43,6 +43,20 @@ import {
   CategoryFormSchema,
   NodeCategoriesResponse,
   WorkspaceMetadataFormSchema,
+  // Member types
+  MemberInfo,
+  MemberSearchResult,
+  MemberSearchOptions,
+  GroupMembershipInfo,
+  GroupMembersResponse,
+  // Permission types
+  PermissionString,
+  PermissionEntry,
+  NodePermissions,
+  PermissionUpdateParams,
+  PermissionOperationResponse,
+  EffectivePermissions,
+  ApplyToScopeValue,
 } from '../types.js';
 
 export class OTCSClient {
@@ -1835,5 +1849,534 @@ export class OTCSClient {
       workspace_type_name: props.wksp_type_name || props.workspace_type_name || props.type_name,
       business_properties: props.business_properties || props.categories,
     };
+  }
+
+  // ============ Member (Users & Groups) Operations ============
+
+  /**
+   * Search for users and/or groups
+   * @param options Search options including type (0=user, 1=group), query, etc.
+   */
+  async searchMembers(options: MemberSearchOptions = {}): Promise<MemberSearchResult> {
+    const params = new URLSearchParams();
+
+    if (options.type !== undefined) {
+      params.append('where_type', options.type.toString());
+    }
+    if (options.query) {
+      params.append('query', options.query);
+    }
+    if (options.where_name) {
+      params.append('where_name', options.where_name);
+    }
+    if (options.where_first_name) {
+      params.append('where_first_name', options.where_first_name);
+    }
+    if (options.where_last_name) {
+      params.append('where_last_name', options.where_last_name);
+    }
+    if (options.where_business_email) {
+      params.append('where_business_email', options.where_business_email);
+    }
+    if (options.sort) {
+      params.append('sort', options.sort);
+    }
+    if (options.page) {
+      params.append('page', options.page.toString());
+    }
+    if (options.limit) {
+      params.append('limit', options.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const path = `/v2/members${queryString ? '?' + queryString : ''}`;
+    const response = await this.request<any>('GET', path);
+
+    const results: MemberInfo[] = (response.results || []).map((item: any) => {
+      // Members API returns results[].data.properties
+      const data = item.data?.properties || item.data || item;
+      return this.transformMember(data);
+    });
+
+    const paging = response.collection?.paging || {
+      page: 1,
+      limit: 100,
+      total_count: results.length,
+    };
+
+    return {
+      results,
+      total_count: paging.total_count,
+      page: paging.page,
+      page_size: paging.limit,
+    };
+  }
+
+  /**
+   * Get a member (user or group) by ID
+   */
+  async getMember(memberId: number): Promise<MemberInfo> {
+    const response = await this.request<any>('GET', `/v2/members/${memberId}`);
+
+    // Single member response: results.data.properties or variations
+    const data = response.results?.data?.properties || response.results?.data || response.results || response;
+    return this.transformMember(data);
+  }
+
+  /**
+   * Get groups that a user belongs to
+   */
+  async getUserGroups(userId: number, options: { limit?: number; page?: number } = {}): Promise<GroupMembershipInfo> {
+    const params = new URLSearchParams();
+    if (options.limit) params.append('limit', options.limit.toString());
+    if (options.page) params.append('page', options.page.toString());
+
+    const queryString = params.toString();
+    const path = `/v2/members/${userId}/memberof${queryString ? '?' + queryString : ''}`;
+    const response = await this.request<any>('GET', path);
+
+    const groups: MemberInfo[] = (response.results || []).map((item: any) => {
+      const data = item.data?.properties || item.data || item;
+      return this.transformMember(data);
+    });
+
+    const paging = response.collection?.paging || {
+      total_count: groups.length,
+    };
+
+    return {
+      user_id: userId,
+      groups,
+      total_count: paging.total_count,
+    };
+  }
+
+  /**
+   * Get members of a group
+   */
+  async getGroupMembers(groupId: number, options: { limit?: number; page?: number; sort?: string } = {}): Promise<GroupMembersResponse> {
+    const params = new URLSearchParams();
+    if (options.limit) params.append('limit', options.limit.toString());
+    if (options.page) params.append('page', options.page.toString());
+    if (options.sort) params.append('sort', options.sort);
+
+    const queryString = params.toString();
+    const path = `/v2/members/${groupId}/members${queryString ? '?' + queryString : ''}`;
+    const response = await this.request<any>('GET', path);
+
+    const members: MemberInfo[] = (response.results || []).map((item: any) => {
+      const data = item.data?.properties || item.data || item;
+      return this.transformMember(data);
+    });
+
+    const paging = response.collection?.paging || {
+      total_count: members.length,
+    };
+
+    return {
+      group_id: groupId,
+      members,
+      total_count: paging.total_count,
+    };
+  }
+
+  /**
+   * Add a member to a group
+   */
+  async addMemberToGroup(groupId: number, memberId: number): Promise<{ success: boolean }> {
+    const formData = new URLSearchParams();
+    formData.append('member_id', memberId.toString());
+
+    await this.request<void>(
+      'POST',
+      `/v2/members/${groupId}/members`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Remove a member from a group
+   */
+  async removeMemberFromGroup(groupId: number, memberId: number): Promise<{ success: boolean }> {
+    await this.request<void>(
+      'DELETE',
+      `/v2/members/${groupId}/members/${memberId}`
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Transform raw member data to MemberInfo
+   */
+  private transformMember(data: any): MemberInfo {
+    // Handle privileges from OTCS API naming convention
+    const hasPrivileges = data.privilege_login !== undefined ||
+                         data.privilege_modify_users !== undefined ||
+                         data.privilege_modify_groups !== undefined ||
+                         data.privilege_system_admin_rights !== undefined;
+
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      type_name: data.type_name || (data.type === 0 ? 'User' : 'Group'),
+      display_name: data.name_formatted || data.display_name || data.name,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      middle_name: data.middle_name,
+      title: data.title,
+      business_email: data.business_email,
+      business_phone: data.business_phone,
+      business_fax: data.business_fax,
+      office_location: data.office_location,
+      time_zone: data.time_zone,
+      birth_date: data.birth_date,
+      cell_phone: data.cell_phone,
+      personal_email: data.personal_email,
+      group_id: data.group_id,
+      leader_id: data.leader_id,
+      photo_url: data.photo_url,
+      deleted: data.deleted,
+      privileges: hasPrivileges ? {
+        create_users: data.privilege_modify_users,
+        create_groups: data.privilege_modify_groups,
+        login_enabled: data.privilege_login,
+        admin: data.privilege_user_admin_rights,
+        system_admin: data.privilege_system_admin_rights,
+      } : undefined,
+    };
+  }
+
+  // ============ Permission Operations ============
+
+  /**
+   * Get all permissions on a node (owner, group, public, custom)
+   */
+  async getNodePermissions(nodeId: number): Promise<NodePermissions> {
+    const response = await this.request<any>('GET', `/v2/nodes/${nodeId}/permissions?expand=member`);
+
+    const results = response.results || {};
+    const data = results.data || results;
+
+    // Parse permissions from response
+    const permissions: NodePermissions = {
+      node_id: nodeId,
+      custom_permissions: [],
+    };
+
+    // Owner permissions
+    if (data.owner) {
+      permissions.owner = this.transformPermissionEntry(data.owner, 'owner');
+    }
+
+    // Owner group permissions
+    if (data.group) {
+      permissions.group = this.transformPermissionEntry(data.group, 'group');
+    }
+
+    // Public access permissions
+    if (data.public_access) {
+      permissions.public_access = this.transformPermissionEntry(data.public_access, 'public');
+    }
+
+    // Custom (assigned access) permissions
+    if (Array.isArray(data.custom_permissions)) {
+      permissions.custom_permissions = data.custom_permissions.map((p: any) =>
+        this.transformPermissionEntry(p, 'custom')
+      );
+    } else if (data.permissions) {
+      // Alternative response structure
+      for (const [rightId, permData] of Object.entries(data.permissions as Record<string, any>)) {
+        if (!['owner', 'group', 'public_access'].includes(rightId)) {
+          const entry = this.transformPermissionEntry(permData, 'custom');
+          entry.right_id = parseInt(rightId, 10);
+          permissions.custom_permissions.push(entry);
+        }
+      }
+    }
+
+    return permissions;
+  }
+
+  /**
+   * Get owner permissions for a node
+   */
+  async getOwnerPermissions(nodeId: number): Promise<PermissionEntry | null> {
+    const response = await this.request<any>('GET', `/v2/nodes/${nodeId}/permissions/owner?expand=member`);
+
+    const data = response.results?.data || response.results || response;
+    if (!data) return null;
+
+    return this.transformPermissionEntry(data, 'owner');
+  }
+
+  /**
+   * Update owner permissions for a node
+   */
+  async updateOwnerPermissions(
+    nodeId: number,
+    permissions: PermissionString[],
+    options: { right_id?: number; apply_to?: ApplyToScopeValue; include_sub_types?: number[] } = {}
+  ): Promise<PermissionOperationResponse> {
+    const bodyData: any = {
+      permissions,
+    };
+    if (options.right_id) bodyData.right_id = options.right_id;
+    if (options.apply_to !== undefined) bodyData.apply_to = options.apply_to;
+    if (options.include_sub_types) bodyData.include_sub_types = options.include_sub_types;
+
+    const formData = new URLSearchParams();
+    formData.append('body', JSON.stringify(bodyData));
+
+    await this.request<void>(
+      'PUT',
+      `/v2/nodes/${nodeId}/permissions/owner`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Get owner group permissions for a node
+   */
+  async getGroupPermissions(nodeId: number): Promise<PermissionEntry | null> {
+    const response = await this.request<any>('GET', `/v2/nodes/${nodeId}/permissions/group?expand=member`);
+
+    const data = response.results?.data || response.results || response;
+    if (!data) return null;
+
+    return this.transformPermissionEntry(data, 'group');
+  }
+
+  /**
+   * Update owner group permissions for a node
+   */
+  async updateGroupPermissions(
+    nodeId: number,
+    permissions: PermissionString[],
+    options: { right_id?: number; apply_to?: ApplyToScopeValue; include_sub_types?: number[] } = {}
+  ): Promise<PermissionOperationResponse> {
+    const bodyData: any = {
+      permissions,
+    };
+    if (options.right_id) bodyData.right_id = options.right_id;
+    if (options.apply_to !== undefined) bodyData.apply_to = options.apply_to;
+    if (options.include_sub_types) bodyData.include_sub_types = options.include_sub_types;
+
+    const formData = new URLSearchParams();
+    formData.append('body', JSON.stringify(bodyData));
+
+    await this.request<void>(
+      'PUT',
+      `/v2/nodes/${nodeId}/permissions/group`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Get public access permissions for a node
+   */
+  async getPublicPermissions(nodeId: number): Promise<PermissionEntry | null> {
+    const response = await this.request<any>('GET', `/v2/nodes/${nodeId}/permissions/public?expand=member`);
+
+    const data = response.results?.data || response.results || response;
+    if (!data) return null;
+
+    return this.transformPermissionEntry(data, 'public');
+  }
+
+  /**
+   * Update public access permissions for a node
+   */
+  async updatePublicPermissions(
+    nodeId: number,
+    permissions: PermissionString[],
+    options: { apply_to?: ApplyToScopeValue; include_sub_types?: number[] } = {}
+  ): Promise<PermissionOperationResponse> {
+    const bodyData: any = {
+      permissions,
+    };
+    if (options.apply_to !== undefined) bodyData.apply_to = options.apply_to;
+    if (options.include_sub_types) bodyData.include_sub_types = options.include_sub_types;
+
+    const formData = new URLSearchParams();
+    formData.append('body', JSON.stringify(bodyData));
+
+    await this.request<void>(
+      'PUT',
+      `/v2/nodes/${nodeId}/permissions/public`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Add custom (assigned access) permission for a user/group on a node
+   */
+  async addCustomPermission(
+    nodeId: number,
+    rightId: number,
+    permissions: PermissionString[],
+    options: { apply_to?: ApplyToScopeValue; include_sub_types?: number[] } = {}
+  ): Promise<PermissionOperationResponse> {
+    const bodyData: any = {
+      permissions,
+      right_id: rightId,
+    };
+    if (options.apply_to !== undefined) bodyData.apply_to = options.apply_to;
+    if (options.include_sub_types) bodyData.include_sub_types = options.include_sub_types;
+
+    const formData = new URLSearchParams();
+    formData.append('body', JSON.stringify(bodyData));
+
+    await this.request<void>(
+      'POST',
+      `/v2/nodes/${nodeId}/permissions/custom`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Get custom (assigned access) permission for a specific user/group on a node
+   */
+  async getCustomPermission(nodeId: number, rightId: number): Promise<PermissionEntry | null> {
+    const response = await this.request<any>(
+      'GET',
+      `/v2/nodes/${nodeId}/permissions/custom/${rightId}?expand=member`
+    );
+
+    const data = response.results?.data || response.results || response;
+    if (!data) return null;
+
+    return this.transformPermissionEntry(data, 'custom');
+  }
+
+  /**
+   * Update custom (assigned access) permission for a user/group on a node
+   */
+  async updateCustomPermission(
+    nodeId: number,
+    rightId: number,
+    permissions: PermissionString[],
+    options: { apply_to?: ApplyToScopeValue; include_sub_types?: number[] } = {}
+  ): Promise<PermissionOperationResponse> {
+    const bodyData: any = {
+      permissions,
+    };
+    if (options.apply_to !== undefined) bodyData.apply_to = options.apply_to;
+    if (options.include_sub_types) bodyData.include_sub_types = options.include_sub_types;
+
+    const formData = new URLSearchParams();
+    formData.append('body', JSON.stringify(bodyData));
+
+    await this.request<void>(
+      'PUT',
+      `/v2/nodes/${nodeId}/permissions/custom/${rightId}`,
+      undefined,
+      formData
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Remove custom (assigned access) permission for a user/group from a node
+   */
+  async removeCustomPermission(
+    nodeId: number,
+    rightId: number,
+    options: { apply_to?: ApplyToScopeValue } = {}
+  ): Promise<PermissionOperationResponse> {
+    const params = new URLSearchParams();
+    if (options.apply_to !== undefined) {
+      params.append('apply_to', options.apply_to.toString());
+    }
+
+    const queryString = params.toString();
+    const path = `/v2/nodes/${nodeId}/permissions/custom/${rightId}${queryString ? '?' + queryString : ''}`;
+
+    await this.request<void>('DELETE', path);
+
+    return { success: true };
+  }
+
+  /**
+   * Get effective permissions for a user on a node
+   */
+  async getEffectivePermissions(nodeId: number, memberId: number): Promise<EffectivePermissions> {
+    const response = await this.request<any>(
+      'GET',
+      `/v2/nodes/${nodeId}/permissions/effective/${memberId}`
+    );
+
+    const data = response.results?.data || response.results || response;
+    const permissions = this.extractPermissionStrings(data.permissions || data);
+
+    return {
+      node_id: nodeId,
+      member_id: memberId,
+      permissions,
+    };
+  }
+
+  /**
+   * Transform permission data to PermissionEntry
+   */
+  private transformPermissionEntry(data: any, type: 'owner' | 'group' | 'public' | 'custom'): PermissionEntry {
+    return {
+      right_id: data.right_id || data.id,
+      right_name: data.right_name || data.name,
+      right_type: data.right_type || data.type,
+      right_type_name: data.right_type_name || data.type_name,
+      permissions: this.extractPermissionStrings(data.permissions || data),
+      permission_type: type,
+    };
+  }
+
+  /**
+   * Extract permission strings from various formats
+   */
+  private extractPermissionStrings(data: any): PermissionString[] {
+    // If it's already an array of strings, return as-is
+    if (Array.isArray(data)) {
+      return data.filter(p => typeof p === 'string') as PermissionString[];
+    }
+
+    // If it's an object with boolean flags
+    const permissions: PermissionString[] = [];
+    const permissionMap: Record<string, PermissionString> = {
+      see: 'see',
+      see_contents: 'see_contents',
+      modify: 'modify',
+      edit_attributes: 'edit_attributes',
+      add_items: 'add_items',
+      reserve: 'reserve',
+      add_major_version: 'add_major_version',
+      delete_versions: 'delete_versions',
+      delete: 'delete',
+      edit_permissions: 'edit_permissions',
+    };
+
+    for (const [key, permString] of Object.entries(permissionMap)) {
+      if (data[key] === true) {
+        permissions.push(permString);
+      }
+    }
+
+    return permissions;
   }
 }

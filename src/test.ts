@@ -260,8 +260,116 @@ async function runTests() {
     console.log(`  ✗ Workspace search failed: ${error}`);
   }
 
-  // Test 15: Logout
-  console.log('\nTest 15: Logout');
+  // Test 15: Search Members (Users)
+  console.log('\nTest 15: Search Members (Users)');
+  let testUserId: number | null = null;
+  try {
+    const usersResult = await client.searchMembers({ type: 0, limit: 5 });
+    console.log(`  ✓ Found ${usersResult.total_count} user(s):`);
+    usersResult.results.slice(0, 5).forEach(user => {
+      console.log(`    - ${user.name} (ID: ${user.id}, ${user.display_name || user.name})`);
+    });
+    if (usersResult.results.length > 0) {
+      testUserId = usersResult.results[0].id;
+    }
+  } catch (error) {
+    console.log(`  ✗ Search members failed: ${error}`);
+  }
+
+  // Test 16: Search Members (Groups)
+  console.log('\nTest 16: Search Members (Groups)');
+  let testGroupId: number | null = null;
+  try {
+    const groupsResult = await client.searchMembers({ type: 1, limit: 5 });
+    console.log(`  ✓ Found ${groupsResult.total_count} group(s):`);
+    groupsResult.results.slice(0, 5).forEach(group => {
+      console.log(`    - ${group.name} (ID: ${group.id})`);
+    });
+    if (groupsResult.results.length > 0) {
+      testGroupId = groupsResult.results[0].id;
+    }
+  } catch (error) {
+    console.log(`  ✗ Search groups failed: ${error}`);
+  }
+
+  // Test 17: Get Member Details
+  if (testUserId) {
+    console.log('\nTest 17: Get Member Details');
+    try {
+      const member = await client.getMember(testUserId);
+      console.log(`  ✓ Retrieved member details:`);
+      console.log(`    ID: ${member.id}`);
+      console.log(`    Name: ${member.name}`);
+      console.log(`    Type: ${member.type_name}`);
+      console.log(`    Display Name: ${member.display_name || 'N/A'}`);
+      console.log(`    Email: ${member.business_email || 'N/A'}`);
+    } catch (error) {
+      console.log(`  ✗ Get member failed: ${error}`);
+    }
+  }
+
+  // Test 18: Get User Groups
+  if (testUserId) {
+    console.log('\nTest 18: Get User Groups');
+    try {
+      const groupsInfo = await client.getUserGroups(testUserId, { limit: 5 });
+      console.log(`  ✓ User ${testUserId} belongs to ${groupsInfo.total_count} group(s):`);
+      groupsInfo.groups.slice(0, 5).forEach(group => {
+        console.log(`    - ${group.name} (ID: ${group.id})`);
+      });
+    } catch (error) {
+      console.log(`  ✗ Get user groups failed: ${error}`);
+    }
+  }
+
+  // Test 19: Get Group Members
+  if (testGroupId) {
+    console.log('\nTest 19: Get Group Members');
+    try {
+      const membersInfo = await client.getGroupMembers(testGroupId, { limit: 5 });
+      console.log(`  ✓ Group ${testGroupId} has ${membersInfo.total_count} member(s):`);
+      membersInfo.members.slice(0, 5).forEach(member => {
+        console.log(`    - ${member.name} (ID: ${member.id}, Type: ${member.type_name})`);
+      });
+    } catch (error) {
+      console.log(`  ✗ Get group members failed: ${error}`);
+    }
+  }
+
+  // Test 20: Get Node Permissions
+  console.log('\nTest 20: Get Node Permissions');
+  try {
+    // Get permissions on Enterprise Workspace (ID 2000)
+    const permissions = await client.getNodePermissions(2000);
+    console.log(`  ✓ Retrieved permissions for node 2000:`);
+    console.log(`    Owner: ${permissions.owner ? `ID ${permissions.owner.right_id}` : 'Not set'}`);
+    console.log(`    Owner Group: ${permissions.group ? `ID ${permissions.group.right_id}` : 'Not set'}`);
+    console.log(`    Public Access: ${permissions.public_access ? 'Yes' : 'No'}`);
+    console.log(`    Custom Permissions: ${permissions.custom_permissions.length}`);
+    if (permissions.custom_permissions.length > 0) {
+      console.log('    Custom entries:');
+      permissions.custom_permissions.slice(0, 3).forEach(cp => {
+        console.log(`      - ${cp.right_name || cp.right_id}: ${cp.permissions.join(', ')}`);
+      });
+    }
+  } catch (error) {
+    console.log(`  ✗ Get permissions failed: ${error}`);
+  }
+
+  // Test 21: Get Effective Permissions
+  if (testUserId) {
+    console.log('\nTest 21: Get Effective Permissions');
+    try {
+      const effective = await client.getEffectivePermissions(2000, testUserId);
+      console.log(`  ✓ Effective permissions for user ${testUserId} on node 2000:`);
+      console.log(`    Permissions: ${effective.permissions.join(', ') || 'None'}`);
+    } catch (error) {
+      console.log(`  ✗ Get effective permissions failed: ${error}`);
+    }
+  }
+
+  // Test 22: Logout
+  console.log('\nTest 22: Logout');
   try {
     await client.logout();
     console.log(`  ✓ Logged out successfully`);

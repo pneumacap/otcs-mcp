@@ -234,22 +234,62 @@ where_column_query=name LIKE '*Test' AND (WNF_ATT_35S_2 > 2020-03-20 OR status =
 
 ---
 
-### Category 10: Permissions
+### Category 10: Members (Users & Groups) ✅ Phase 5
 
 | Tool | Purpose | API Operations |
 |------|---------|---------------|
-| `otcs_get_permissions` | Get node permissions | `GET /v2/nodes/{id}/permissions` |
-| `otcs_set_permissions` | Set user/group permissions | `POST /v2/nodes/{id}/permissions` |
-| `otcs_get_effective_permissions` | Get effective permissions | `GET /v2/nodes/{id}/permissions/effective` |
+| `otcs_search_members` | Search for users and/or groups | `GET /v2/members` |
+| `otcs_get_member` | Get user/group details by ID | `GET /v2/members/{id}` |
+| `otcs_get_user_groups` | Get groups a user belongs to | `GET /v2/members/{id}/memberof` |
+| `otcs_get_group_members` | Get members of a group | `GET /v2/members/{id}/members` |
+| `otcs_add_member_to_group` | Add user/group to a group | `POST /v2/members/{id}/members` |
+| `otcs_remove_member_from_group` | Remove member from group | `DELETE /v2/members/{id}/members/{member_id}` |
+
+**Search Parameters:**
+- `type`: 0=users, 1=groups
+- `query`: Search login name, first/last name, email
+- `where_name`, `where_first_name`, `where_last_name`, `where_business_email`
+- `sort`: name, first_name, last_name, mailaddress (prefix with asc_/desc_)
+
+**Agent Use Cases:**
+- "Find user John Smith"
+- "What groups does user 1000 belong to?"
+- "Show me all members of the Reviewers group"
+- "Add the Marketing team to this workspace role"
+
+---
+
+### Category 11: Permissions ✅ Phase 5
+
+| Tool | Purpose | API Operations |
+|------|---------|---------------|
+| `otcs_get_permissions` | Get all permissions on a node | `GET /v2/nodes/{id}/permissions` |
+| `otcs_add_permission` | Add custom permission for user/group | `POST /v2/nodes/{id}/permissions/custom` |
+| `otcs_update_permission` | Update existing permission | `PUT /v2/nodes/{id}/permissions/custom/{right_id}` |
+| `otcs_remove_permission` | Remove permission from user/group | `DELETE /v2/nodes/{id}/permissions/custom/{right_id}` |
+| `otcs_get_effective_permissions` | Get computed permissions for user | `GET /v2/nodes/{id}/permissions/effective/{member_id}` |
+| `otcs_update_owner_permissions` | Update owner permissions (or transfer ownership) | `PUT /v2/nodes/{id}/permissions/owner` |
+| `otcs_update_public_permissions` | Update public access permissions | `PUT /v2/nodes/{id}/permissions/public` |
+
+**Permission Strings:**
+`see`, `see_contents`, `modify`, `edit_attributes`, `add_items`, `reserve`, `add_major_version`, `delete_versions`, `delete`, `edit_permissions`
+
+**Apply-To Scope (for folders):**
+- `0`: This Item Only
+- `1`: Sub-Items Only
+- `2`: This Item and Sub-Items
+- `3`: This Item and Immediate Sub-Items
 
 **Agent Use Cases:**
 - "Who has access to this folder?"
 - "Grant read access to the Marketing team"
-- "What can I do with this document?"
+- "What permissions does user 1000 have on this document?"
+- "Remove access for user 5001 from this folder"
+- "Transfer ownership to John Smith"
 
 ---
 
-### Category 11: Intelligent Composite Operations
+### Category 12: Intelligent Composite Operations
 
 These tools combine multiple API calls for common agent workflows:
 
@@ -263,7 +303,7 @@ These tools combine multiple API calls for common agent workflows:
 
 ---
 
-### Category 12: Workflow & Assignments
+### Category 13: Workflow & Assignments ✅ Phase 3
 
 OpenText Content Server provides comprehensive workflow capabilities for routing documents through approval and review processes.
 
@@ -331,7 +371,7 @@ OpenText Content Server provides comprehensive workflow capabilities for routing
 
 ---
 
-### Category 12a: Workflow Forms & Attributes
+### Category 13a: Workflow Forms & Attributes ✅ Phase 3a
 
 Workflow tasks often require the user to fill in form fields (attributes) before completing an action. The API provides comprehensive support for discovering form schemas and updating field values.
 
@@ -444,7 +484,7 @@ await otcs_update_draft_form({
 
 The Records Management API provides enterprise compliance, retention, and governance capabilities. These tools integrate with nodes managed through the Content Server API.
 
-### Category 13: RM Classifications
+### Category 14: RM Classifications
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -463,7 +503,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 14: Legal & Administrative Holds
+### Category 15: Legal & Administrative Holds
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -497,7 +537,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 15: Dispositions & Retention
+### Category 16: Dispositions & Retention
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -516,7 +556,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 16: RSI (Record Series Identifiers) & Schedules
+### Category 17: RSI (Record Series Identifiers) & Schedules
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -535,7 +575,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 17: Cross-References
+### Category 18: Cross-References
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -561,7 +601,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 18: Security Clearance
+### Category 19: Security Clearance
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -585,7 +625,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 19: Physical Objects & Circulation
+### Category 20: Physical Objects & Circulation
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -605,7 +645,7 @@ The Records Management API provides enterprise compliance, retention, and govern
 
 ---
 
-### Category 20: Storage Management
+### Category 21: Storage Management
 
 | Tool | Purpose | API Operations |
 |------|---------|----------------|
@@ -854,11 +894,13 @@ Agent: "Give me a summary of the Acme Corp customer workspace"
 - Metadata updates
 - Bulk operations
 
-### Phase 5: Permissions & Advanced Features
-- Permission management
-- Composite operations
-- Large file uploads
-- Document reservations
+### Phase 5: Permissions & User Management ✅ Complete
+- Members (Users & Groups) operations: search, get, group membership
+- Permission management: get, add, update, remove permissions
+- Effective permissions for users on nodes
+- Owner and public access permission updates
+
+**Tools Implemented:** 13 tools (6 member tools + 7 permission tools)
 
 ### Phase 6: Records Management - Core
 - RM Classifications (declare records, update record details)
