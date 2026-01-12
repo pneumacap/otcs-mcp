@@ -343,6 +343,22 @@ npm run test:rm          # Run Records Management tests
 npm run dev           # Development mode with auto-reload
 ```
 
+### RM Testing
+
+The RM tests require a valid classification ID from your Records Management system:
+
+```bash
+# Find classification IDs by browsing the Classifications volume
+# Then run tests with:
+export RM_CLASSIFICATION_ID=14978  # Your classification ID
+npm run test:rm
+```
+
+**RM Test Coverage:**
+- Classifications: declare, update_details, undeclare (28 tests, all passing)
+- Holds: create, apply, get, remove, delete
+- Cross-references: list_types, apply, get, remove
+
 ## Architecture
 
 ```

@@ -2442,26 +2442,29 @@ export class OTCSClient {
     const response = await this.request<any>('GET', `/v1/nodes/${nodeId}/rmclassifications`);
 
     const classifications: RMClassification[] = [];
-    const data = response.data || response.results || response;
+    // The response has the data array and metadata token at root level
+    const dataArray = response.data || [];
+    const metadataToken = response.rm_metadataToken;
 
-    if (Array.isArray(data)) {
-      for (const item of data) {
+    if (Array.isArray(dataArray)) {
+      for (const item of dataArray) {
         classifications.push(this.parseRMClassification(item));
       }
-    } else if (data && typeof data === 'object') {
+    } else if (dataArray && typeof dataArray === 'object') {
       // Single classification or nested structure
-      if (data.rmclassifications) {
-        for (const item of data.rmclassifications) {
+      if (dataArray.rmclassifications) {
+        for (const item of dataArray.rmclassifications) {
           classifications.push(this.parseRMClassification(item));
         }
-      } else if (data.id || data.class_id) {
-        classifications.push(this.parseRMClassification(data));
+      } else if (dataArray.id || dataArray.class_id) {
+        classifications.push(this.parseRMClassification(dataArray));
       }
     }
 
     return {
       node_id: nodeId,
       classifications,
+      rm_metadataToken: metadataToken,
     };
   }
 
@@ -2469,8 +2472,14 @@ export class OTCSClient {
    * Apply RM classification to a node (declare as record)
    */
   async applyRMClassification(params: RMClassificationApplyParams): Promise<{ success: boolean; classification?: RMClassification }> {
+    // First get the metadataToken (may be empty for unclassified nodes)
+    const current = await this.getRMClassifications(params.node_id);
+
     const formData = new URLSearchParams();
     formData.append('class_id', params.class_id.toString());
+    if (current.rm_metadataToken) {
+      formData.append('rm_metadataToken', current.rm_metadataToken);
+    }
     if (params.official !== undefined) formData.append('official', params.official.toString());
     if (params.vital_record !== undefined) formData.append('vital_record', params.vital_record.toString());
     if (params.essential !== undefined) formData.append('essential', params.essential.toString());
@@ -2487,7 +2496,13 @@ export class OTCSClient {
    * Remove RM classification from a node
    */
   async removeRMClassification(nodeId: number, classId: number): Promise<{ success: boolean }> {
-    await this.request<any>('DELETE', `/v1/nodes/${nodeId}/rmclassifications/${classId}`);
+    // First get the metadataToken required for DELETE
+    const current = await this.getRMClassifications(nodeId);
+    let url = `/v1/nodes/${nodeId}/rmclassifications/${classId}`;
+    if (current.rm_metadataToken) {
+      url += `?rm_metadataToken=${encodeURIComponent(current.rm_metadataToken)}`;
+    }
+    await this.request<any>('DELETE', url);
     return { success: true };
   }
 
@@ -2495,7 +2510,14 @@ export class OTCSClient {
    * Update record details
    */
   async updateRMRecordDetails(params: RMRecordUpdateParams): Promise<{ success: boolean }> {
+    // First get the current classification to retrieve the metadataToken
+    const current = await this.getRMClassifications(params.node_id);
+
     const formData = new URLSearchParams();
+    // Include the metadataToken to prevent edit conflicts
+    if (current.rm_metadataToken) {
+      formData.append('rm_metadataToken', current.rm_metadataToken);
+    }
     if (params.official !== undefined) formData.append('official', params.official.toString());
     if (params.vital_record !== undefined) formData.append('vital_record', params.vital_record.toString());
     if (params.essential !== undefined) formData.append('essential', params.essential.toString());
@@ -2536,10 +2558,11 @@ export class OTCSClient {
 
   private parseRMClassification(data: any): RMClassification {
     return {
-      id: data.id || data.class_id || 0,
+      // The API returns rmclassification_id as the primary identifier
+      id: data.rmclassification_id || data.id || data.class_id || 0,
       name: data.name || data.classification_name || '',
-      class_id: data.class_id,
-      classification_id: data.classification_id,
+      class_id: data.rmclassification_id || data.class_id,
+      classification_id: data.rmclassification_id || data.classification_id,
       classification_name: data.classification_name,
       official: data.official,
       vital_record: data.vital_record,
@@ -2548,9 +2571,9 @@ export class OTCSClient {
       essential: data.essential,
       rsi_id: data.rsi_id,
       rsi_name: data.rsi_name,
-      status: data.status,
-      create_date: data.create_date,
-      modify_date: data.modify_date,
+      status: data.file_status || data.status,
+      create_date: data.record_date || data.create_date,
+      modify_date: data.status_date || data.modify_date,
     };
   }
 
@@ -2910,9 +2933,11 @@ export class OTCSClient {
    * Apply cross-reference to a node
    */
   async applyRMCrossRef(params: RMCrossRefApplyParams): Promise<{ success: boolean }> {
+    // Use form data with correct parameter names
     const formData = new URLSearchParams();
     formData.append('xref_type', params.xref_type);
-    formData.append('ref_node_id', params.ref_node_id.toString());
+    formData.append('xref_id', params.ref_node_id.toString());
+    formData.append('comment', params.comment || '');
 
     await this.request<any>('POST', `/v1/nodes/${params.node_id}/xrefs`, undefined, formData);
     return { success: true };

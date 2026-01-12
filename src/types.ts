@@ -1044,6 +1044,7 @@ export interface RMClassification {
 export interface RMClassificationsResponse {
   node_id: number;
   classifications: RMClassification[];
+  rm_metadataToken?: string;
 }
 
 /**
@@ -1186,4 +1187,5 @@ export interface RMCrossRefApplyParams {
   node_id: number;
   xref_type: string;
   ref_node_id: number;
+  comment?: string;
 }

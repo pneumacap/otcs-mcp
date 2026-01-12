@@ -1138,6 +1138,8 @@ Records Management API methods have been integrated directly into `otcs-client.t
 - ✅ Phases 1-5: Foundation, Workspaces, Workflows, Metadata, Permissions (33 tools)
 - ✅ Phase 6: Records Management Core - Classifications, Holds, Cross-References (3 tools)
 - ✅ RM Holds API tested and verified against live RM environment (create, apply, remove, delete holds)
+- ✅ RM Classifications API tested and verified (declare, update_details, undeclare with metadataToken handling)
+- ✅ RM Cross-References API tested and verified (list_types, apply, get_node_xrefs, remove)
 
 ### Up Next
 1. **Phase 7: RM Advanced** - RSI schedules and disposition processing (2 tools)
