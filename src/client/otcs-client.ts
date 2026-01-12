@@ -3035,11 +3035,10 @@ export class OTCSClient {
     if (params.length > 0) path += '?' + params.join('&');
 
     const response = await this.request<any>('GET', path);
-    const data = response.results || response.data || response;
+    // API returns { results: { data: { rsis: [...] } } }
+    const rsisArray = response.results?.data?.rsis || response.data?.rsis || response.rsis || [];
 
     const rsis: RMRSI[] = [];
-    const rsisArray = Array.isArray(data) ? data : (data.rsis || data.results || []);
-
     for (const item of rsisArray) {
       rsis.push(this.parseRMRSI(item));
     }
@@ -3057,6 +3056,12 @@ export class OTCSClient {
    */
   async getRMRSI(rsiId: number): Promise<RMRSI> {
     const response = await this.request<any>('GET', `/v2/rsis/${rsiId}`);
+    // API returns { results: { data: { rsi: [...] } } } - array with single item
+    const rsiArray = response.results?.data?.rsi || response.data?.rsi || [];
+    if (rsiArray.length > 0) {
+      return this.parseRMRSI(rsiArray[0]);
+    }
+    // Fallback to direct parsing
     const data = response.results?.data || response.data || response;
     return this.parseRMRSI(data);
   }
@@ -3242,14 +3247,35 @@ export class OTCSClient {
    * Get RSI schedule stages
    */
   async getRMRSISchedules(rsiId: number): Promise<RMRSISchedule[]> {
-    const response = await this.request<any>('GET', `/v2/rsischedules/${rsiId}/stages`);
-    const data = response.results || response.data || response;
+    // Use /v2/rsischedule/{id} which returns the schedule maintenance view
+    const response = await this.request<any>('GET', `/v2/rsischedule/${rsiId}`);
+    const data = response.results?.data || response.data || [];
 
     const schedules: RMRSISchedule[] = [];
-    const schedulesArray = Array.isArray(data) ? data : (data.stages || data.schedules || []);
+    const schedulesArray = Array.isArray(data) ? data : [];
 
     for (const item of schedulesArray) {
-      schedules.push(this.parseRMRSISchedule(item, rsiId));
+      // Parse from maintenance view format
+      const props = item.data?.properties || item.properties || item;
+      schedules.push({
+        id: props.id,
+        rsi_id: rsiId,
+        stage: props.name || props.stage,
+        object_type: props.object_type === 'Classified Objects' ? 'LIV' : 'LRM',
+        event_type: props.rule_type || props.event_type,
+        date_to_use: props.date_to_use,
+        retention_years: props.retyears,
+        retention_months: props.retmonths,
+        retention_days: props.retdays,
+        action_code: props.action_code ? parseInt(props.action_code) : undefined,
+        disposition: props.disposition,
+        description: props.actiondesc_e,
+        rule_code: props.rsirulecode,
+        event_condition: props.eventrule,
+        year_end_month: props.yearendmonth,
+        year_end_day: props.yearendday,
+        approved: props.approval_flag === true || props.approval_flag === 1,
+      });
     }
 
     return schedules;
@@ -3290,23 +3316,45 @@ export class OTCSClient {
 
   private parseRMRSI(data: any): RMRSI {
     const rsi: RMRSI = {
-      id: data.id || data.RSID || data.rsi_id,
-      name: data.name || data.Name || data.RSIName,
-      status: data.status || data.Status,
-      status_date: data.status_date || data.StatusDate || data.statusDate,
+      // Handle both snake_case and PascalCase from API
+      id: data.id || data.RSIID || data.rsi_id,
+      name: data.name || data.RSI || data.Name || data.RSIName,
+      status: data.status || data.RSIStatus || data.rsistatus || data.Status,
+      status_date: data.status_date || data.StatusDate || data.statusDate || data.statusdate,
       description: data.description || data.Description,
       subject: data.subject || data.Subject,
       title: data.title || data.Title,
-      disp_control: data.disp_control ?? data.dispcontrol ?? data.DispControl,
-      discontinued: data.discontinued ?? data.Discontinued ?? data.discontinue,
-      discontinue_date: data.discontinue_date || data.DiscontinueDate || data.discontinueDate,
-      discontinue_comment: data.discontinue_comment || data.DiscontinueComment || data.discontinueComment,
+      disp_control: data.disp_control ?? data.DispControl ?? data.dispcontrol ?? data.disp_control,
+      discontinued: data.discontinued ?? data.DiscontFlag ?? data.discont_flag,
+      discontinue_date: data.discontinue_date || data.DiscontDate || data.DiscontinueDate || data.discontinueDate,
+      discontinue_comment: data.discontinue_comment || data.DiscontComment || data.DiscontinueComment || data.discontinueComment,
       source_app: data.source_app || data.sourceApp || data.SourceApp,
       editing_app: data.editing_app || data.editingApp || data.EditingApp,
     };
 
-    // Parse schedules if present
-    if (data.schedules || data.Schedules) {
+    // Parse schedules if present (for single RSI response that includes schedule data)
+    if (data.RSIScheduleID || data.RetStage) {
+      // API embeds schedule info in RSI record
+      rsi.schedules = [{
+        id: data.RSIScheduleID,
+        rsi_id: rsi.id,
+        stage: data.RetStage,
+        object_type: data.ObjectType === 1 ? 'LIV' : 'LRM',
+        event_type: data.EventType,
+        date_to_use: data.DateToUse,
+        retention_years: data.RetYears,
+        retention_months: data.RetMonths,
+        retention_days: data.RetDays,
+        action_code: data.ActionCode,
+        disposition: data.Disposition,
+        description: data.ActionDescription,
+        rule_code: data.RSIRuleCode,
+        event_condition: data.EventRule,
+        year_end_month: data.YearEndMonth,
+        year_end_day: data.YearEndDay,
+        approved: data.ApprovalFlag === 1,
+      }];
+    } else if (data.schedules || data.Schedules) {
       const schedulesArray = data.schedules || data.Schedules;
       rsi.schedules = [];
       if (Array.isArray(schedulesArray)) {
