@@ -12,7 +12,7 @@ This document outlines the architecture for MCP (Model Context Protocol) tools t
 
 ## Tool Consolidation (v2.0)
 
-As of version 2.0, tools have been consolidated from 71 individual tools down to **33 tools** for better AI agent performance. The consolidation follows the principle of **one tool per resource type** with an `action` parameter for CRUD operations.
+As of version 2.0, tools have been consolidated from 71 individual tools down to **36 tools** for better AI agent performance. The consolidation follows the principle of **one tool per resource type** with an `action` parameter for CRUD operations.
 
 ### Consolidation Summary
 
@@ -36,8 +36,9 @@ Users can select a tool profile via `OTCS_TOOL_PROFILE` environment variable:
 |---------|-------|----------|
 | `core` | 18 | Basic document management |
 | `workflow` | 27 | Document management + full workflow support |
-| `admin` | 25 | Document management + permissions/admin tools |
-| `full` | 33 | All tools (default) |
+| `admin` | 28 | Document management + permissions/admin + RM |
+| `rm` | 18 | Document management + Records Management |
+| `full` | 36 | All tools (default) |
 
 ---
 
@@ -934,43 +935,49 @@ Agent: "Give me a summary of the Acme Corp customer workspace"
 
 **Tools Implemented:** 3 consolidated tools (previously 13 individual tools)
 
-### Phase 6: Records Management - Core (3 consolidated tools)
+### Phase 6: Records Management - Core ✅ Complete (3 consolidated tools)
 
 **Tool: `otcs_rm_classification`**
 | Action | Description |
 |--------|-------------|
-| `get` | Get RM classifications on a node |
-| `apply` | Apply RM classification (declare as record) |
-| `remove` | Remove RM classification |
-| `update_details` | Update record details (vital record, official, etc.) |
+| `get_classifications` | Get RM classifications on a node |
+| `declare` | Apply RM classification (declare as record) |
+| `undeclare` | Remove RM classification |
+| `update_details` | Update record details (official, accession, etc.) |
 | `make_confidential` | Mark record as confidential |
 | `remove_confidential` | Remove confidential marking |
-| `finalize` | Finalize records |
+| `finalize` | Finalize records (single or batch) |
 
 **Tool: `otcs_rm_holds`**
 | Action | Description |
 |--------|-------------|
-| `list` | List all holds or holds on a node |
-| `get` | Get hold details |
-| `create` | Create a new hold |
-| `update` | Update hold properties |
-| `delete` | Delete a hold |
-| `apply` | Apply hold to node(s) |
-| `remove` | Remove hold from node(s) |
-| `get_items` | Get items under a hold |
-| `get_users` | Get users assigned to a hold |
-| `add_users` | Assign users to hold |
-| `remove_users` | Remove users from hold |
+| `list_holds` | List all holds in system |
+| `get_hold` | Get hold details |
+| `create_hold` | Create a new hold (Legal/Administrative) |
+| `update_hold` | Update hold properties |
+| `delete_hold` | Delete a hold |
+| `get_node_holds` | Get holds on a specific node |
+| `apply_hold` | Apply hold to a node |
+| `remove_hold` | Remove hold from a node |
+| `apply_batch` | Apply hold to multiple nodes |
+| `remove_batch` | Remove hold from multiple nodes |
+| `get_hold_items` | Get items under a hold |
+| `get_hold_users` | Get users authorized for a hold |
+| `add_hold_users` | Add users to hold |
+| `remove_hold_users` | Remove users from hold |
 
 **Tool: `otcs_rm_xref`**
 | Action | Description |
 |--------|-------------|
-| `list` | List cross-references on a node or all xref types |
-| `get` | Get cross-reference type details |
-| `create` | Create new cross-reference type |
-| `apply` | Apply cross-reference between nodes |
-| `remove` | Remove cross-reference |
+| `list_types` | List all cross-reference types |
+| `get_type` | Get cross-reference type details |
+| `create_type` | Create new cross-reference type |
 | `delete_type` | Delete cross-reference type |
+| `get_node_xrefs` | Get cross-references on a node |
+| `apply` | Create cross-reference between nodes |
+| `remove` | Remove cross-reference |
+| `apply_batch` | Create multiple cross-references |
+| `remove_batch` | Remove multiple cross-references |
 
 ### Phase 7: Records Management - Advanced (2 consolidated tools)
 
@@ -1040,10 +1047,11 @@ Agent: "Give me a summary of the Acme Corp customer workspace"
 | Phase | Tools | Status |
 |-------|-------|--------|
 | 1-5 (Foundation through Permissions) | 33 | ✅ Complete |
-| 6 (RM Core) | 3 | Planned |
+| 6 (RM Core) | 3 | ✅ Complete |
 | 7 (RM Advanced) | 2 | Planned |
 | 8 (Enhanced Features) | 4 | Planned |
-| **Total** | **42** | |
+| **Current Total** | **36** | |
+| **Projected Total** | **42** | |
 
 ### API References
 
@@ -1098,10 +1106,10 @@ class OTCSError extends Error {
 ```
 otcs-mcp/
 ├── src/
-│   ├── index.ts              # MCP server entry point (33 consolidated tools)
+│   ├── index.ts              # MCP server entry point (36 consolidated tools)
 │   ├── types.ts              # TypeScript type definitions
 │   └── client/
-│       └── otcs-client.ts    # OTCS REST API client (CS + BW APIs)
+│       └── otcs-client.ts    # OTCS REST API client (CS + BW + RM APIs)
 ├── tests/
 │   ├── test.ts               # Main API connectivity tests
 │   ├── test-workflows.ts     # Workflow-specific tests
@@ -1117,24 +1125,22 @@ otcs-mcp/
 └── README.md
 ```
 
-### Planned Structure (Future Phases)
+### Implementation Notes
 
-Additional modules will be added as Records Management phases are implemented:
-
-```
-src/
-├── client/
-│   └── rm-client.ts          # Records Management API client (Phase 6+)
-└── ...
-```
+Records Management API methods have been integrated directly into `otcs-client.ts` alongside the Content Server and Business Workspaces APIs, maintaining a single unified client for all OTCS operations.
 
 ---
 
 ## Next Steps
 
-1. **Confirm scope** - Which tool categories are highest priority?
-2. **Environment setup** - Get test Content Server credentials
-3. **Begin Phase 1** - Implement foundation tools
-4. **Iterate** - Test with real agent workflows and refine
+### Completed
+- ✅ Phases 1-5: Foundation, Workspaces, Workflows, Metadata, Permissions (33 tools)
+- ✅ Phase 6: Records Management Core - Classifications, Holds, Cross-References (3 tools)
+
+### Up Next
+1. **Phase 7: RM Advanced** - RSI schedules and disposition processing (2 tools)
+2. **Phase 8: Enhanced Features** - Favorites, reminders, notifications, recycle bin (4 tools)
+3. **Testing** - Test RM tools against live Records Management environment
+4. **Iterate** - Refine based on real agent workflows
 
 This architecture provides a solid foundation for building an intelligent document management agent that can reason about and operate on OpenText Content Server effectively.
