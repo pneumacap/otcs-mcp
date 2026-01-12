@@ -10,13 +10,13 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 
 | Phase | Status | Tools |
 |-------|--------|-------|
-| 1. Foundation | ✅ Complete | 16 tools |
+| 1. Foundation | ✅ Complete | 17 tools |
 | 2. Business Workspaces | ✅ Complete | 14 tools |
 | 3. Workflow & Assignments | ✅ Complete | 13 tools |
 | 4. Metadata & Categories | Planned | - |
 | 5-8. Advanced Features | Planned | - |
 
-**Total: 43 MCP tools implemented**
+**Total: 44 MCP tools implemented**
 
 ## Features
 
@@ -41,7 +41,8 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 - `otcs_delete_node` - Delete a node
 
 ### Document Operations
-- `otcs_upload_document` - Upload a new document
+- `otcs_upload_file` - **Upload a file from disk** (preferred - auto-detects MIME type)
+- `otcs_upload_document` - Upload document with base64 content
 - `otcs_download_content` - Download document content
 
 ### Version Management
@@ -209,10 +210,21 @@ Agent: Create a folder structure for Q1 2024 reports
 Tool: otcs_create_folder_path(parent_id=2000, path="2024/Q1/Reports")
 ```
 
-### Upload Document
+### Upload a File from Disk
 
 ```
-Agent: Upload this contract to the legal folder
+Agent: Upload the report from my desktop to the AI Demo folder
+Tool: otcs_upload_file(
+  parent_id=12345,
+  file_path="/Users/john/Desktop/report.pdf"
+)
+→ File uploaded with ID 67890 (MIME type auto-detected)
+```
+
+### Upload Document with Base64 Content
+
+```
+Agent: Upload this generated content as a document
 Tool: otcs_upload_document(
   parent_id=12345,
   name="Contract_2024.pdf",
