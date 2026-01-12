@@ -940,7 +940,8 @@ Agent: "Give me a summary of the Acme Corp customer workspace"
 **Tool: `otcs_rm_classification`**
 | Action | Description |
 |--------|-------------|
-| `get_classifications` | Get RM classifications on a node |
+| `browse_tree` | Browse RM classification tree (default: Classification Volume node 2046) |
+| `get_node_classifications` | Get RM classifications applied to a node |
 | `declare` | Apply RM classification (declare as record) |
 | `undeclare` | Remove RM classification |
 | `update_details` | Update record details (official, accession, etc.) |

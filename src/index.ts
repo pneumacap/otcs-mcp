@@ -565,15 +565,14 @@ const allTools: Tool[] = [
   // ==================== Records Management (3 consolidated tools) ====================
   {
     name: 'otcs_rm_classification',
-    description: 'Manage Records Management classifications. Actions: get_classifications (list available), declare (apply classification to node), undeclare (remove), update_details (record properties), make_confidential, remove_confidential, finalize (make record immutable).',
+    description: 'Manage Records Management classifications. Actions: browse_tree (browse RM classification tree - default starts at node 2046), get_node_classifications (get classifications applied to a node), declare (apply classification to node), undeclare (remove), update_details (record properties), make_confidential, remove_confidential, finalize (make record immutable). NOTE: To find available RM classifications to apply, use browse_tree starting from the Classification Volume (node 2046).',
     inputSchema: {
       type: 'object',
       properties: {
-        action: { type: 'string', enum: ['get_classifications', 'declare', 'undeclare', 'update_details', 'make_confidential', 'remove_confidential', 'finalize'], description: 'Action to perform' },
-        node_id: { type: 'number', description: 'Node ID (for declare/undeclare/update_details/make_confidential/remove_confidential/finalize)' },
+        action: { type: 'string', enum: ['browse_tree', 'get_node_classifications', 'declare', 'undeclare', 'update_details', 'make_confidential', 'remove_confidential', 'finalize'], description: 'Action to perform' },
+        node_id: { type: 'number', description: 'Node ID - for browse_tree: classification folder to browse (default: 2046 Classification Volume); for other actions: target document node' },
         node_ids: { type: 'array', items: { type: 'number' }, description: 'Array of node IDs (for finalize batch)' },
         classification_id: { type: 'number', description: 'Classification ID to apply (for declare)' },
-        parent_id: { type: 'number', description: 'Parent container ID (for get_classifications)' },
         name: { type: 'string', description: 'Updated record name (for update_details)' },
         official: { type: 'boolean', description: 'Mark as official record (for update_details)' },
         storage: { type: 'string', description: 'Storage location (for update_details)' },
@@ -1131,11 +1130,39 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         name?: string; official?: boolean; storage?: string; accession?: string; subject?: string;
       };
 
+      // Default Classification Volume ID
+      const CLASSIFICATION_VOLUME_ID = 2046;
+
       switch (action) {
-        case 'get_classifications':
+        case 'browse_tree':
+          // Browse the RM classification tree - default to Classification Volume (2046)
+          const browseId = node_id || CLASSIFICATION_VOLUME_ID;
+          const browseResult = await client.getSubnodes(browseId, { limit: 100 });
+          const rmClassifications = browseResult.items.filter((item: any) => item.type === 551 || item.type === 196);
+          return {
+            parent_id: browseId,
+            parent_name: browseResult.folder?.name || 'Classification Volume',
+            classifications: browseResult.items.map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              type: item.type,
+              type_name: item.type_name,
+              description: item.description,
+              has_children: item.container_size > 0,
+              child_count: item.container_size
+            })),
+            count: browseResult.items.length,
+            rm_classification_count: rmClassifications.length,
+            message: browseId === CLASSIFICATION_VOLUME_ID
+              ? `Classification Volume root contains ${browseResult.items.length} item(s). Use RM Classification (type 551) items for declaring records.`
+              : `Found ${browseResult.items.length} item(s) in classification folder ${browseId}`,
+            hint: 'To drill down, call browse_tree with node_id set to a classification folder ID. Type 551 = RM Classification (can be used for declare).'
+          };
+        case 'get_node_classifications':
+          // Get classifications applied TO a specific node
           if (!node_id) throw new Error('node_id required');
           const classResult = await client.getRMClassifications(node_id);
-          return { node_id, classifications: classResult.classifications, count: classResult.classifications.length, message: `Found ${classResult.classifications.length} classification(s)` };
+          return { node_id, classifications: classResult.classifications, count: classResult.classifications.length, message: `Node ${node_id} has ${classResult.classifications.length} classification(s) applied` };
         case 'declare':
           if (!node_id || !classification_id) throw new Error('node_id and classification_id required');
           const declareResult = await client.applyRMClassification({ node_id, class_id: classification_id, official });

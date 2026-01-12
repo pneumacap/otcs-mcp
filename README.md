@@ -136,7 +136,7 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 
 | Tool | Actions | Description |
 |------|---------|-------------|
-| `otcs_rm_classification` | `get_classifications`, `declare`, `undeclare`, `update_details`, `make_confidential`, `remove_confidential`, `finalize` | Manage record classifications |
+| `otcs_rm_classification` | `browse_tree`, `get_node_classifications`, `declare`, `undeclare`, `update_details`, `make_confidential`, `remove_confidential`, `finalize` | Manage record classifications |
 | `otcs_rm_holds` | `list_holds`, `get_hold`, `create_hold`, `update_hold`, `delete_hold`, `get_node_holds`, `apply_hold`, `remove_hold`, `apply_batch`, `remove_batch`, `get_hold_items`, `get_hold_users`, `add_hold_users`, `remove_hold_users` | Legal/administrative holds |
 | `otcs_rm_xref` | `list_types`, `get_type`, `create_type`, `delete_type`, `get_node_xrefs`, `apply`, `remove`, `apply_batch`, `remove_batch` | Cross-references between records |
 
@@ -314,8 +314,11 @@ Tool: otcs_permissions(action="effective", node_id=12345, member_id=1001)
 ### Records Management
 
 ```
-Agent: Get classifications on a document
-Tool: otcs_rm_classification(action="get_classifications", node_id=12345)
+Agent: Browse the RM classification tree
+Tool: otcs_rm_classification(action="browse_tree")
+
+Agent: Get classifications applied to a document
+Tool: otcs_rm_classification(action="get_node_classifications", node_id=12345)
 
 Agent: Declare a document as a record
 Tool: otcs_rm_classification(action="declare", node_id=12345, classification_id=5001)
