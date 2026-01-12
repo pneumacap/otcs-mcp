@@ -26,24 +26,24 @@ const tools: Tool[] = [
   // Authentication Tools
   {
     name: 'otcs_authenticate',
-    description: 'Authenticate with OpenText Content Server and establish a session. Returns an authentication ticket for subsequent operations.',
+    description: 'Authenticate with OpenText Content Server and establish a session. Returns an authentication ticket for subsequent operations. If username/password are not provided, uses credentials from environment variables (OTCS_USERNAME, OTCS_PASSWORD).',
     inputSchema: {
       type: 'object',
       properties: {
         username: {
           type: 'string',
-          description: 'Login username',
+          description: 'Login username (optional if OTCS_USERNAME env var is set)',
         },
         password: {
           type: 'string',
-          description: 'Login password',
+          description: 'Login password (optional if OTCS_PASSWORD env var is set)',
         },
         domain: {
           type: 'string',
           description: 'Optional login domain',
         },
       },
-      required: ['username', 'password'],
+      required: [],
     },
   },
   {
@@ -1592,6 +1592,19 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('OTCS MCP Server running on stdio');
+
+  // Auto-authenticate if credentials are provided via environment variables
+  if (config.username && config.password) {
+    try {
+      await client.authenticate();
+      console.error('Auto-authenticated with environment credentials');
+    } catch (error) {
+      console.error('Auto-authentication failed:', error instanceof Error ? error.message : error);
+      console.error('Tools requiring authentication will fail until otcs_authenticate is called');
+    }
+  } else {
+    console.error('No credentials in environment. Call otcs_authenticate to establish a session.');
+  }
 }
 
 main().catch(console.error);

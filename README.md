@@ -123,17 +123,36 @@ npm run build
 
 ## Configuration
 
-Set environment variables:
+### Auto-Authentication
 
-```bash
-export OTCS_BASE_URL="https://your-server/otcs/cs.exe/api"
-export OTCS_USERNAME="your-username"
-export OTCS_PASSWORD="your-password"
-# Optional:
-export OTCS_DOMAIN="your-domain"
+When credentials are provided via environment variables, the server **automatically authenticates** on startup. You don't need to call `otcs_authenticate` manually - just start using the tools directly.
+
+### For Cursor IDE
+
+Add to your Cursor MCP settings (Settings → Tools & MCP → New MCP Server):
+
+```json
+{
+  "mcpServers": {
+    "otcs": {
+      "command": "node",
+      "args": ["/path/to/otcs-mcp/dist/index.js"],
+      "env": {
+        "OTCS_BASE_URL": "https://your-server/otcs/cs.exe/api",
+        "OTCS_USERNAME": "your-username",
+        "OTCS_PASSWORD": "your-password",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      }
+    }
+  }
+}
 ```
 
-Or configure in Claude Desktop's `claude_desktop_config.json`:
+**Important:** The `env` section is required! MCP servers don't inherit your shell's environment variables - you must explicitly pass them in the config.
+
+### For Claude Desktop
+
+Add to `claude_desktop_config.json`:
 
 ```json
 {
@@ -152,18 +171,35 @@ Or configure in Claude Desktop's `claude_desktop_config.json`:
 }
 ```
 
-**Note:** Set `NODE_TLS_REJECT_UNAUTHORIZED=0` only for development/testing with self-signed certificates.
+### Environment Variables
 
-## Usage Examples
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OTCS_BASE_URL` | Yes | Content Server API URL (e.g., `https://server/otcs/cs.exe/api`) |
+| `OTCS_USERNAME` | Yes* | Login username |
+| `OTCS_PASSWORD` | Yes* | Login password |
+| `OTCS_DOMAIN` | No | Login domain (if using domain authentication) |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | No | Set to `"0"` for self-signed certificates |
 
-### Authenticate and Browse
+*If not provided, you must call `otcs_authenticate` with credentials before using other tools.
+
+### Manual Authentication
+
+If you prefer not to store credentials in the config, you can authenticate manually:
 
 ```
 Agent: Authenticate to Content Server
 Tool: otcs_authenticate(username="Admin", password="xxx")
+```
 
+## Usage Examples
+
+### Browse Content (with auto-authentication)
+
+```
 Agent: Show me what's in the Enterprise Workspace
 Tool: otcs_browse(folder_id=2000)
+→ Returns folder contents (auto-authenticated from env vars)
 ```
 
 ### Create Folder Structure
