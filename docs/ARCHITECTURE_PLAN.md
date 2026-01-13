@@ -259,10 +259,28 @@ where_column_query=name LIKE '*Test' AND (WNF_ATT_35S_2 > 2020-03-20 OR status =
 | `otcs_get_metadata_form` | Get update form schema | `GET /v2/forms/businessworkspaces/{id}/metadata/update` |
 | `otcs_update_workspace_metadata` | Update business properties | Combined operation |
 
+**Nested Set Attribute Support:**
+
+Categories can contain sets (groups of related attributes organized in rows). The implementation supports:
+
+| Value Format | Key Pattern | Example |
+|--------------|-------------|---------|
+| Simple attribute | `{cat_id}_{attr_id}` | `"9830_2": "value"` |
+| Set row attribute | `{cat_id}_{set_id}_{row}_{attr_id}` | `"11081_2_1_26": "INV-001"` |
+| Multi-value | Array of values | `"11081_20_1_22": ["PO-001", "PO-002"]` |
+| Nested object | Auto-flattened | `{"4": {"1": {"5": "value"}}}` → `"9830_4_1_5"` |
+| Row array | Auto-flattened | `{"4": [{"5": "v1"}, {"5": "v2"}]}` → rows 1, 2 |
+
+The `get_form` action returns `CategoryAttribute` objects with:
+- `is_set: true` for set/group attributes
+- `children: CategoryAttribute[]` for nested attributes within sets
+- `set_rows: number` indicating existing row count
+
 **Agent Use Cases:**
 - "Set the contract expiration date to December 31"
 - "What metadata categories are on this document?"
 - "Update the project status to 'In Review'"
+- "Set the invoice data with vendor and payment information"
 
 ---
 
@@ -922,8 +940,13 @@ Agent: "Give me a summary of the Acme Corp customer workspace"
 
 ### Phase 4: Metadata & Categories ✅ Complete
 - Category operations (list, get, add, update, remove)
-- Form schema retrieval (get_form action)
+- Form schema retrieval (get_form action) with nested set structure detection
 - Workspace metadata/business properties updates
+- **Nested Set Attribute Support:**
+  - `CategoryAttribute` type includes `is_set`, `set_rows`, and `children` for nested structures
+  - Automatic flattening of nested objects to API key format
+  - Multi-value arrays sent as repeated form fields
+  - Key format: `{category_id}_{set_id}_{row}_{attribute_id}`
 - Consolidated into `otcs_categories` and `otcs_workspace_metadata` tools
 
 ### Phase 5: Permissions & User Management ✅ Complete

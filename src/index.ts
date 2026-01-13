@@ -29,7 +29,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
     'otcs_create_folder', 'otcs_node_action',
-    'otcs_upload', 'otcs_download_content',
+    'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace',
     'otcs_get_assignments', 'otcs_workflow_form', 'otcs_workflow_task',
@@ -40,7 +40,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
     'otcs_create_folder', 'otcs_node_action',
-    'otcs_upload', 'otcs_download_content',
+    'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace', 'otcs_workspace_types',
     'otcs_get_assignments', 'otcs_workflow_status', 'otcs_workflow_definition',
@@ -54,7 +54,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     'otcs_authenticate', 'otcs_session_status', 'otcs_logout',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
     'otcs_create_folder', 'otcs_node_action',
-    'otcs_upload', 'otcs_download_content',
+    'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace', 'otcs_create_workspace',
     'otcs_workspace_types', 'otcs_workspace_relations', 'otcs_workspace_roles',
@@ -68,7 +68,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
     'otcs_create_folder', 'otcs_node_action',
-    'otcs_upload', 'otcs_download_content',
+    'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace',
     'otcs_members', 'otcs_permissions', 'otcs_categories',
@@ -219,6 +219,58 @@ const allTools: Tool[] = [
         node_id: { type: 'number', description: 'Document ID' },
       },
       required: ['node_id'],
+    },
+  },
+  {
+    name: 'otcs_upload_folder',
+    description: 'Upload all files from a local folder to OpenText with parallel processing. When recursive=true, preserves the folder structure from the local filesystem by creating matching subfolders in OpenText. Perfect for document migrations. Optionally filter by extension and auto-apply categories.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        parent_id: { type: 'number', description: 'Destination folder ID in OpenText' },
+        folder_path: { type: 'string', description: 'Local folder path to upload (e.g., "/Users/me/Desktop/documents")' },
+        extensions: { type: 'array', items: { type: 'string' }, description: 'Optional: Filter by file extensions (e.g., [".pdf", ".docx"]). If omitted, uploads all files.' },
+        recursive: { type: 'boolean', description: 'Include subfolders and preserve folder structure (default: false). When true, creates matching subfolder hierarchy in OpenText.', default: false },
+        concurrency: { type: 'number', description: 'Number of parallel uploads (default: 5, max: 10)', default: 5 },
+        category_id: { type: 'number', description: 'Optional: Category ID to apply to all uploaded documents' },
+        category_values: { type: 'object', description: 'Optional: Category attribute values keyed as {category_id}_{attribute_id}' },
+      },
+      required: ['parent_id', 'folder_path'],
+    },
+  },
+  {
+    name: 'otcs_upload_batch',
+    description: 'Upload multiple specific files to OpenText with parallel processing. Provide an array of file paths.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        parent_id: { type: 'number', description: 'Destination folder ID in OpenText' },
+        file_paths: { type: 'array', items: { type: 'string' }, description: 'Array of local file paths to upload' },
+        concurrency: { type: 'number', description: 'Number of parallel uploads (default: 5, max: 10)', default: 5 },
+        category_id: { type: 'number', description: 'Optional: Category ID to apply to all uploaded documents' },
+        category_values: { type: 'object', description: 'Optional: Category attribute values keyed as {category_id}_{attribute_id}' },
+      },
+      required: ['parent_id', 'file_paths'],
+    },
+  },
+  {
+    name: 'otcs_upload_with_metadata',
+    description: 'Upload a document and apply category/metadata in a single operation. Combines upload + category assignment for efficiency.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        parent_id: { type: 'number', description: 'Destination folder ID' },
+        file_path: { type: 'string', description: 'Local file path to upload' },
+        content_base64: { type: 'string', description: 'File content as base64 (alternative to file_path)' },
+        name: { type: 'string', description: 'Document name (required if using content_base64)' },
+        mime_type: { type: 'string', description: 'MIME type (auto-detected for file_path)' },
+        description: { type: 'string', description: 'Optional description' },
+        category_id: { type: 'number', description: 'Category ID to apply' },
+        category_values: { type: 'object', description: 'Category attribute values keyed as {category_id}_{attribute_id}' },
+        classification_id: { type: 'number', description: 'Optional: RM Classification ID to declare as record' },
+        workflow_id: { type: 'number', description: 'Optional: Workflow map ID to start after upload' },
+      },
+      required: ['parent_id'],
     },
   },
 
@@ -474,15 +526,18 @@ const allTools: Tool[] = [
   // ==================== Categories (2 consolidated tools) ====================
   {
     name: 'otcs_categories',
-    description: 'Manage node categories/metadata. Actions: list, get, add, update, remove, get_form.',
+    description: 'Manage node categories/metadata. Actions: list, get, add, update, remove, get_form. Supports nested set attributes.',
     inputSchema: {
       type: 'object',
       properties: {
         action: { type: 'string', enum: ['list', 'get', 'add', 'update', 'remove', 'get_form'], description: 'Action' },
         node_id: { type: 'number', description: 'Node ID' },
         category_id: { type: 'number', description: 'Category ID (for get/add/update/remove/get_form)' },
-        values: { type: 'object', description: 'Attribute values keyed as {category_id}_{attribute_id} (for add/update)' },
-        include_metadata: { type: 'boolean', description: 'Include attribute type info (for list/get)' },
+        values: {
+          type: 'object',
+          description: 'Attribute values. Key formats: simple "{cat_id}_{attr_id}", set row "{cat_id}_{set_id}_{row}_{attr_id}", or nested object { set_id: [{ attr_id: value }] }',
+        },
+        include_metadata: { type: 'boolean', description: 'Include attribute type info including nested set structure (for list/get)' },
         form_mode: { type: 'string', enum: ['create', 'update'], description: 'Form mode (for get_form)', default: 'create' },
       },
       required: ['action', 'node_id'],
@@ -490,13 +545,16 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_workspace_metadata',
-    description: 'Manage workspace business properties. Actions: get_form, update.',
+    description: 'Manage workspace business properties. Actions: get_form, update. Supports nested set attributes.',
     inputSchema: {
       type: 'object',
       properties: {
         action: { type: 'string', enum: ['get_form', 'update'], description: 'Action' },
         workspace_id: { type: 'number', description: 'Workspace ID' },
-        values: { type: 'object', description: 'Values keyed as {category_id}_{attribute_id} (for update)' },
+        values: {
+          type: 'object',
+          description: 'Values. Key formats: simple "{cat_id}_{attr_id}", set row "{cat_id}_{set_id}_{row}_{attr_id}", or nested object { set_id: [{ attr_id: value }] }',
+        },
       },
       required: ['action', 'workspace_id'],
     },
@@ -783,6 +841,319 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
       const { node_id } = args as { node_id: number };
       const { content, mimeType, fileName } = await client.getContent(node_id);
       return { file_name: fileName, mime_type: mimeType, size_bytes: content.byteLength, content_base64: Buffer.from(content).toString('base64') };
+    }
+
+    case 'otcs_upload_folder': {
+      const { parent_id, folder_path, extensions, recursive, concurrency, category_id, category_values } = args as {
+        parent_id: number; folder_path: string; extensions?: string[]; recursive?: boolean;
+        concurrency?: number; category_id?: number; category_values?: Record<string, unknown>;
+      };
+
+      if (!fs.existsSync(folder_path)) throw new Error(`Folder not found: ${folder_path}`);
+      if (!fs.statSync(folder_path).isDirectory()) throw new Error(`Path is not a directory: ${folder_path}`);
+
+      // Normalize the base folder path for consistent relative path calculation
+      const baseFolderPath = path.resolve(folder_path);
+      
+      // Get the source folder name (e.g., "test" from "/Users/me/Desktop/test")
+      const sourceFolderName = path.basename(baseFolderPath);
+
+      // Create the root folder in OpenText (mirrors the source folder)
+      let rootFolderId: number;
+      try {
+        const existingFolder = await client.findChildByName(parent_id, sourceFolderName);
+        if (existingFolder) {
+          rootFolderId = existingFolder.id;
+        } else {
+          const createdFolder = await client.createFolder(parent_id, sourceFolderName);
+          rootFolderId = createdFolder.id;
+        }
+      } catch (error) {
+        throw new Error(`Failed to create root folder "${sourceFolderName}": ${error}`);
+      }
+
+      // Collect all files to upload with their relative paths
+      const filesToUpload: { fullPath: string; relativePath: string }[] = [];
+      const collectFiles = (dir: string) => {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            if (recursive) {
+              collectFiles(fullPath);
+            }
+          } else if (entry.isFile()) {
+            // Filter by extension if specified
+            if (extensions && extensions.length > 0) {
+              const ext = path.extname(entry.name).toLowerCase();
+              if (!extensions.map(e => e.toLowerCase()).includes(ext)) continue;
+            }
+            // Skip hidden files
+            if (!entry.name.startsWith('.')) {
+              // Calculate relative path from base folder
+              const relativePath = path.relative(baseFolderPath, fullPath);
+              filesToUpload.push({ fullPath, relativePath });
+            }
+          }
+        }
+      };
+      collectFiles(folder_path);
+
+      if (filesToUpload.length === 0) {
+        return { success: true, uploaded: 0, message: 'No files found to upload', folder_path, root_folder: { name: sourceFolderName, id: rootFolderId }, extensions };
+      }
+
+      // Cache for created folders to avoid duplicate API calls
+      // Key: relative folder path, Value: folder ID in OpenText
+      const folderCache: Map<string, number> = new Map();
+      folderCache.set('', rootFolderId); // Root maps to the created root folder
+
+      // Helper function to ensure a folder path exists and return its ID
+      const ensureFolderPath = async (relativeFolderPath: string): Promise<number> => {
+        if (relativeFolderPath === '' || relativeFolderPath === '.') {
+          return rootFolderId;
+        }
+
+        // Check cache first
+        if (folderCache.has(relativeFolderPath)) {
+          return folderCache.get(relativeFolderPath)!;
+        }
+
+        // Create folder path using the client method (relative to root folder)
+        const result = await client.createFolderPath(rootFolderId, relativeFolderPath);
+        
+        // Cache all created folders
+        const pathParts = relativeFolderPath.split(path.sep);
+        let cumulativePath = '';
+        for (let i = 0; i < pathParts.length; i++) {
+          cumulativePath = i === 0 ? pathParts[i] : path.join(cumulativePath, pathParts[i]);
+          if (result.folders[i]) {
+            folderCache.set(cumulativePath, result.folders[i].id);
+          }
+        }
+
+        return result.leafId;
+      };
+
+      // Pre-create all unique folder paths (sequential to avoid race conditions)
+      const uniqueFolderPaths = new Set<string>();
+      for (const file of filesToUpload) {
+        const folderPath = path.dirname(file.relativePath);
+        if (folderPath !== '' && folderPath !== '.') {
+          uniqueFolderPaths.add(folderPath);
+        }
+      }
+
+      // Sort by depth to create parent folders first
+      const sortedFolderPaths = Array.from(uniqueFolderPaths).sort((a, b) => {
+        return a.split(path.sep).length - b.split(path.sep).length;
+      });
+
+      // Create all folders first (sequentially to maintain hierarchy)
+      const foldersCreated: string[] = [];
+      for (const folderPath of sortedFolderPaths) {
+        try {
+          await ensureFolderPath(folderPath);
+          foldersCreated.push(folderPath);
+        } catch (error) {
+          // Folder might already exist, continue
+          console.error(`Note: Could not create folder ${folderPath}: ${error}`);
+        }
+      }
+
+      // Parallel upload with concurrency limit
+      const maxConcurrency = Math.min(concurrency || 5, 10);
+      const results: { file: string; relativePath: string; success: boolean; node_id?: number; folder_id?: number; error?: string }[] = [];
+      const startTime = Date.now();
+
+      // Process in batches
+      for (let i = 0; i < filesToUpload.length; i += maxConcurrency) {
+        const batch = filesToUpload.slice(i, i + maxConcurrency);
+        const batchPromises = batch.map(async ({ fullPath, relativePath }) => {
+          try {
+            // Get the target folder ID for this file
+            const relativeFolderPath = path.dirname(relativePath);
+            const targetFolderId = folderCache.get(relativeFolderPath === '.' ? '' : relativeFolderPath) || rootFolderId;
+
+            const buffer = fs.readFileSync(fullPath);
+            const fileName = path.basename(fullPath);
+            const mimeType = getMimeType(fullPath);
+            const result = await client.uploadDocument(targetFolderId, fileName, buffer, mimeType);
+            
+            // Apply category if specified
+            if (category_id && result.id) {
+              try {
+                await client.addCategory(result.id, category_id, category_values);
+              } catch (catError) {
+                return { file: fileName, relativePath, success: true, node_id: result.id, folder_id: targetFolderId, category_error: String(catError) };
+              }
+            }
+            
+            return { file: fileName, relativePath, success: true, node_id: result.id, folder_id: targetFolderId };
+          } catch (error) {
+            return { file: path.basename(fullPath), relativePath, success: false, error: String(error) };
+          }
+        });
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+      }
+
+      const elapsed = Date.now() - startTime;
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success);
+
+      return {
+        success: true,
+        uploaded: successful,
+        failed: failed.length,
+        total_files: filesToUpload.length,
+        root_folder: { name: sourceFolderName, id: rootFolderId },
+        subfolders_created: foldersCreated.length,
+        elapsed_ms: elapsed,
+        files_per_second: (successful / (elapsed / 1000)).toFixed(2),
+        message: `Created "${sourceFolderName}" folder (ID: ${rootFolderId}) and uploaded ${successful}/${filesToUpload.length} files in ${(elapsed / 1000).toFixed(1)}s`,
+        structure_preserved: true,
+        folder_structure: [sourceFolderName, ...foldersCreated.map(f => `${sourceFolderName}/${f}`)],
+        results: results.slice(0, 50), // Limit results in response
+        errors: failed.length > 0 ? failed.slice(0, 10) : undefined,
+      };
+    }
+
+    case 'otcs_upload_batch': {
+      const { parent_id, file_paths, concurrency, category_id, category_values } = args as {
+        parent_id: number; file_paths: string[]; concurrency?: number;
+        category_id?: number; category_values?: Record<string, unknown>;
+      };
+
+      if (!file_paths || file_paths.length === 0) throw new Error('file_paths array is required');
+
+      // Validate all files exist first
+      const missingFiles = file_paths.filter(fp => !fs.existsSync(fp));
+      if (missingFiles.length > 0) {
+        throw new Error(`Files not found: ${missingFiles.slice(0, 5).join(', ')}${missingFiles.length > 5 ? ` and ${missingFiles.length - 5} more` : ''}`);
+      }
+
+      const maxConcurrency = Math.min(concurrency || 5, 10);
+      const results: { file: string; success: boolean; node_id?: number; error?: string }[] = [];
+      const startTime = Date.now();
+
+      // Process in batches
+      for (let i = 0; i < file_paths.length; i += maxConcurrency) {
+        const batch = file_paths.slice(i, i + maxConcurrency);
+        const batchPromises = batch.map(async (filePath) => {
+          try {
+            const buffer = fs.readFileSync(filePath);
+            const fileName = path.basename(filePath);
+            const mimeType = getMimeType(filePath);
+            const result = await client.uploadDocument(parent_id, fileName, buffer, mimeType);
+            
+            // Apply category if specified
+            if (category_id && result.id) {
+              try {
+                await client.addCategory(result.id, category_id, category_values);
+              } catch (catError) {
+                return { file: fileName, success: true, node_id: result.id, category_error: String(catError) };
+              }
+            }
+            
+            return { file: fileName, success: true, node_id: result.id };
+          } catch (error) {
+            return { file: path.basename(filePath), success: false, error: String(error) };
+          }
+        });
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+      }
+
+      const elapsed = Date.now() - startTime;
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success);
+
+      return {
+        success: true,
+        uploaded: successful,
+        failed: failed.length,
+        total_files: file_paths.length,
+        elapsed_ms: elapsed,
+        files_per_second: (successful / (elapsed / 1000)).toFixed(2),
+        message: `Uploaded ${successful}/${file_paths.length} files in ${(elapsed / 1000).toFixed(1)}s`,
+        results,
+        errors: failed.length > 0 ? failed : undefined,
+      };
+    }
+
+    case 'otcs_upload_with_metadata': {
+      const { parent_id, file_path: filePath, content_base64, name, mime_type, description, category_id, category_values, classification_id, workflow_id } = args as {
+        parent_id: number; file_path?: string; content_base64?: string; name?: string;
+        mime_type?: string; description?: string; category_id?: number;
+        category_values?: Record<string, unknown>; classification_id?: number; workflow_id?: number;
+      };
+
+      let buffer: Buffer;
+      let fileName: string;
+      let mimeType: string;
+
+      if (filePath) {
+        if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
+        buffer = fs.readFileSync(filePath);
+        fileName = name || path.basename(filePath);
+        mimeType = mime_type || getMimeType(filePath);
+      } else if (content_base64) {
+        if (!name) throw new Error('name required when using content_base64');
+        buffer = Buffer.from(content_base64, 'base64');
+        fileName = name;
+        mimeType = mime_type || 'application/octet-stream';
+      } else {
+        throw new Error('Either file_path or content_base64 is required');
+      }
+
+      // Step 1: Upload document
+      const uploadResult = await client.uploadDocument(parent_id, fileName, buffer, mimeType, description);
+      const nodeId = uploadResult.id;
+
+      const operations: { operation: string; success: boolean; error?: string }[] = [];
+      operations.push({ operation: 'upload', success: true });
+
+      // Step 2: Apply category if specified
+      if (category_id) {
+        try {
+          await client.addCategory(nodeId, category_id, category_values);
+          operations.push({ operation: 'add_category', success: true });
+        } catch (error) {
+          operations.push({ operation: 'add_category', success: false, error: String(error) });
+        }
+      }
+
+      // Step 3: Apply RM classification if specified
+      if (classification_id) {
+        try {
+          await client.applyRMClassification({ node_id: nodeId, class_id: classification_id });
+          operations.push({ operation: 'rm_classification', success: true });
+        } catch (error) {
+          operations.push({ operation: 'rm_classification', success: false, error: String(error) });
+        }
+      }
+
+      // Step 4: Start workflow if specified
+      let workflowResult: { work_id?: number } | undefined;
+      if (workflow_id) {
+        try {
+          workflowResult = await client.startWorkflow(workflow_id, nodeId.toString());
+          operations.push({ operation: 'start_workflow', success: true });
+        } catch (error) {
+          operations.push({ operation: 'start_workflow', success: false, error: String(error) });
+        }
+      }
+
+      return {
+        success: true,
+        document: uploadResult,
+        node_id: nodeId,
+        size_bytes: buffer.length,
+        operations,
+        workflow_instance_id: workflowResult?.work_id,
+        message: `"${fileName}" uploaded with ID ${nodeId}. ${operations.length} operation(s) completed.`,
+      };
     }
 
     // ==================== Versions ====================

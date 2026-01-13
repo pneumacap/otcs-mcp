@@ -113,8 +113,13 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 
 | Tool | Actions | Description |
 |------|---------|-------------|
-| `otcs_categories` | `list`, `get`, `add`, `update`, `remove`, `get_form` | Manage node categories |
+| `otcs_categories` | `list`, `get`, `add`, `update`, `remove`, `get_form` | Manage node categories with nested set support |
 | `otcs_workspace_metadata` | `get_form`, `update` | Manage workspace business properties |
+
+**Nested Set Attributes:** Categories can contain sets (groups of attributes organized in rows). The key format is:
+- Simple: `{category_id}_{attribute_id}` → `"9830_2"`
+- Set row: `{category_id}_{set_id}_{row}_{attribute_id}` → `"11081_2_1_26"`
+- Multi-value: Use arrays → `["value1", "value2"]`
 
 ### Members (2 tools)
 
@@ -283,12 +288,27 @@ Tool: otcs_workflow_task(
 Agent: Show categories on this document
 Tool: otcs_categories(action="list", node_id=12345)
 
-Agent: Update category values
+Agent: Get category form to see attribute structure (including nested sets)
+Tool: otcs_categories(action="get_form", node_id=12345, category_id=11081)
+
+Agent: Update simple category values
 Tool: otcs_categories(
   action="update",
   node_id=12345,
   category_id=9830,
   values={"9830_2": "Approved"}
+)
+
+Agent: Update nested set attributes (format: {cat_id}_{set_id}_{row}_{attr_id})
+Tool: otcs_categories(
+  action="update",
+  node_id=12345,
+  category_id=11081,
+  values={
+    "11081_2_1_26": "INV-2024-001",
+    "11081_2_1_10": "15000.00",
+    "11081_20_1_22": ["PO-001", "PO-002"]
+  }
 )
 ```
 

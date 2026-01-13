@@ -97,6 +97,11 @@ export class OTCSClient {
       this.baseUrl = this.baseUrl + '/api';
     }
     this.config = config;
+    
+    // Disable SSL certificate validation for development environments
+    if (process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
   }
 
   // ============ Authentication ============
@@ -1629,7 +1634,10 @@ export class OTCSClient {
 
   /**
    * Add a category to a node with optional attribute values
-   * Values should be keyed as: {category_id}_{attribute_id}
+   * Values can be keyed as:
+   * - Simple: {category_id}_{attribute_id}
+   * - Set row: {category_id}_{set_id}_{row}_{attribute_id}
+   * - Nested object: { set_id: { row: { attr_id: value } } } (will be flattened)
    */
   async addCategory(nodeId: number, categoryId: number, values?: CategoryValues): Promise<{ success: boolean; category_id: number }> {
     const formData = new URLSearchParams();
@@ -1637,18 +1645,7 @@ export class OTCSClient {
 
     // Add attribute values if provided
     if (values) {
-      for (const [key, value] of Object.entries(values)) {
-        if (value !== undefined && value !== null) {
-          if (Array.isArray(value)) {
-            // Multi-value attribute - send as JSON
-            formData.append(key, JSON.stringify(value));
-          } else if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      }
+      this.appendCategoryValues(formData, values, categoryId);
     }
 
     await this.request<any>('POST', `/v2/nodes/${nodeId}/categories`, undefined, formData);
@@ -1661,27 +1658,138 @@ export class OTCSClient {
 
   /**
    * Update category values on a node
-   * Values should be keyed as: {category_id}_{attribute_id}
+   * Values can be keyed as:
+   * - Simple: {category_id}_{attribute_id}
+   * - Set row: {category_id}_{set_id}_{row}_{attribute_id}
+   * - Nested object: { set_id: { row: { attr_id: value } } } (will be flattened)
    */
   async updateCategory(nodeId: number, categoryId: number, values: CategoryValues): Promise<{ success: boolean }> {
     const formData = new URLSearchParams();
 
     // Add attribute values
-    for (const [key, value] of Object.entries(values)) {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else if (typeof value === 'object') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, String(value));
-        }
-      }
-    }
+    this.appendCategoryValues(formData, values, categoryId);
 
     await this.request<any>('PUT', `/v2/nodes/${nodeId}/categories/${categoryId}/`, undefined, formData);
 
     return { success: true };
+  }
+
+  /**
+   * Helper to append category values to form data
+   * Handles both flat keys and nested object structures
+   *
+   * Supports formats:
+   * 1. Flat keys: { "9830_2": "value", "9830_4_1_5": ["a", "b"] }
+   * 2. Nested objects: { "9830_4": { "1": { "5": ["a", "b"] } } }
+   * 3. Row arrays: { "9830_4": [{ "5": "val1" }, { "5": "val2" }] }
+   */
+  private appendCategoryValues(formData: URLSearchParams, values: CategoryValues, categoryId: number): void {
+    for (const [key, value] of Object.entries(values)) {
+      if (value === undefined || value === null) continue;
+
+      // Check if this is already a properly formatted key (contains category ID prefix)
+      const isFormattedKey = /^\d+_\d+/.test(key);
+
+      if (isFormattedKey) {
+        // Key is already in correct format: {category_id}_{...}
+        this.appendSingleValue(formData, key, value);
+      } else {
+        // Key might be just the attribute/set ID - prefix with category ID
+        const fullKey = `${categoryId}_${key}`;
+
+        // Check if value is a nested object (set rows)
+        if (this.isSetRowObject(value)) {
+          // Value is an object with row indices as keys: { "1": { attr: val }, "2": { attr: val } }
+          this.flattenSetRows(formData, fullKey, value as Record<string, unknown>);
+        } else if (Array.isArray(value) && value.length > 0 && this.isRowObjectArray(value)) {
+          // Value is an array of row objects: [{ attr: val }, { attr: val }]
+          this.flattenRowArray(formData, fullKey, value as Record<string, unknown>[]);
+        } else {
+          // Simple value or multi-value array
+          this.appendSingleValue(formData, fullKey, value);
+        }
+      }
+    }
+  }
+
+  /**
+   * Check if value is an object representing set rows (keys are row indices)
+   */
+  private isSetRowObject(value: unknown): boolean {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const keys = Object.keys(value);
+    // Row objects have numeric keys representing row indices
+    return keys.length > 0 && keys.every(k => /^\d+$/.test(k));
+  }
+
+  /**
+   * Check if array contains row objects (each element is an object with attribute keys)
+   */
+  private isRowObjectArray(arr: unknown[]): boolean {
+    return arr.every(item =>
+      item && typeof item === 'object' && !Array.isArray(item)
+    );
+  }
+
+  /**
+   * Flatten set row object: { "1": { "5": "val", "6": "val2" } } → "key_1_5", "key_1_6"
+   */
+  private flattenSetRows(formData: URLSearchParams, baseKey: string, rows: Record<string, unknown>): void {
+    for (const [rowIndex, rowData] of Object.entries(rows)) {
+      if (rowData && typeof rowData === 'object' && !Array.isArray(rowData)) {
+        // Row data is an object with attribute IDs as keys
+        for (const [attrKey, attrValue] of Object.entries(rowData as Record<string, unknown>)) {
+          const fullKey = `${baseKey}_${rowIndex}_${attrKey}`;
+          this.appendSingleValue(formData, fullKey, attrValue);
+        }
+      } else {
+        // Row data is a direct value (unusual but handle it)
+        const fullKey = `${baseKey}_${rowIndex}`;
+        this.appendSingleValue(formData, fullKey, rowData);
+      }
+    }
+  }
+
+  /**
+   * Flatten row array: [{ "5": "val1" }, { "5": "val2" }] → "key_1_5", "key_2_5"
+   */
+  private flattenRowArray(formData: URLSearchParams, baseKey: string, rows: Record<string, unknown>[]): void {
+    rows.forEach((rowData, index) => {
+      const rowIndex = index + 1; // Content Server uses 1-based row indices
+      for (const [attrKey, attrValue] of Object.entries(rowData)) {
+        const fullKey = `${baseKey}_${rowIndex}_${attrKey}`;
+        this.appendSingleValue(formData, fullKey, attrValue);
+      }
+    });
+  }
+
+  /**
+   * Append a single value to form data with proper serialization
+   * Multi-value arrays are sent as repeated form fields with the same key
+   */
+  private appendSingleValue(formData: URLSearchParams, key: string, value: unknown): void {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+      // Multi-value attribute - send each value as separate field
+      // Content Server expects repeated keys for multi-value: key=val1&key=val2
+      for (const item of value) {
+        if (item !== undefined && item !== null) {
+          if (typeof item === 'object') {
+            // Multilingual or complex item within array
+            formData.append(key, JSON.stringify(item));
+          } else {
+            formData.append(key, String(item));
+          }
+        }
+      }
+    } else if (typeof value === 'object') {
+      // Object value (e.g., multilingual) - send as JSON
+      formData.append(key, JSON.stringify(value));
+    } else {
+      // Scalar value
+      formData.append(key, String(value));
+    }
   }
 
   /**
@@ -1798,10 +1906,12 @@ export class OTCSClient {
 
   /**
    * Helper to extract category attributes from Alpaca form response
+   * Handles nested set structures recursively
    */
   private extractCategoryAttributes(response: any): CategoryAttribute[] {
     const attributes: CategoryAttribute[] = [];
     const forms = response.forms || [];
+    const formData = response.data || {};
 
     for (const form of forms) {
       if (form.schema?.properties) {
@@ -1810,39 +1920,122 @@ export class OTCSClient {
         const requiredFields = form.schema.required || [];
 
         for (const [key, prop] of Object.entries(props as Record<string, any>)) {
-          const fieldOpts = fieldOptions[key] || {};
-
-          const attr: CategoryAttribute = {
+          const attr = this.extractSingleAttribute(
             key,
-            name: fieldOpts.label || prop.title || key,
-            type: prop.type || 'string',
-            type_name: prop.format || prop.type,
-            required: requiredFields.includes(key),
-            multi_value: prop.type === 'array',
-            read_only: prop.readonly || fieldOpts.readonly,
-            hidden: fieldOpts.hidden,
-            description: fieldOpts.helper || prop.description,
-          };
-
-          if (prop.maxLength) attr.max_length = prop.maxLength;
-          if (prop.minimum !== undefined) attr.min_value = prop.minimum;
-          if (prop.maximum !== undefined) attr.max_value = prop.maximum;
-          if (prop.default !== undefined) attr.default_value = prop.default;
-
-          // Handle enum/select options
-          if (prop.enum || fieldOpts.optionLabels) {
-            attr.valid_values = (prop.enum || []).map((val: string, idx: number) => ({
-              key: val,
-              value: fieldOpts.optionLabels?.[idx] || val,
-            }));
-          }
-
+            prop,
+            fieldOptions[key] || {},
+            requiredFields.includes(key),
+            fieldOptions,
+            formData[key]
+          );
           attributes.push(attr);
         }
       }
     }
 
     return attributes;
+  }
+
+  /**
+   * Extract a single attribute, handling nested set structures
+   */
+  private extractSingleAttribute(
+    key: string,
+    prop: any,
+    fieldOpts: any,
+    required: boolean,
+    allFieldOptions: any,
+    dataValue: unknown
+  ): CategoryAttribute {
+    const attr: CategoryAttribute = {
+      key,
+      name: fieldOpts.label || prop.title || key,
+      type: prop.type || 'string',
+      type_name: prop.format || prop.type,
+      required,
+      multi_value: prop.type === 'array',
+      read_only: prop.readonly || fieldOpts.readonly,
+      hidden: fieldOpts.hidden,
+      description: fieldOpts.helper || prop.description,
+    };
+
+    if (prop.maxLength) attr.max_length = prop.maxLength;
+    if (prop.minimum !== undefined) attr.min_value = prop.minimum;
+    if (prop.maximum !== undefined) attr.max_value = prop.maximum;
+    if (prop.default !== undefined) attr.default_value = prop.default;
+
+    // Handle enum/select options
+    if (prop.enum || fieldOpts.optionLabels) {
+      attr.valid_values = (prop.enum || []).map((val: string, idx: number) => ({
+        key: val,
+        value: fieldOpts.optionLabels?.[idx] || val,
+      }));
+    }
+
+    // Handle set/group attributes with nested properties
+    // Sets in Alpaca forms have type 'array' with items.type 'object' and items.properties
+    if (prop.type === 'array' && prop.items?.type === 'object' && prop.items?.properties) {
+      attr.is_set = true;
+      attr.type = 'set';
+      attr.type_name = 'set';
+      attr.multi_value = false; // Sets themselves aren't multi-value, their children might be
+
+      // Extract nested attributes from the set's item schema
+      const setProps = prop.items.properties;
+      const setFieldOptions = fieldOpts.fields?.item?.fields || fieldOpts.items?.fields || {};
+      const setRequiredFields = prop.items.required || [];
+
+      attr.children = [];
+      for (const [childKey, childProp] of Object.entries(setProps as Record<string, any>)) {
+        const childOpts = setFieldOptions[childKey] || {};
+        const childAttr = this.extractSingleAttribute(
+          childKey,
+          childProp,
+          childOpts,
+          setRequiredFields.includes(childKey),
+          setFieldOptions,
+          undefined
+        );
+        attr.children.push(childAttr);
+      }
+
+      // Determine row count from the data value if available
+      if (Array.isArray(dataValue)) {
+        attr.set_rows = dataValue.length;
+      }
+    }
+    // Handle object type with properties (inline set definition)
+    else if (prop.type === 'object' && prop.properties) {
+      attr.is_set = true;
+      attr.type = 'set';
+      attr.type_name = 'set';
+
+      const setProps = prop.properties;
+      const setFieldOptions = fieldOpts.fields || {};
+      const setRequiredFields = prop.required || [];
+
+      attr.children = [];
+      for (const [childKey, childProp] of Object.entries(setProps as Record<string, any>)) {
+        const childOpts = setFieldOptions[childKey] || {};
+        const childAttr = this.extractSingleAttribute(
+          childKey,
+          childProp,
+          childOpts,
+          setRequiredFields.includes(childKey),
+          setFieldOptions,
+          undefined
+        );
+        attr.children.push(childAttr);
+      }
+
+      // For object type, check if data has rows
+      if (dataValue && typeof dataValue === 'object') {
+        const rowKeys = Object.keys(dataValue).filter(k => /^\d+$/.test(k));
+        attr.set_rows = rowKeys.length;
+      }
+    }
+
+    return attr;
   }
 
   // ============ Utility Methods ============

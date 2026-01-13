@@ -763,6 +763,7 @@ export interface CategoryInfo {
 
 /**
  * Category attribute definition
+ * Supports both simple attributes and nested set structures
  */
 export interface CategoryAttribute {
   key: string;
@@ -779,6 +780,12 @@ export interface CategoryAttribute {
   hidden?: boolean;
   valid_values?: Array<{ key: string; value: string }>;
   description?: string;
+  /** True if this is a set/group that contains nested attributes */
+  is_set?: boolean;
+  /** Number of rows in the set (if is_set is true) */
+  set_rows?: number;
+  /** Nested attributes within a set (if is_set is true) */
+  children?: CategoryAttribute[];
 }
 
 /**
@@ -799,8 +806,20 @@ export interface CategoryWithValues {
 }
 
 /**
- * Category values to set/update (keyed by attribute key)
- * Key format: {category_id}_{attribute_id} or {category_id}_{set_id}_{row}_{attribute_id}
+ * Category values to set/update
+ *
+ * Supported key formats:
+ * 1. Simple: "{category_id}_{attribute_id}" → "9830_2"
+ * 2. Set row: "{category_id}_{set_id}_{row}_{attribute_id}" → "9830_4_1_5"
+ * 3. Just attribute ID (prefixed automatically): "2" → becomes "9830_2"
+ *
+ * Supported value formats for sets:
+ * 1. Flat keys: { "9830_4_1_5": "value", "9830_4_2_5": "value2" }
+ * 2. Nested object: { "4": { "1": { "5": "value" }, "2": { "5": "value2" } } }
+ * 3. Row array: { "4": [{ "5": "value" }, { "5": "value2" }] }
+ *
+ * Multi-value attributes use arrays: { "9830_4_1_5": ["val1", "val2", "val3"] }
+ * Multilingual values use objects: { "9830_3_multilingual": { "en": "English", "fr": "French" } }
  */
 export interface CategoryValues {
   [key: string]: unknown;
