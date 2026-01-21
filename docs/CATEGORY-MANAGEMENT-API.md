@@ -22,7 +22,7 @@ Categories in OpenText Content Server are metadata templates that can be applied
 | List categories on node | `GET /v2/nodes/{id}/categories` | Returns all applied categories |
 | Get specific category | `GET /v2/nodes/{id}/categories/{cat_id}/` | Returns category with values |
 | Get category form schema | `GET /v1/forms/nodes/categories/create` | Shows attribute structure |
-| Browse Categories Volume | `GET /v2/nodes/{id}/nodes` | List categories (parent=2003) |
+| Browse Categories Volume | `GET /v2/nodes/{id}/nodes` | List categories (parent=2006) |
 
 ### What the REST API CANNOT Do
 
@@ -42,7 +42,7 @@ Categories in OpenText Content Server are metadata templates that can be applied
 
 ## Categories Volume
 
-The Categories Volume is a system volume (typically node ID **2003**) that contains all category definitions. Categories can be organized in folders within this volume.
+The Categories Volume is a system volume (node ID **2006**, type 133) that contains all category definitions. Categories can be organized in folders within this volume.
 
 ### Discovering the Categories Volume
 
@@ -51,8 +51,8 @@ The Categories Volume is a system volume (typically node ID **2003**) that conta
 GET /v1/volumes
 
 // Look for the Categories volume in the response
-// Or directly access if you know the ID (typically 2003)
-GET /v2/nodes/2003/nodes
+// Or directly access the Categories Volume (ID 2006)
+GET /v2/nodes/2006/nodes
 ```
 
 ## Creating a Category (Empty Container)
@@ -64,7 +64,7 @@ POST /v2/nodes
 Content-Type: application/x-www-form-urlencoded
 
 type=131
-parent_id=2003  // Categories Volume
+parent_id=2006  // Categories Volume
 name=My New Category
 description=Optional description
 ```
@@ -189,7 +189,7 @@ Since the REST API cannot define category attributes, the workflow for creating 
    ```javascript
    POST /v2/nodes
    type=131
-   parent_id=2003
+   parent_id=2006
    name=New Category
    ```
 2. Use Admin UI to add attributes to the category
@@ -202,7 +202,7 @@ If OpenText adds REST API support for attribute definition, the MCP server could
 ```javascript
 // Hypothetical future tool
 otcs_create_category_definition({
-  parent_id: 2003,
+  parent_id: 2006,
   name: "Invoice Category",
   attributes: [
     { name: "Invoice Number", type: "string", required: true },
