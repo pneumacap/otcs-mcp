@@ -17,10 +17,11 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 | 5. Permissions & Users | ✅ Complete | Members, groups, ACL management |
 | 6. RM Core | ✅ Complete | Classifications, holds, cross-references |
 | 7. RM RSI | ✅ Complete | RSI retention schedules |
-| 8. RM Advanced | Planned | Disposition processing |
-| 9. Enhanced Features | Planned | Favorites, reminders, notifications, recycle bin |
+| 8. Content Sharing | ✅ Complete | External sharing via Core Share |
+| 9. RM Advanced | Planned | Disposition processing |
+| 10. Enhanced Features | Planned | Favorites, reminders, notifications, recycle bin |
 
-**Current: 40 tools** | **Projected: 45 tools** (consolidated for AI agent performance)
+**Current: 41 tools** | **Projected: 46 tools** (consolidated for AI agent performance)
 
 ## Tool Profiles
 
@@ -28,11 +29,11 @@ To optimize for different AI clients, you can select a tool profile:
 
 | Profile | Tools | Use Case |
 |---------|-------|----------|
-| `core` | 21 | Basic document management |
-| `workflow` | 30 | Document management + full workflow |
-| `admin` | 32 | Document management + permissions/admin + RM |
-| `rm` | 22 | Document management + Records Management |
-| `full` | 40 | All tools (default) |
+| `core` | 22 | Basic document management + sharing |
+| `workflow` | 31 | Document management + full workflow |
+| `admin` | 33 | Document management + permissions/admin + RM |
+| `rm` | 23 | Document management + Records Management |
+| `full` | 41 | All tools (default) |
 
 Configure via environment variable:
 ```bash
@@ -141,6 +142,14 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 
 **Apply-to scope:** `0`=This Item, `1`=Sub-Items, `2`=Both, `3`=Immediate Children
 
+### Content Sharing (1 tool)
+
+| Tool | Actions | Description |
+|------|---------|-------------|
+| `otcs_share` | `list`, `create`, `stop`, `stop_batch` | Share content externally via Core Share |
+
+**Permission levels:** `1`=Viewer, `2`=Collaborator, `3`=Manager, `4`=Owner
+
 ### Records Management (4 tools)
 
 | Tool | Actions | Description |
@@ -155,6 +164,23 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 ```bash
 npm install
 npm run build
+```
+
+### Quick Start with .env
+
+Create a `.env` file in the project root:
+
+```bash
+OTCS_BASE_URL=https://your-server/otcs/cs.exe/api
+OTCS_USERNAME=your-username
+OTCS_PASSWORD=your-password
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+Then run using the convenience script:
+
+```bash
+./start-mcp.sh
 ```
 
 ## Configuration
@@ -336,6 +362,30 @@ Agent: Check what permissions a user has
 Tool: otcs_permissions(action="effective", node_id=12345, member_id=1001)
 ```
 
+### Content Sharing
+
+```
+Agent: List all active shares
+Tool: otcs_share(action="list")
+
+Agent: Share a folder with an external user
+Tool: otcs_share(
+  action="create",
+  node_ids=[12345],
+  invitees=[{
+    "business_email": "partner@example.com",
+    "perm": 2
+  }],
+  sharing_message="Please review these documents"
+)
+
+Agent: Stop sharing a document
+Tool: otcs_share(action="stop", node_id=12345)
+
+Agent: Stop sharing multiple items at once
+Tool: otcs_share(action="stop_batch", node_ids=[12345, 67890])
+```
+
 ### Records Management
 
 ```
@@ -404,7 +454,7 @@ npm run test:rm
 ```
 otcs-mcp/
 ├── src/
-│   ├── index.ts              # MCP server entry point (40 consolidated tools)
+│   ├── index.ts              # MCP server entry point (41 consolidated tools)
 │   ├── types.ts              # TypeScript type definitions
 │   └── client/
 │       └── otcs-client.ts    # OTCS REST API client
@@ -414,25 +464,27 @@ otcs-mcp/
 │   ├── test-workspaces.ts    # Workspace-specific tests
 │   └── test-rm.ts            # Records Management tests
 ├── docs/
-│   ├── ARCHITECTURE_PLAN.md                              # Detailed architecture and roadmap
-│   ├── content-server-rest-api-2.0.2.yaml                # Content Server REST API spec
+│   ├── ARCHITECTURE_PLAN.md      # Detailed architecture and roadmap
+│   ├── FUTURE-FEATURES.md        # Feature planning and backlog
+│   ├── IMPLEMENTATION-PLAN.md    # Phased development roadmap
+│   ├── content-server-rest-api-2.0.2.yaml                    # Content Server REST API spec
 │   ├── opentext-business-workspaces-rest-api-v1-and-v2.yaml  # Business Workspaces API spec
-│   └── opentext-records-management-26.1.json             # Records Management API spec
+│   └── opentext-records-management-26.1.json                 # Records Management API spec
 └── README.md
 ```
 
 ## Roadmap
 
-### Phase 8: RM Disposition (1 tool)
+### Phase 9: RM Disposition (1 tool)
 - `otcs_rm_disposition` - Disposition search and processing
 
-### Phase 9: Enhanced Features (4 tools)
+### Phase 10: Enhanced Features (4 tools)
 - `otcs_favorites` - Manage favorites and tabs
 - `otcs_reminders` - Node reminders
 - `otcs_notifications` - Notification interests
 - `otcs_recycle_bin` - Restore/purge deleted items
 
-**Projected Total: 45 consolidated tools**
+**Projected Total: 46 consolidated tools**
 
 See [ARCHITECTURE_PLAN.md](./docs/ARCHITECTURE_PLAN.md) for detailed specifications.
 
