@@ -323,15 +323,16 @@ const allTools: Tool[] = [
   // ==================== Versions (1 consolidated tool) ====================
   {
     name: 'otcs_versions',
-    description: 'Manage document versions. Actions: list, add.',
+    description: 'Manage document versions. Actions: list, add. Provide either file_path (local file) OR content_base64 (base64 data) for add.',
     inputSchema: {
       type: 'object',
       properties: {
         action: { type: 'string', enum: ['list', 'add'], description: 'Action to perform' },
         node_id: { type: 'number', description: 'Document ID' },
-        content_base64: { type: 'string', description: 'New version content as base64 (for add)' },
-        mime_type: { type: 'string', description: 'MIME type (for add)' },
-        file_name: { type: 'string', description: 'File name (for add)' },
+        file_path: { type: 'string', description: 'Local file path to upload as new version (for add)' },
+        content_base64: { type: 'string', description: 'File content as base64 (alternative to file_path)' },
+        mime_type: { type: 'string', description: 'MIME type (auto-detected for file_path)' },
+        file_name: { type: 'string', description: 'File name (optional for file_path, required for content_base64)' },
         description: { type: 'string', description: 'Version description (for add)' },
       },
       required: ['action', 'node_id'],
@@ -1260,17 +1261,33 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
 
     // ==================== Versions ====================
     case 'otcs_versions': {
-      const { action, node_id, content_base64, mime_type, file_name, description } = args as {
-        action: string; node_id: number; content_base64?: string; mime_type?: string; file_name?: string; description?: string;
+      const { action, node_id, file_path: filePath, content_base64, mime_type, file_name, description } = args as {
+        action: string; node_id: number; file_path?: string; content_base64?: string; mime_type?: string; file_name?: string; description?: string;
       };
       if (action === 'list') {
         const versions = await client.getVersions(node_id);
         return { node_id, versions, version_count: versions.length };
       } else if (action === 'add') {
-        if (!content_base64 || !mime_type || !file_name) throw new Error('content_base64, mime_type, and file_name required for add');
-        const buffer = Buffer.from(content_base64, 'base64');
-        const result = await client.addVersion(node_id, buffer, mime_type, file_name, description);
-        return { success: true, version: result, message: `New version added to ${node_id}` };
+        let buffer: Buffer;
+        let fileName: string;
+        let mimeType: string;
+
+        if (filePath) {
+          if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
+          buffer = fs.readFileSync(filePath);
+          fileName = file_name || path.basename(filePath);
+          mimeType = mime_type || getMimeType(filePath);
+        } else if (content_base64) {
+          if (!file_name) throw new Error('file_name required when using content_base64');
+          buffer = Buffer.from(content_base64, 'base64');
+          fileName = file_name;
+          mimeType = mime_type || 'application/octet-stream';
+        } else {
+          throw new Error('Either file_path or content_base64 is required for add');
+        }
+
+        const result = await client.addVersion(node_id, buffer, mimeType, fileName, description);
+        return { success: true, version: result, message: `New version added to ${node_id}`, size_bytes: buffer.length };
       }
       throw new Error(`Unknown action: ${action}`);
     }
