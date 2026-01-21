@@ -20,7 +20,7 @@ An MCP (Model Context Protocol) server for OpenText Content Server that enables 
 | 8. RM Advanced | Planned | Disposition processing |
 | 9. Enhanced Features | Planned | Favorites, reminders, notifications, recycle bin |
 
-**Current: 37 tools** | **Projected: 42 tools** (consolidated for AI agent performance)
+**Current: 40 tools** | **Projected: 45 tools** (consolidated for AI agent performance)
 
 ## Tool Profiles
 
@@ -28,11 +28,11 @@ To optimize for different AI clients, you can select a tool profile:
 
 | Profile | Tools | Use Case |
 |---------|-------|----------|
-| `core` | 18 | Basic document management |
-| `workflow` | 27 | Document management + full workflow |
-| `admin` | 29 | Document management + permissions/admin + RM |
-| `rm` | 19 | Document management + Records Management |
-| `full` | 37 | All tools (default) |
+| `core` | 21 | Basic document management |
+| `workflow` | 30 | Document management + full workflow |
+| `admin` | 32 | Document management + permissions/admin + RM |
+| `rm` | 22 | Document management + Records Management |
+| `full` | 40 | All tools (default) |
 
 Configure via environment variable:
 ```bash
@@ -64,12 +64,15 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 | `otcs_create_folder` | - | Create folder or nested path (e.g., "2024/Q1/Reports") |
 | `otcs_node_action` | `copy`, `move`, `rename`, `delete` | Node operations |
 
-### Documents (2 tools)
+### Documents (5 tools)
 
 | Tool | Description |
 |------|-------------|
 | `otcs_upload` | Upload from file path OR base64 content (MIME auto-detected) |
 | `otcs_download_content` | Download document as base64 |
+| `otcs_upload_folder` | Upload entire folder with parallel processing (recursive option preserves structure) |
+| `otcs_upload_batch` | Upload multiple specific files with parallel processing |
+| `otcs_upload_with_metadata` | Upload with category/metadata and optional RM classification in one operation |
 
 ### Versions (1 tool)
 
@@ -401,7 +404,7 @@ npm run test:rm
 ```
 otcs-mcp/
 ├── src/
-│   ├── index.ts              # MCP server entry point (37 consolidated tools)
+│   ├── index.ts              # MCP server entry point (40 consolidated tools)
 │   ├── types.ts              # TypeScript type definitions
 │   └── client/
 │       └── otcs-client.ts    # OTCS REST API client
@@ -429,7 +432,7 @@ otcs-mcp/
 - `otcs_notifications` - Notification interests
 - `otcs_recycle_bin` - Restore/purge deleted items
 
-**Projected Total: 42 consolidated tools**
+**Projected Total: 45 consolidated tools**
 
 See [ARCHITECTURE_PLAN.md](./docs/ARCHITECTURE_PLAN.md) for detailed specifications.
 
