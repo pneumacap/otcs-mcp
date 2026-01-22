@@ -1425,7 +1425,11 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         return { success: true, work_id: result.work_id, workflow_id: result.workflow_id, message: `Workflow initiated with instance ID ${result.work_id}` };
       } else {
         const result = await client.startWorkflow(workflow_id, doc_ids);
-        return { success: true, work_id: result.work_id, message: `Workflow started with instance ID ${result.work_id}` };
+        return {
+          success: true,
+          work_id: result.work_id,
+          message: `Workflow started with instance ID ${result.work_id}`,
+        };
       }
     }
 

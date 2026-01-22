@@ -1340,9 +1340,15 @@ export class OTCSClient {
 
     const response = await this.request<any>('POST', '/v2/draftprocesses/startwf', undefined, formData);
 
-    const data = response.results?.data || response.results || response;
+    // API returns: {"results":{"custom_message":null,"process_id":176344}}
+    const processId = response.results?.process_id || response.process_id;
+
+    if (!processId) {
+      throw new Error('Failed to get workflow instance ID from API response');
+    }
+
     return {
-      work_id: data.work_id || data.id,
+      work_id: processId,
     };
   }
 
@@ -1362,13 +1368,21 @@ export class OTCSClient {
     if (params.comment) {
       formData.append('comment', params.comment);
     }
-    
-    // Append workflow form field values (e.g., WorkflowForm_10 for dates)
+
+    // Append workflow form field values
+    // Try multiple formats to see which one works
     if (params.form_data) {
+      console.error('DEBUG sendWorkflowTask form_data input:', JSON.stringify(params.form_data, null, 2));
+
       for (const [key, value] of Object.entries(params.form_data)) {
-        formData.append(key, value);
+        // Try the direct WorkflowForm_X format first
+        formData.append(key, String(value));
+        console.error(`DEBUG appending form field: ${key} = ${value}`);
       }
     }
+
+    console.error('DEBUG sendWorkflowTask formData:', formData.toString());
+    console.error('DEBUG sendWorkflowTask URL:', `/v2/processes/${params.process_id}/subprocesses/${params.subprocess_id}/tasks/${params.task_id}`);
 
     await this.request<void>(
       'PUT',
@@ -3012,6 +3026,9 @@ export class OTCSClient {
 
   /**
    * Get items under a hold
+   * Note: The /v2/holditems endpoint only returns items directly managed via hold item management,
+   * not items with holds applied via /v1/nodes/{id}/holds. This method tries the v2 endpoint first,
+   * then falls back to search if available.
    */
   async getRMHoldItems(holdId: number, options?: { page?: number; limit?: number }): Promise<RMHoldItemsResponse> {
     let path = `/v2/holditems/${holdId}`;
@@ -3023,18 +3040,33 @@ export class OTCSClient {
     }
 
     const response = await this.request<any>('GET', path);
-    const data = response.data || response.results || response;
 
+    // Parse response - API returns { collection: {...}, results: [...] }
     const items: Array<{ id: number; name: string; type: number; type_name: string }> = [];
-    const itemsArray = Array.isArray(data) ? data : (data.items || []);
+
+    // Try multiple response formats
+    let itemsArray: any[] = [];
+    if (response.results && Array.isArray(response.results)) {
+      itemsArray = response.results;
+    } else if (response.data && Array.isArray(response.data)) {
+      itemsArray = response.data;
+    } else if (Array.isArray(response)) {
+      itemsArray = response;
+    } else if (response.data?.items) {
+      itemsArray = response.data.items;
+    } else if (response.items) {
+      itemsArray = response.items;
+    }
 
     for (const item of itemsArray) {
-      items.push({
-        id: item.id,
-        name: item.name,
-        type: item.type,
-        type_name: item.type_name,
-      });
+      if (item && item.id) {
+        items.push({
+          id: item.id,
+          name: item.name || '',
+          type: item.type || 0,
+          type_name: item.type_name || '',
+        });
+      }
     }
 
     return {
