@@ -226,14 +226,15 @@ const allTools: Tool[] = [
   // ==================== Node Operations (1 consolidated tool) ====================
   {
     name: 'otcs_node_action',
-    description: 'Perform action on a node: copy, move, rename, or delete.',
+    description: 'Perform action on a node: copy, move, rename, delete, or update_description.',
     inputSchema: {
       type: 'object',
       properties: {
-        action: { type: 'string', enum: ['copy', 'move', 'rename', 'delete'], description: 'Action to perform' },
+        action: { type: 'string', enum: ['copy', 'move', 'rename', 'delete', 'update_description'], description: 'Action to perform' },
         node_id: { type: 'number', description: 'Node ID' },
         destination_id: { type: 'number', description: 'Destination folder ID (for copy/move)' },
         new_name: { type: 'string', description: 'New name (for rename, or optional for copy)' },
+        description: { type: 'string', description: 'New description (for update_description)' },
       },
       required: ['action', 'node_id'],
     },
@@ -888,8 +889,8 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
 
     // ==================== Node Operations ====================
     case 'otcs_node_action': {
-      const { action, node_id, destination_id, new_name } = args as {
-        action: string; node_id: number; destination_id?: number; new_name?: string;
+      const { action, node_id, destination_id, new_name, description } = args as {
+        action: string; node_id: number; destination_id?: number; new_name?: string; description?: string;
       };
       switch (action) {
         case 'copy':
@@ -907,6 +908,10 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         case 'delete':
           await client.deleteNode(node_id);
           return { success: true, message: `Node ${node_id} deleted` };
+        case 'update_description':
+          if (description === undefined) throw new Error('description required for update_description');
+          const updated = await client.updateNodeDescription(node_id, description);
+          return { success: true, node: updated, message: `Description updated for node ${node_id}` };
         default:
           throw new Error(`Unknown action: ${action}`);
       }

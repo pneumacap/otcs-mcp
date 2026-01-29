@@ -425,6 +425,21 @@ export class OTCSClient {
     return this.transformNode(props);
   }
 
+  async updateNodeDescription(nodeId: number, description: string): Promise<NodeInfo> {
+    const formData = new URLSearchParams();
+    formData.append('description', description);
+
+    const response = await this.request<OTCSNodeResponse>(
+      'PUT',
+      `/v2/nodes/${nodeId}`,
+      undefined,
+      formData
+    );
+
+    const props = this.extractNodeProperties(response);
+    return this.transformNode(props);
+  }
+
   async moveNode(nodeId: number, newParentId: number): Promise<NodeInfo> {
     const formData = new URLSearchParams();
     formData.append('parent_id', newParentId.toString());
