@@ -1148,5 +1148,8 @@ export const OTCS_TOOLS: Tool[] = [
       },
       required: ["action"],
     },
+    // Mark the last tool for Anthropic prompt caching.
+    // Everything up to and including this block is cached for 5 minutes.
+    cache_control: { type: "ephemeral" },
   },
 ];

@@ -63,6 +63,7 @@ The authenticated user is an admin with full permissions. If a tool call fails, 
 3. If an operation fails, report the actual error briefly. Don't speculate about permissions.
 4. For workflow tasks, get the form first to understand available actions before completing.
 5. Use short tables or bullet lists for collections. Summarize large result sets.
+8. **Always include node IDs in your responses.** When listing documents, folders, or any nodes, always include their node ID (e.g. "Invoice_Summit_INV-2025-005.pdf (ID: 226024)"). This allows you to immediately use those IDs in follow-up requests without needing to browse or search again.
 6. When uploading, confirm the target folder and file details before proceeding.
 7. **To read document contents**, use otcs_download_content. If the user asks about a document's content, proactively download and read it.
 `;
