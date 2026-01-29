@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Assistant markdown prose ─────────────────────────── */
+.assistant-prose {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #374151; /* gray-700 */
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose {
+    color: #d1d5db; /* gray-300 */
+  }
+}
+
+.assistant-prose p {
+  margin: 0.35em 0;
+}
+
+.assistant-prose h2 {
+  font-size: 14px;
+  font-weight: 650;
+  margin: 1em 0 0.3em;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose h2 { color: #f3f4f6; }
+}
+
+.assistant-prose h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0.75em 0 0.2em;
+  color: #1f2937;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose h3 { color: #e5e7eb; }
+}
+
+.assistant-prose h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0.5em 0 0.15em;
+  color: #374151;
+}
+
+.assistant-prose strong {
+  font-weight: 600;
+  color: #111827;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose strong { color: #f9fafb; }
+}
+
+.assistant-prose ul,
+.assistant-prose ol {
+  margin: 0.25em 0;
+  padding-left: 1.25em;
+}
+
+.assistant-prose li {
+  margin: 0.1em 0;
+  padding-left: 0.15em;
+}
+
+.assistant-prose li::marker {
+  color: #9ca3af;
+}
+
+.assistant-prose code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  background: #f3f4f6;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  color: #1f2937;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose code {
+    background: #1f2937;
+    color: #e5e7eb;
+  }
+}
+
+.assistant-prose pre {
+  font-size: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose pre {
+    background: #111827;
+    border-color: #374151;
+  }
+}
+
+.assistant-prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.assistant-prose hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0.75em 0;
+}
+
+.assistant-prose a {
+  color: #2563eb;
+  text-decoration: none;
+}
+.assistant-prose a:hover {
+  text-decoration: underline;
+}
+
+.assistant-prose table {
+  font-size: 12.5px;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+}
+.assistant-prose th,
+.assistant-prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.35em 0.6em;
+  text-align: left;
+}
+.assistant-prose th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .assistant-prose th { background: #1f2937; }
+  .assistant-prose th,
+  .assistant-prose td { border-color: #374151; }
+}
+
+.assistant-prose blockquote {
+  border-left: 3px solid #d1d5db;
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: #6b7280;
+}
