@@ -228,11 +228,12 @@ export async function handleToolCall(
 
     // ==================== Node Operations ====================
     case "otcs_node_action": {
-      const { action, node_id, destination_id, new_name } = args as {
+      const { action, node_id, destination_id, new_name, description } = args as {
         action: string;
         node_id: number;
         destination_id?: number;
         new_name?: string;
+        description?: string;
       };
       switch (action) {
         case "copy":
@@ -268,6 +269,15 @@ export async function handleToolCall(
         case "delete":
           await client.deleteNode(node_id);
           return { success: true, message: `Node ${node_id} deleted` };
+        case "update_description":
+          if (description === undefined)
+            throw new Error("description required for update_description");
+          const updated = await client.updateNodeDescription(node_id, description);
+          return {
+            success: true,
+            node: updated,
+            message: `Description updated for node ${node_id}`,
+          };
         default:
           throw new Error(`Unknown action: ${action}`);
       }

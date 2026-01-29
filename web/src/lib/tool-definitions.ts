@@ -148,13 +148,13 @@ export const OTCS_TOOLS: Tool[] = [
   // ==================== Node Operations (1 tool) ====================
   {
     name: "otcs_node_action",
-    description: "Perform action on a node: copy, move, rename, or delete.",
+    description: "Perform action on a node: copy, move, rename, delete, or update_description.",
     input_schema: {
       type: "object" as const,
       properties: {
         action: {
           type: "string",
-          enum: ["copy", "move", "rename", "delete"],
+          enum: ["copy", "move", "rename", "delete", "update_description"],
           description: "Action to perform",
         },
         node_id: { type: "number", description: "Node ID" },
@@ -165,6 +165,10 @@ export const OTCS_TOOLS: Tool[] = [
         new_name: {
           type: "string",
           description: "New name (for rename, or optional for copy)",
+        },
+        description: {
+          type: "string",
+          description: "New description text (for update_description)",
         },
       },
       required: ["action", "node_id"],
