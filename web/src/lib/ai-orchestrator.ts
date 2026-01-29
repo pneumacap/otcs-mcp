@@ -39,9 +39,10 @@ export async function* runAgenticLoop(
   while (round < MAX_TOOL_ROUNDS) {
     round++;
 
-    let response: Anthropic.Message;
+    // Use streaming so text appears incrementally
+    let stream: ReturnType<typeof anthropic.messages.stream>;
     try {
-      response = await anthropic.messages.create({
+      stream = anthropic.messages.stream({
         model: "claude-sonnet-4-20250514",
         max_tokens: 8192,
         system: SYSTEM_PROMPT,
@@ -53,15 +54,39 @@ export async function* runAgenticLoop(
       return;
     }
 
-    // Process content blocks — emit text deltas, collect tool uses
-    const toolUseBlocks: Anthropic.ToolUseBlock[] = [];
-    for (const block of response.content) {
-      if (block.type === "text") {
-        yield { type: "text_delta", text: block.text };
-      } else if (block.type === "tool_use") {
-        toolUseBlocks.push(block);
+    // Track content blocks as they stream in
+    const contentBlocks: Map<number, { type: string; id?: string; name?: string; input?: string; text?: string }> = new Map();
+
+    for await (const event of stream) {
+      if (event.type === "content_block_start") {
+        if (event.content_block.type === "text") {
+          contentBlocks.set(event.index, { type: "text", text: "" });
+        } else if (event.content_block.type === "tool_use") {
+          contentBlocks.set(event.index, {
+            type: "tool_use",
+            id: event.content_block.id,
+            name: event.content_block.name,
+            input: "",
+          });
+        }
+      } else if (event.type === "content_block_delta") {
+        const block = contentBlocks.get(event.index);
+        if (block && event.delta.type === "text_delta") {
+          yield { type: "text_delta", text: event.delta.text };
+          block.text = (block.text || "") + event.delta.text;
+        } else if (block && event.delta.type === "input_json_delta") {
+          block.input = (block.input || "") + event.delta.partial_json;
+        }
       }
     }
+
+    // Get the final message for stop_reason and full content
+    const response = await stream.finalMessage();
+
+    // Extract tool_use blocks from the final message (reliable source for parsed input)
+    const toolUseBlocks = response.content.filter(
+      (b: Anthropic.ContentBlock): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+    );
 
     // If no tool use, we're done
     if (response.stop_reason !== "tool_use" || toolUseBlocks.length === 0) {
