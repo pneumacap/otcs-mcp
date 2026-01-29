@@ -56,7 +56,17 @@ OTCS_TOOL_PROFILE=core  # or workflow, admin, rm, full
 |------|-------------|
 | `otcs_get_node` | Get node details by ID (with optional path/breadcrumb) |
 | `otcs_browse` | List folder contents with filtering and sorting |
-| `otcs_search` | Enterprise search with LQL syntax, facets, highlights, and type filtering |
+| `otcs_search` | Enterprise search across full-text content and metadata with type filtering, facets, and highlights |
+
+**Search capabilities:**
+- **Search scopes** (`search_in`): `all` (content + metadata), `content` (document body text only), `metadata` (name, description, attributes only)
+- **Search modes** (`mode`): `allwords`, `anywords`, `exactphrase`, `complexquery` (LQL field queries)
+- **Type filtering** (`filter_type`): `documents`, `folders`, `workspaces`, `workflows` — filters results to a single object type
+- **Facets** (`include_facets`): Returns categorized result counts (creation date, content type, size, file type, classification)
+- **Highlights** (`include_highlights`): Returns content excerpts with matched terms in **bold** markdown
+- **Modifiers**: `synonymsof`, `relatedto`, `soundslike`, `wordbeginswith`, `wordendswith`
+- **Sorting**: By relevance, date, size, or name (ascending/descending)
+- **Pagination**: `limit` and `page` parameters
 
 ### Folders & Node Operations (2 tools)
 
@@ -241,7 +251,7 @@ Add to `claude_desktop_config.json`:
 | `OTCS_USERNAME` | Yes* | Login username |
 | `OTCS_PASSWORD` | Yes* | Login password |
 | `OTCS_DOMAIN` | No | Login domain |
-| `OTCS_TOOL_PROFILE` | No | Tool profile: `core`, `workflow`, `admin`, `full` (default) |
+| `OTCS_TOOL_PROFILE` | No | Tool profile: `core`, `workflow`, `admin`, `rm`, `full` (default) |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | No | Set to `"0"` for self-signed certificates |
 
 ## Usage Examples
@@ -256,14 +266,23 @@ Tool: otcs_browse(folder_id=2000)
 ### Enterprise Search
 
 ```
-Agent: Find all PDF documents containing "contract"
+Agent: Find all documents containing "contract"
 Tool: otcs_search(query="contract", filter_type="documents", mode="allwords")
 
-Agent: Find documents modified in 2024 with "invoice" in the name
-Tool: otcs_search(query='OTName:*invoice* AND OTObjectDate:[2024-01-01 TO 2024-12-31]', mode="complexquery")
+Agent: Search only document content for "invoice" (not metadata)
+Tool: otcs_search(query="invoice", search_in="content", include_highlights=true)
 
-Agent: Search for Excel files with "budget" in content
-Tool: otcs_search(query='budget OTName:*.xlsx', mode="complexquery", include_highlights=true)
+Agent: Find items with "contract" in their name
+Tool: otcs_search(query="OTName:*contract*", mode="complexquery")
+
+Agent: Find all business workspaces matching "customer"
+Tool: otcs_search(query="customer", filter_type="workspaces")
+
+Agent: Search with facets to see result distribution
+Tool: otcs_search(query="contract", include_facets=true)
+
+Agent: Find words starting with "contr" using modifier
+Tool: otcs_search(query="contr", modifier="wordbeginswith")
 ```
 
 ### Create Folder Structure

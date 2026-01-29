@@ -1457,6 +1457,8 @@ export interface SearchResultItem {
       owner_user_id?: number;
       create_user_id?: number;
       favorite?: boolean;
+      summary?: unknown[];
+      short_summary?: string[];
     };
     versions?: {
       file_name?: string;
