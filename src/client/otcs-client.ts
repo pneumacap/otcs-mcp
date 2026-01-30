@@ -914,48 +914,99 @@ export class OTCSClient {
     }
 
     // If business_properties were provided, update the workspace categories
+    let propertyResults: { updated: number[]; failed: number[] } | undefined;
     if (params.business_properties && Object.keys(params.business_properties).length > 0) {
-      await this.applyWorkspaceBusinessProperties(workspaceId, params.business_properties);
+      propertyResults = await this.applyWorkspaceBusinessProperties(workspaceId, params.business_properties);
     }
 
     // Fetch the full workspace details
-    return this.getWorkspace(workspaceId);
+    const workspace = await this.getWorkspace(workspaceId);
+
+    // Attach property update results so the caller can see what happened
+    if (propertyResults) {
+      (workspace as any)._propertyResults = propertyResults;
+    }
+
+    return workspace;
   }
 
   /**
    * Apply business properties to a workspace by updating its categories.
-   * Properties should be keyed as {category_id}_{attribute_id} (e.g., "11150_28").
-   * This method groups properties by category and updates each category.
+   *
+   * Accepts multiple input formats:
+   *   1. Flat keys: { "11150_28": "val", "10588_2": "val" }
+   *   2. Nested by category: { "11150": { "28": "val" }, "10588": { "2": "val" } }
+   *   3. Nested with full keys: { "11150": { "11150_28": "val" } }
+   *   4. Mixed: any combination of the above
+   *
+   * All formats are normalised to flat {category_id}_{attribute_id} keys before
+   * being grouped by category and sent to updateCategory().
    */
   private async applyWorkspaceBusinessProperties(
     workspaceId: number,
     properties: Record<string, unknown>
-  ): Promise<void> {
+  ): Promise<{ updated: number[]; failed: number[] }> {
     // Group properties by category ID
     const categorizedValues: Record<number, CategoryValues> = {};
 
     for (const [key, value] of Object.entries(properties)) {
-      // Extract category ID from key format: {category_id}_{attribute_id}
-      const match = key.match(/^(\d+)_/);
-      if (match) {
-        const categoryId = parseInt(match[1], 10);
+      // Format 1: flat key like "11150_28"
+      const flatMatch = key.match(/^(\d+)_(\d+)/);
+      if (flatMatch) {
+        const categoryId = parseInt(flatMatch[1], 10);
         if (!categorizedValues[categoryId]) {
           categorizedValues[categoryId] = {};
         }
         categorizedValues[categoryId][key] = value;
+        continue;
       }
+
+      // Format 2/3: key is a plain category ID and value is an object of attributes
+      const plainId = key.match(/^(\d+)$/);
+      if (plainId && value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        const categoryId = parseInt(plainId[1], 10);
+        if (!categorizedValues[categoryId]) {
+          categorizedValues[categoryId] = {};
+        }
+        // Flatten the nested object into {category_id}_{attribute_id} keys
+        for (const [attrKey, attrVal] of Object.entries(value as Record<string, unknown>)) {
+          // If attrKey already has the category prefix, use as-is
+          if (attrKey.startsWith(`${categoryId}_`)) {
+            categorizedValues[categoryId][attrKey] = attrVal;
+          } else {
+            categorizedValues[categoryId][`${categoryId}_${attrKey}`] = attrVal;
+          }
+        }
+        continue;
+      }
+
+      // Unrecognised key format — skip with warning
+      console.warn(`applyWorkspaceBusinessProperties: skipping unrecognised key "${key}"`);
     }
+
+    const updated: number[] = [];
+    const failed: number[] = [];
 
     // Update each category with its values
     for (const [categoryIdStr, values] of Object.entries(categorizedValues)) {
       const categoryId = parseInt(categoryIdStr, 10);
       try {
         await this.updateCategory(workspaceId, categoryId, values);
+        updated.push(categoryId);
       } catch (error) {
-        // Log but don't fail - some categories may not be editable
         console.warn(`Failed to update category ${categoryId} on workspace ${workspaceId}:`, error);
+        failed.push(categoryId);
       }
     }
+
+    // Verify: if we expected categories but none succeeded, throw so the caller knows
+    if (updated.length === 0 && failed.length > 0) {
+      throw new Error(
+        `Failed to apply business properties: all ${failed.length} category update(s) failed (categories: ${failed.join(', ')})`
+      );
+    }
+
+    return { updated, failed };
   }
 
   async getWorkspace(workspaceId: number): Promise<WorkspaceInfo> {
@@ -1733,6 +1784,7 @@ export class OTCSClient {
       if (data.categories) {
         // Categories is an object keyed by category ID
         for (const [catIdStr, catData] of Object.entries(data.categories as Record<string, any>)) {
+          if (catData == null || typeof catData !== 'object') continue;
           const catId = parseInt(catIdStr, 10);
           const attributes: CategoryWithValues['attributes'] = [];
 

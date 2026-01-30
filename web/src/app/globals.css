@@ -199,3 +199,54 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out both;
 }
+
+/* ── Landing page backgrounds ────────────────────────── */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(217, 170, 0, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+@media (prefers-color-scheme: dark) {
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(217, 170, 0, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a0a 0%, #111827 100%);
+  }
+}
+
+.section-alt {
+  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+}
+@media (prefers-color-scheme: dark) {
+  .section-alt {
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  }
+}
+
+.section-dark {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+}
+
+/* Dot grid pattern overlay */
+.dot-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+@media (prefers-color-scheme: dark) {
+  .dot-grid::before {
+    background-image: radial-gradient(circle, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  }
+}
+
+/* Gold shimmer line */
+.gold-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #d4a017 30%, #f6d365 50%, #d4a017 70%, transparent 100%);
+}

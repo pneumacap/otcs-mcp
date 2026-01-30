@@ -30,7 +30,7 @@ const columns = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 px-6 py-12 dark:border-gray-800 dark:bg-gray-950">
+    <footer className="border-t border-gray-200 bg-gray-100 px-6 py-10 dark:border-gray-800 dark:bg-gray-950">
       <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand */}
         <div>

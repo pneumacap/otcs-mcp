@@ -1,0 +1,137 @@
+[
+  {
+    "promptIndex": 0,
+    "prompt": "Show me the contents of the Enterprise Workspace",
+    "totalTimeMs": 14751,
+    "timeToFirstTokenMs": 1881,
+    "totalToolTimeMs": 2152,
+    "aiThinkingTimeMs": 12599,
+    "toolCallCount": 1,
+    "toolCalls": [
+      {
+        "name": "otcs_browse",
+        "args": {
+          "folder_id": 2000
+        },
+        "durationMs": 2152,
+        "isError": false,
+        "resultLength": 15364
+      }
+    ],
+    "responseLength": 1838,
+    "responsePreview": "I'll show you the contents of the Enterprise Workspace (ID: 2000).Here are the contents of the Enterprise Workspace (ID: 2000):\n\n## Folders (26 items):\n- **Administration** (ID: 12939) - 14 items\n- **Case Management** (ID: 12585) - 4 items\n- **Client Invoices - January 2026** (ID: 175064) - 21 items",
+    "stopReason": "end_turn",
+    "error": null
+  },
+  {
+    "promptIndex": 1,
+    "prompt": "Open the first folder you found and list its contents",
+    "totalTimeMs": 9417,
+    "timeToFirstTokenMs": 1395,
+    "totalToolTimeMs": 1494,
+    "aiThinkingTimeMs": 7923,
+    "toolCallCount": 1,
+    "toolCalls": [
+      {
+        "name": "otcs_browse",
+        "args": {
+          "folder_id": 12939
+        },
+        "durationMs": 1494,
+        "isError": false,
+        "resultLength": 7485
+      }
+    ],
+    "responseLength": 1152,
+    "responsePreview": "I'll open the Administration folder (ID: 12939) and show you its contents.Here are the contents of the **Administration** folder (ID: 12939):\n\n## All Folders (14 items):\n\n- **Analytics** (ID: 15324) - 13 items\n- **Demo Content** (ID: 26759) - 1 item  \n- **Deployment** (ID: 13035) - 0 items (empty)\n-",
+    "stopReason": "end_turn",
+    "error": null
+  },
+  {
+    "promptIndex": 2,
+    "prompt": "Search for all invoices in the repository",
+    "totalTimeMs": 51810,
+    "timeToFirstTokenMs": 33245,
+    "totalToolTimeMs": 3063,
+    "aiThinkingTimeMs": 48747,
+    "toolCallCount": 1,
+    "toolCalls": [
+      {
+        "name": "otcs_search",
+        "args": {
+          "query": "invoice",
+          "mode": "anywords",
+          "filter_type": "all",
+          "limit": 50,
+          "sort": "relevance"
+        },
+        "durationMs": 3063,
+        "isError": false,
+        "resultLength": 35023
+      }
+    ],
+    "responseLength": 1771,
+    "responsePreview": "I'll search for all invoices in the repository using enterprise search.Here are all the invoices found in the repository (146 total results, showing first 50):\n\n## Recent 2026 Invoices:\n- **Client Invoices - January 2026** (ID: 175064) - Folder containing 21 client invoices\n- **Invoice - INV-2026-00",
+    "stopReason": "end_turn",
+    "error": null
+  },
+  {
+    "promptIndex": 3,
+    "prompt": "Read the content of the first invoice you found and tell me the total amount",
+    "totalTimeMs": 105482,
+    "timeToFirstTokenMs": 43226,
+    "totalToolTimeMs": 493,
+    "aiThinkingTimeMs": 104989,
+    "toolCallCount": 1,
+    "toolCalls": [
+      {
+        "name": "otcs_download_content",
+        "args": {
+          "node_id": 175768
+        },
+        "durationMs": 493,
+        "isError": false,
+        "resultLength": 714
+      }
+    ],
+    "responseLength": 794,
+    "responsePreview": "I'll read the content of the first invoice I found - \"Invoice - INV-2026-0042 - Acme Corporation.pdf\" (ID: 175768).Based on the content of **Invoice - INV-2026-0042 - Acme Corporation.pdf** (ID: 175768), here are the details:\n\n**Total Amount: $25,980.00**\n\n## Invoice Breakdown:\n- **Invoice Number:**",
+    "stopReason": "end_turn",
+    "error": null
+  },
+  {
+    "promptIndex": 4,
+    "prompt": "What is the description of that document? Update it to say 'Reviewed by AI assistant'",
+    "totalTimeMs": 62059,
+    "timeToFirstTokenMs": 1363,
+    "totalToolTimeMs": 1514,
+    "aiThinkingTimeMs": 60545,
+    "toolCallCount": 2,
+    "toolCalls": [
+      {
+        "name": "otcs_get_node",
+        "args": {
+          "node_id": 175768
+        },
+        "durationMs": 670,
+        "isError": false,
+        "resultLength": 597
+      },
+      {
+        "name": "otcs_node_action",
+        "args": {
+          "action": "update_description",
+          "node_id": 175768,
+          "description": "Reviewed by AI assistant"
+        },
+        "durationMs": 844,
+        "isError": false,
+        "resultLength": 608
+      }
+    ],
+    "responseLength": 587,
+    "responsePreview": "I'll first get the current description of the document, then update it to \"Reviewed by AI assistant\".Now I'll update the description to \"Reviewed by AI assistant\":Perfect! I've successfully updated the description of **Invoice - INV-2026-0042 - Acme Corporation.pdf** (ID: 175768).\n\n**Previous descri",
+    "stopReason": "end_turn",
+    "error": null
+  }
+]

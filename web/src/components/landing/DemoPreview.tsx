@@ -1,15 +1,20 @@
 export default function DemoPreview() {
   return (
-    <section id="demo" className="px-6 py-16">
+    <section id="demo" className="section-alt px-6 py-12">
       <div className="mx-auto max-w-3xl">
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
           {/* Title bar */}
-          <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div className="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50">
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 text-[9px] font-bold text-white">
               OT
             </span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               OTCS AI Assistant
+            </span>
+            <span className="ml-auto flex gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
             </span>
           </div>
 

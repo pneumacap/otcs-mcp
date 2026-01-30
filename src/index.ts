@@ -1314,7 +1314,19 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         template_id: number; name: string; parent_id?: number; description?: string; business_properties?: Record<string, unknown>;
       };
       const workspace = await client.createWorkspace({ template_id, name, parent_id, description, business_properties });
-      return { success: true, workspace, message: `Workspace "${name}" created with ID ${workspace.id}` };
+      const propResults = (workspace as any)._propertyResults as { updated: number[]; failed: number[] } | undefined;
+      delete (workspace as any)._propertyResults;
+
+      let message = `Workspace "${name}" created with ID ${workspace.id}`;
+      if (propResults) {
+        if (propResults.updated.length > 0) {
+          message += `. Categories updated: ${propResults.updated.join(', ')}`;
+        }
+        if (propResults.failed.length > 0) {
+          message += `. WARNING: Failed to update categories: ${propResults.failed.join(', ')}`;
+        }
+      }
+      return { success: true, workspace, message, categories_updated: propResults?.updated, categories_failed: propResults?.failed };
     }
 
     case 'otcs_get_workspace': {

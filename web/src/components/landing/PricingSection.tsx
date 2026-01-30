@@ -52,17 +52,17 @@ const tiers = [
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="px-6 py-20">
+    <section id="pricing" className="section-alt px-6 py-14">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Simple, transparent pricing
           </h2>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <p className="mt-3 text-gray-600 dark:text-gray-400">
             Start free and scale as your team grows.
           </p>
         </div>
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           {tiers.map((tier) => (
             <PricingCard key={tier.name} {...tier} />
           ))}

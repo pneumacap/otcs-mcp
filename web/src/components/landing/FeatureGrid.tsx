@@ -77,17 +77,17 @@ const features = [
 
 export default function FeatureGrid() {
   return (
-    <section id="features" className="px-6 py-20">
+    <section id="features" className="px-6 py-14">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Everything you need to manage Content Server
           </h2>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <p className="mt-3 text-gray-600 dark:text-gray-400">
             38 enterprise tools accessible through a single intelligent assistant.
           </p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => (
             <FeatureCard key={f.title} {...f} />
           ))}

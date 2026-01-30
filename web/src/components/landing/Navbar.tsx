@@ -7,7 +7,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
+    <nav className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/90 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/90">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
