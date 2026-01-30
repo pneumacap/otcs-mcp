@@ -12,6 +12,11 @@ import * as path from "path";
 const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const mammoth = require("mammoth");
+import { execFile } from "child_process";
+import { promisify } from "util";
+import * as os from "os";
+
+const execFileAsync = promisify(execFile);
 
 // MIME type detection (from index.ts:2024-2036)
 function getMimeType(filePath: string): string {
@@ -38,6 +43,8 @@ function getMimeType(filePath: string): string {
     ".png": "image/png",
     ".gif": "image/gif",
     ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
     ".zip": "application/zip",
     ".mp3": "audio/mpeg",
     ".mp4": "video/mp4",
@@ -103,6 +110,29 @@ async function extractText(
         }
       } catch {
         // Fall through — .doc not always supported
+      }
+    }
+
+    // TIFF / TIF images — OCR via native tesseract CLI
+    if (
+      mimeType === "image/tiff" ||
+      fileName.endsWith(".tif") ||
+      fileName.endsWith(".tiff")
+    ) {
+      const tmpFile = path.join(os.tmpdir(), `ocr-${Date.now()}.tif`);
+      try {
+        fs.writeFileSync(tmpFile, buffer);
+        // tesseract <input> stdout  →  prints OCR text to stdout
+        const { stdout } = await execFileAsync("tesseract", [tmpFile, "stdout"], {
+          timeout: 120_000,
+        });
+        const text = stdout.trim();
+        if (text.length > 0) {
+          return { text: text.slice(0, MAX_TEXT_LENGTH), method: "tesseract-ocr" };
+        }
+        return { text: "[OCR completed but no text detected in image]", method: "tesseract-ocr" };
+      } finally {
+        try { fs.unlinkSync(tmpFile); } catch { /* ignore cleanup errors */ }
       }
     }
   } catch (err: any) {
