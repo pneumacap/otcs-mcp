@@ -2480,14 +2480,40 @@ export class OTCSClient {
   async getNodePermissions(nodeId: number): Promise<NodePermissions> {
     const response = await this.request<any>('GET', `/v2/nodes/${nodeId}/permissions?expand=member`);
 
-    const results = response.results || {};
-    const data = results.data || results;
-
     // Parse permissions from response
     const permissions: NodePermissions = {
       node_id: nodeId,
       custom_permissions: [],
     };
+
+    // The API returns results as an array of {data: {permissions: {permissions, right_id, type}}}
+    const results = response.results;
+    if (Array.isArray(results)) {
+      for (const item of results) {
+        const entry = item?.data?.permissions;
+        if (!entry) continue;
+        const type: string = entry.type;
+        const permEntry = this.transformPermissionEntry(entry, type as any);
+        switch (type) {
+          case 'owner':
+            permissions.owner = permEntry;
+            break;
+          case 'group':
+            permissions.group = permEntry;
+            break;
+          case 'public':
+            permissions.public_access = permEntry;
+            break;
+          case 'custom':
+            permissions.custom_permissions.push(permEntry);
+            break;
+        }
+      }
+      return permissions;
+    }
+
+    // Fallback: object-based response structure (e.g. {results: {data: {owner, group, ...}}})
+    const data = (results && results.data) || results || {};
 
     // Owner permissions
     if (data.owner) {
@@ -2510,7 +2536,6 @@ export class OTCSClient {
         this.transformPermissionEntry(p, 'custom')
       );
     } else if (data.permissions) {
-      // Alternative response structure
       for (const [rightId, permData] of Object.entries(data.permissions as Record<string, any>)) {
         if (!['owner', 'group', 'public_access'].includes(rightId)) {
           const entry = this.transformPermissionEntry(permData, 'custom');

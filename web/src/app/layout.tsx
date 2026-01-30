@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OTCS AI Assistant",
-  description: "AI-powered interface to OpenText Content Server",
+  title: "OTCS AI Assistant — AI without Workspaces",
+  description:
+    "Manage your entire OpenText Content Server through natural language. Browse folders, search documents, run workflows, and control permissions — all from a single conversation.",
 };
 
 export default function RootLayout({
