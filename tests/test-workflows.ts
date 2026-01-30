@@ -46,16 +46,16 @@ async function runTests() {
     }
     console.log();
 
-    // Test 3: Get Workflow Status (all)
-    console.log('Test 3: Get Workflow Status');
+    // Test 3: Get Workflow Status - On Time
+    console.log('Test 3: Get Workflow Status (ontime, Both)');
     try {
-      const workflows = await client.getWorkflowStatus({});
-      console.log(`  ✓ Retrieved workflow status`);
+      const workflows = await client.getWorkflowStatus({ wstatus: 'ontime', kind: 'Both' });
+      console.log(`  ✓ Retrieved on-time workflows`);
       console.log(`  Count: ${workflows.length}`);
       if (workflows.length > 0) {
         console.log('  Sample workflows:');
-        workflows.slice(0, 3).forEach(w => {
-          console.log(`    - ${w.workflow_name} (Status: ${w.workflow_status})`);
+        workflows.slice(0, 5).forEach(w => {
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key}, Step: ${w.step_name || 'N/A'}, Assignee: ${w.current_assignee || 'N/A'})`);
         });
       }
     } catch (error) {
@@ -63,16 +63,64 @@ async function runTests() {
     }
     console.log();
 
-    // Test 4: Get Active Workflows
-    console.log('Test 4: Get Active Workflows');
+    // Test 3b: Get Workflow Status - Late
+    console.log('Test 3b: Get Workflow Status (workflowlate, Both)');
     try {
-      const activeWorkflows = await client.getActiveWorkflows({});
-      console.log(`  ✓ Retrieved active workflows`);
+      const workflows = await client.getWorkflowStatus({ wstatus: 'workflowlate', kind: 'Both' });
+      console.log(`  ✓ Retrieved late workflows`);
+      console.log(`  Count: ${workflows.length}`);
+      if (workflows.length > 0) {
+        workflows.slice(0, 5).forEach(w => {
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key}, Due: ${w.due_date || 'N/A'})`);
+        });
+      }
+    } catch (error) {
+      console.log(`  ⚠ ${error instanceof Error ? error.message : error}`);
+    }
+    console.log();
+
+    // Test 3c: Get Workflow Status - Completed
+    console.log('Test 3c: Get Workflow Status (completed, Both)');
+    try {
+      const workflows = await client.getWorkflowStatus({ wstatus: 'completed', kind: 'Both' });
+      console.log(`  ✓ Retrieved completed workflows`);
+      console.log(`  Count: ${workflows.length}`);
+      if (workflows.length > 0) {
+        workflows.slice(0, 3).forEach(w => {
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key})`);
+        });
+      }
+    } catch (error) {
+      console.log(`  ⚠ ${error instanceof Error ? error.message : error}`);
+    }
+    console.log();
+
+    // Test 3d: Get Workflow Status - Stopped
+    console.log('Test 3d: Get Workflow Status (stopped, Both)');
+    try {
+      const workflows = await client.getWorkflowStatus({ wstatus: 'stopped', kind: 'Both' });
+      console.log(`  ✓ Retrieved stopped workflows`);
+      console.log(`  Count: ${workflows.length}`);
+      if (workflows.length > 0) {
+        workflows.slice(0, 3).forEach(w => {
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key})`);
+        });
+      }
+    } catch (error) {
+      console.log(`  ⚠ ${error instanceof Error ? error.message : error}`);
+    }
+    console.log();
+
+    // Test 4: Get Active Workflows (running instances)
+    console.log('Test 4: Get Active Workflows (NOARCHIVE)');
+    try {
+      const activeWorkflows = await client.getActiveWorkflows({ status: 'NOARCHIVE' });
+      console.log(`  ✓ Retrieved active workflow instances`);
       console.log(`  Count: ${activeWorkflows.length}`);
       if (activeWorkflows.length > 0) {
-        console.log('  Sample active workflows:');
-        activeWorkflows.slice(0, 3).forEach(w => {
-          console.log(`    - ${w.workflow_name || w.workflow_id} (ID: ${w.workflow_id})`);
+        console.log('  Sample active instances:');
+        activeWorkflows.slice(0, 5).forEach(w => {
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key}, Due: ${w.due_date || 'N/A'})`);
         });
       }
     } catch (error) {

@@ -492,33 +492,54 @@ export const OTCS_TOOLS: Tool[] = [
   },
   {
     name: "otcs_workflow_status",
-    description: "Get workflows by status or search active workflows.",
+    description:
+      "Get workflows by status or search active/running workflows. Use by_status mode to query workflows dashboard (ontime, late, completed, stopped). Use active mode to list running workflow instances optionally filtered by map ID, date range, or archive status.",
     input_schema: {
       type: "object" as const,
       properties: {
         mode: {
           type: "string",
           enum: ["by_status", "active"],
-          description: "Query mode",
+          description:
+            "Query mode: by_status for dashboard view, active for running instances",
         },
         status: {
           type: "string",
-          enum: ["ontime", "workflowlate"],
-          description: "Status filter",
+          enum: ["ontime", "workflowlate", "completed", "stopped"],
+          description:
+            "Status filter. For by_status: ontime|workflowlate|completed|stopped. For active: NOARCHIVE|ARCHIVED",
         },
         kind: {
           type: "string",
-          enum: ["initiated", "managed"],
-          description: "Kind filter",
+          enum: ["Initiated", "Managed", "Both"],
+          description:
+            "Kind filter - Initiated (you started), Managed (you manage), Both",
         },
-        map_id: { type: "number", description: "Workflow map ID" },
-        search_name: { type: "string", description: "Search by name" },
+        map_id: {
+          type: "number",
+          description: "Workflow map ID (for active mode)",
+        },
+        search_name: {
+          type: "string",
+          description: "Search by workflow name (for active mode)",
+        },
         business_workspace_id: {
           type: "number",
-          description: "Filter by workspace",
+          description: "Filter by workspace (for active mode)",
         },
-        start_date: { type: "string", description: "Start date yyyy-mm-dd" },
-        end_date: { type: "string", description: "End date yyyy-mm-dd" },
+        start_date: {
+          type: "string",
+          description: "Start date yyyy-mm-dd (for active mode)",
+        },
+        end_date: {
+          type: "string",
+          description: "End date yyyy-mm-dd (for active mode)",
+        },
+        wfretention: {
+          type: "number",
+          description:
+            "Filter on workflow completion date in days (for by_status mode)",
+        },
       },
     },
   },

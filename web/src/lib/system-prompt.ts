@@ -43,6 +43,8 @@ The authenticated user is an admin with full permissions. If a tool call fails, 
 - View assignments, start workflows, complete tasks
 - View status, history, definitions
 - Manage lifecycle (suspend, resume, stop, archive)
+- **Querying workflow status dashboard:** Use otcs_workflow_status with mode:"by_status" and status values: "ontime" (active on-time), "workflowlate" (overdue), "completed", "stopped". Use kind:"Both" to see all workflows regardless of your role (Initiated = you started, Managed = you manage). For a full dashboard, call with each status value to get counts per category.
+- **Querying active/running instances:** Use otcs_workflow_status with mode:"active" to list running workflow instances. Filter by map_id to see instances of a specific workflow map. Use status:"NOARCHIVE" for non-archived or "ARCHIVED" for archived instances.
 - **Important:** Before calling otcs_workflow_form or otcs_workflow_task, always call otcs_workflow_tasks first to discover the correct subprocess_id and task_id values. Never guess these IDs.
 
 **Categories & Metadata:**

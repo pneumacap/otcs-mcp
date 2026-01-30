@@ -545,18 +545,19 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_workflow_status',
-    description: 'Get workflows by status or search active workflows.',
+    description: 'Get workflows by status or search active/running workflows. Use by_status mode to query workflows dashboard (ontime, late, completed, stopped). Use active mode to list running workflow instances optionally filtered by map ID, date range, or archive status.',
     inputSchema: {
       type: 'object',
       properties: {
-        mode: { type: 'string', enum: ['by_status', 'active'], description: 'Query mode', default: 'by_status' },
-        status: { type: 'string', enum: ['ontime', 'workflowlate'], description: 'Status filter (for by_status)' },
-        kind: { type: 'string', enum: ['initiated', 'managed'], description: 'Kind filter (for by_status)' },
-        map_id: { type: 'number', description: 'Workflow map ID (for active)' },
-        search_name: { type: 'string', description: 'Search by name (for active)' },
-        business_workspace_id: { type: 'number', description: 'Filter by workspace (for active)' },
-        start_date: { type: 'string', description: 'Start date yyyy-mm-dd (for active)' },
-        end_date: { type: 'string', description: 'End date yyyy-mm-dd (for active)' },
+        mode: { type: 'string', enum: ['by_status', 'active'], description: 'Query mode: by_status for dashboard view, active for running instances', default: 'by_status' },
+        status: { type: 'string', enum: ['ontime', 'workflowlate', 'completed', 'stopped'], description: 'Status filter. For by_status: ontime|workflowlate|completed|stopped. For active: NOARCHIVE|ARCHIVED' },
+        kind: { type: 'string', enum: ['Initiated', 'Managed', 'Both'], description: 'Kind filter - Initiated (you started), Managed (you manage), Both' },
+        map_id: { type: 'number', description: 'Workflow map ID (for active mode)' },
+        search_name: { type: 'string', description: 'Search by workflow name (for active mode)' },
+        business_workspace_id: { type: 'number', description: 'Filter by workspace (for active mode)' },
+        start_date: { type: 'string', description: 'Start date yyyy-mm-dd (for active mode)' },
+        end_date: { type: 'string', description: 'End date yyyy-mm-dd (for active mode)' },
+        wfretention: { type: 'number', description: 'Filter on workflow completion date in days (for by_status mode)' },
       },
     },
   },
@@ -1534,12 +1535,12 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
     }
 
     case 'otcs_workflow_status': {
-      const { mode, status, kind, map_id, search_name, business_workspace_id, start_date, end_date } = args as any;
+      const { mode, status, kind, map_id, search_name, business_workspace_id, start_date, end_date, wfretention } = args as any;
       if (mode === 'active') {
-        const workflows = await client.getActiveWorkflows({ map_id, search_name, business_workspace_id, start_date, end_date });
-        return { workflows, count: workflows.length };
+        const workflows = await client.getActiveWorkflows({ map_id, search_name, business_workspace_id, start_date, end_date, status, kind });
+        return { workflows, count: workflows.length, filters: { map_id, status, kind } };
       }
-      const workflows = await client.getWorkflowStatus({ status, kind });
+      const workflows = await client.getWorkflowStatus({ wstatus: status, kind, wfretention });
       return { workflows, count: workflows.length, filters: { status, kind } };
     }
 

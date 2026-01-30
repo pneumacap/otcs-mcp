@@ -1313,25 +1313,27 @@ export class OTCSClient {
    * Get workflows by status (ontime, workflowlate, etc.)
    */
   async getWorkflowStatus(options: {
-    status?: string;
+    wstatus?: string;
     kind?: string;
     sort?: string;
-    completed_from?: string;
+    wfretention?: number;
   } = {}): Promise<WorkflowStatus[]> {
     const params = new URLSearchParams();
 
-    if (options.status) params.append('wfstatusselected', options.status);
-    if (options.kind) params.append('kind', options.kind);
+    if (options.wstatus) params.append('wstatus', options.wstatus);
+    if (options.kind) params.append('Kind', options.kind);
     if (options.sort) params.append('sort', options.sort);
-    if (options.completed_from) params.append('selectionType', options.completed_from);
+    if (options.wfretention) params.append('wfretention', options.wfretention.toString());
 
     const path = `/v2/workflows/status${params.toString() ? '?' + params.toString() : ''}`;
     const response = await this.request<any>('GET', path);
 
-    const data = response.results?.data || [];
-    return data.map((item: any) => {
-      const props = item.properties || item;
-      return this.transformWorkflowStatus(props);
+    // Response: { results: [ { data: { wfstatus: {...} }, permissions: {...} } ] }
+    const results = response.results || [];
+    return results.map((item: any) => {
+      const wfstatus = item.data?.wfstatus || item.properties || item;
+      const permissions = item.permissions;
+      return this.transformWorkflowStatus(wfstatus, permissions);
     });
   }
 
@@ -1341,23 +1343,21 @@ export class OTCSClient {
   async getActiveWorkflows(options: ActiveWorkflowsOptions = {}): Promise<WorkflowStatus[]> {
     const params = new URLSearchParams();
 
-    if (options.map_id) params.append('mapid', options.map_id.toString());
+    if (options.map_id) params.append('mapObjId', options.map_id.toString());
     if (options.search_name) params.append('search_name', options.search_name);
     if (options.business_workspace_id) params.append('businessWorkspaceID', options.business_workspace_id.toString());
-    if (options.start_date) params.append('startDate', options.start_date);
-    if (options.end_date) params.append('endDate', options.end_date);
-    if (options.status) params.append('wfstatusselected', options.status);
-    if (options.kind) params.append('kind', options.kind);
+    if (options.start_date) params.append('fromDate', options.start_date);
+    if (options.end_date) params.append('toDate', options.end_date);
+    if (options.status) params.append('status', options.status);
+    if (options.kind) params.append('Kind', options.kind);
     if (options.sort) params.append('sort', options.sort);
 
     const path = `/v2/workflows/status/active${params.toString() ? '?' + params.toString() : ''}`;
     const response = await this.request<any>('GET', path);
 
-    const data = response.results?.data || [];
-    return data.map((item: any) => {
-      const props = item.properties || item;
-      return this.transformWorkflowStatus(props);
-    });
+    // Response: { results: [ { Work_WorkID, SubWork_Title, Work_Status, ... } ] }
+    const results = response.results || [];
+    return results.map((item: any) => this.transformActiveWorkflow(item));
   }
 
   /**
@@ -1746,15 +1746,11 @@ export class OTCSClient {
     const generalInfo = results.generalInfo?.[0] || {};
 
     return {
-      workflow_id: workflowInstanceId,
+      process_id: workflowInstanceId,
       workflow_name: generalInfo.wf_name || generalInfo.title || '',
-      workflow_status: generalInfo.status || '',
+      status_key: generalInfo.status || '',
       date_initiated: generalInfo.date_initiated,
-      date_due: generalInfo.date_due,
-      initiator: generalInfo.initiator_id ? {
-        id: generalInfo.initiator_id,
-        name: generalInfo.initiator_name || '',
-      } : undefined,
+      due_date: generalInfo.date_due,
     };
   }
 
@@ -2279,25 +2275,49 @@ export class OTCSClient {
 
   // ============ Utility Methods ============
 
-  private transformWorkflowStatus(props: any): WorkflowStatus {
+  private transformWorkflowStatus(wfstatus: any, permissions?: any): WorkflowStatus {
     return {
-      workflow_id: props.workflow_id || props.work_id || props.id,
-      workflow_name: props.workflow_name || props.name,
-      workflow_status: props.workflow_status || props.status,
-      date_initiated: props.date_initiated,
-      date_due: props.date_due,
-      initiator: props.initiator,
-      tasks: props.tasks,
-      permissions: props.permissions ? {
-        can_archive: props.permissions.archive,
-        can_change_attributes: props.permissions.change_attributes,
-        can_delete: props.permissions.delete,
-        can_modify_route: props.permissions.modify_route,
-        can_manage_permissions: props.permissions.manage_permissions,
-        can_see_details: props.permissions.see_details,
-        can_stop: props.permissions.stop,
-        can_suspend: props.permissions.suspend,
+      process_id: wfstatus.process_id,
+      subprocess_id: wfstatus.subprocess_id,
+      task_id: wfstatus.task_id,
+      workflow_name: wfstatus.wf_name,
+      status_key: wfstatus.status_key,
+      step_name: wfstatus.step_name,
+      current_assignee: wfstatus.current_assignee,
+      assignee_count: wfstatus.assignee_count,
+      date_initiated: wfstatus.date_initiated,
+      due_date: wfstatus.due_date,
+      steps_count: wfstatus.steps_count,
+      comments_on: wfstatus.comments_on,
+      permissions: permissions ? {
+        can_archive: permissions.archive,
+        can_change_attributes: permissions.change_attributes,
+        can_delete: permissions.delete,
+        can_modify_route: permissions.modify_route,
+        can_manage_permissions: permissions.manage_permissions,
+        can_see_details: permissions.see_details,
+        can_stop: permissions.stop,
+        can_suspend: permissions.suspend,
       } : undefined,
+    };
+  }
+
+  private transformActiveWorkflow(item: any): WorkflowStatus {
+    const statusMap: Record<number, string> = {
+      [-1]: 'active',
+      0: 'active',
+      1: 'stopped',
+      2: 'completed',
+      3: 'archived',
+    };
+    return {
+      process_id: item.Work_WorkID,
+      subprocess_id: item.SubWork_SubWorkID,
+      workflow_name: item.SubWork_Title,
+      status_key: statusMap[item.Work_Status] ?? String(item.Work_Status),
+      date_initiated: item.SubWork_DateInitiated,
+      due_date: item.Work_DateDue_Max || item.SubWork_DateDue_Max,
+      comments_on: item.comments_on === 1,
     };
   }
 

@@ -1057,6 +1057,7 @@ export async function handleToolCall(
         business_workspace_id,
         start_date,
         end_date,
+        wfretention,
       } = args as any;
       if (mode === "active") {
         const workflows = await client.getActiveWorkflows({
@@ -1065,10 +1066,20 @@ export async function handleToolCall(
           business_workspace_id,
           start_date,
           end_date,
+          status,
+          kind,
         });
-        return { workflows, count: workflows.length };
+        return {
+          workflows,
+          count: workflows.length,
+          filters: { map_id, status, kind },
+        };
       }
-      const workflows = await client.getWorkflowStatus({ status, kind });
+      const workflows = await client.getWorkflowStatus({
+        wstatus: status,
+        kind,
+        wfretention,
+      });
       return { workflows, count: workflows.length, filters: { status, kind } };
     }
 
