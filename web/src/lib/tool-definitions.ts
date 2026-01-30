@@ -53,7 +53,14 @@ export const OTCS_TOOLS: Tool[] = [
   },
   {
     name: "otcs_search",
-    description: `Enterprise search across the repository. Searches document content, names, descriptions, and metadata. Supports full-text search, exact phrases, and advanced query syntax.
+    description: `Enterprise search — the primary discovery tool. Searches document content, names, descriptions, and category metadata. Use this FIRST when finding documents by topic, type, or content.
+
+**Best practices for discovery:**
+- Use **mode: "anywords"** + multiple keywords for broad discovery (finds documents matching ANY term)
+- Use **location_id** to scope search to a workspace/folder subtree — finds all matching documents in that container
+- Use **include_highlights: true** to see highlighted snippets showing why each result matched
+- Document descriptions and category attributes are searchable metadata — searches match against these by default
+- Combine location_id + query "*" to enumerate all documents within a container
 
 **LQL Query Examples (use mode: "complexquery"):**
 - Wildcards: "OTName:contract*" (names starting with contract), "OTName:*report*" (names containing report)
@@ -108,6 +115,11 @@ export const OTCS_TOOLS: Tool[] = [
             "desc_OTName",
           ],
           description: "Sort order",
+        },
+        location_id: {
+          type: "number",
+          description:
+            "Scope search to a specific folder/workspace subtree by its node ID",
         },
         include_facets: {
           type: "boolean",

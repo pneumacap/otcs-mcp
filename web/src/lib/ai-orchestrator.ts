@@ -27,7 +27,7 @@ export type SSEEvent =
 const BROWSE_KEEP = new Set(["id", "name", "type", "type_name", "container_size"]);
 
 /** Fields to keep from search result items */
-const SEARCH_KEEP = new Set(["id", "name", "type", "type_name", "summary"]);
+const SEARCH_KEEP = new Set(["id", "name", "type", "type_name", "description", "parent_id", "summary", "highlight_summary"]);
 
 /**
  * Compact a tool result to reduce token usage.
@@ -53,7 +53,7 @@ function compactToolResult(toolName: string, result: unknown): string {
     if (Array.isArray(r.results)) {
       return JSON.stringify({
         total_count: r.total_count,
-        results: r.results.slice(0, 10).map((item: Record<string, unknown>) =>
+        results: r.results.slice(0, 50).map((item: Record<string, unknown>) =>
           pickKeys(item, SEARCH_KEEP)
         ),
       });

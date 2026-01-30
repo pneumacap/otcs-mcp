@@ -11,6 +11,104 @@ import { OTCSClient } from './client/otcs-client.js';
 import { NodeTypes, NodeInfo, FolderContents } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createRequire } from 'module';
+import { createWorker } from 'tesseract.js';
+import * as url from 'url';
+
+const require = createRequire(import.meta.url);
+
+// Resolve local eng.traineddata (avoids CDN download that causes hangs)
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const LANG_PATH = path.resolve(__dirname, '../eng.traineddata');
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+const mammoth = require('mammoth');
+
+// ── Text content extraction (mirrors web/src/lib/otcs-bridge.ts) ──
+const TEXT_MIME_TYPES = new Set([
+  'text/plain', 'text/csv', 'text/html', 'text/xml', 'text/markdown',
+  'application/json', 'application/xml', 'application/javascript',
+  'application/x-yaml', 'text/yaml',
+]);
+
+async function extractText(
+  buffer: Buffer,
+  mimeType: string,
+  fileName: string
+): Promise<{ text: string; method: string } | null> {
+  const MAX_TEXT_LENGTH = 100_000;
+
+  try {
+    // Plain text formats — decode directly
+    if (TEXT_MIME_TYPES.has(mimeType) || mimeType.startsWith('text/')) {
+      const text = buffer.toString('utf-8').slice(0, MAX_TEXT_LENGTH);
+      return { text, method: 'direct' };
+    }
+
+    // PDF
+    if (mimeType === 'application/pdf') {
+      const result = await pdfParse(buffer);
+      return { text: result.text.slice(0, MAX_TEXT_LENGTH), method: 'pdf-parse' };
+    }
+
+    // Word .docx
+    if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      fileName.endsWith('.docx')
+    ) {
+      const result = await mammoth.extractRawText({ buffer });
+      return { text: result.value.slice(0, MAX_TEXT_LENGTH), method: 'mammoth' };
+    }
+
+    // Legacy .doc — mammoth can sometimes handle these too
+    if (mimeType === 'application/msword' || fileName.endsWith('.doc')) {
+      try {
+        const result = await mammoth.extractRawText({ buffer });
+        if (result.value.length > 0) {
+          return { text: result.value.slice(0, MAX_TEXT_LENGTH), method: 'mammoth' };
+        }
+      } catch {
+        // Fall through — .doc not always supported
+      }
+    }
+
+    // TIFF / TIF images — OCR via Tesseract worker (with timeout)
+    if (
+      mimeType === 'image/tiff' ||
+      fileName.endsWith('.tif') ||
+      fileName.endsWith('.tiff')
+    ) {
+      const OCR_TIMEOUT_MS = 60_000; // 60 seconds max
+
+      const ocrPromise = (async () => {
+        const workerOpts: Record<string, unknown> = {};
+        if (fs.existsSync(LANG_PATH)) {
+          workerOpts.langPath = path.dirname(LANG_PATH);
+        }
+        const worker = await createWorker('eng', undefined, workerOpts);
+        try {
+          const { data } = await worker.recognize(buffer);
+          return data.text.trim();
+        } finally {
+          await worker.terminate();
+        }
+      })();
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('OCR timed out')), OCR_TIMEOUT_MS)
+      );
+
+      const text = await Promise.race([ocrPromise, timeoutPromise]);
+      if (text.length > 0) {
+        return { text: text.slice(0, MAX_TEXT_LENGTH), method: 'tesseract-ocr' };
+      }
+      return { text: '[OCR completed but no text detected in image]', method: 'tesseract-ocr' };
+    }
+  } catch (err: any) {
+    return { text: `[Text extraction failed: ${err.message}]`, method: 'error' };
+  }
+
+  return null; // Unsupported format
+}
 
 // Initialize OTCS client with environment configuration
 const config = {
@@ -151,7 +249,14 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_search',
-    description: `Enterprise search across the repository. Searches document content, names, descriptions, and metadata. Supports full-text search, exact phrases, and advanced query syntax.
+    description: `Enterprise search — the primary discovery tool. Searches document content, names, descriptions, and category metadata. Use this FIRST when finding documents by topic, type, or content.
+
+**Best practices for discovery:**
+- Use **mode: "anywords"** + multiple keywords for broad discovery (finds documents matching ANY term)
+- Use **location_id** to scope search to a workspace/folder subtree — finds all matching documents in that container
+- Use **include_highlights: true** to see highlighted snippets showing why each result matched
+- Document descriptions and category attributes are searchable metadata — searches match against these by default
+- Combine location_id + query "*" to enumerate all documents within a container
 
 **LQL Query Examples (use mode: "complexquery"):**
 - Wildcards: "OTName:contract*" (names starting with contract), "OTName:*report*" (names containing report)
@@ -191,6 +296,10 @@ const allTools: Tool[] = [
           type: 'string',
           enum: ['relevance', 'desc_OTObjectDate', 'asc_OTObjectDate', 'desc_OTObjectSize', 'asc_OTObjectSize', 'asc_OTName', 'desc_OTName'],
           description: 'Sort order (default: relevance)'
+        },
+        location_id: {
+          type: 'number',
+          description: 'Scope search to a specific folder/workspace subtree by its node ID. Use this to find all documents within a known container regardless of query match.'
         },
         include_facets: {
           type: 'boolean',
@@ -850,6 +959,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
       const params = args as {
         query: string;
         filter_type?: 'all' | 'documents' | 'folders' | 'workspaces' | 'workflows';
+        location_id?: number;
         mode?: 'allwords' | 'anywords' | 'exactphrase' | 'complexquery';
         search_in?: 'all' | 'content' | 'metadata';
         modifier?: 'synonymsof' | 'relatedto' | 'soundslike' | 'wordbeginswith' | 'wordendswith';
@@ -862,6 +972,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
       return await client.search({
         query: params.query,
         filter_type: params.filter_type,
+        location_id: params.location_id,
         lookfor: params.mode,
         within: params.search_in,
         modifier: params.modifier,
@@ -948,7 +1059,28 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
     case 'otcs_download_content': {
       const { node_id } = args as { node_id: number };
       const { content, mimeType, fileName } = await client.getContent(node_id);
-      return { file_name: fileName, mime_type: mimeType, size_bytes: content.byteLength, content_base64: Buffer.from(content).toString('base64') };
+      const buf = Buffer.from(content);
+
+      // Extract readable text when possible
+      const extracted = await extractText(buf, mimeType, fileName);
+
+      const result: Record<string, unknown> = {
+        file_name: fileName,
+        mime_type: mimeType,
+        size_bytes: buf.byteLength,
+      };
+
+      if (extracted) {
+        result.text_content = extracted.text;
+        result.extraction_method = extracted.method;
+        result.text_length = extracted.text.length;
+      } else {
+        // For non-text formats, still return base64 but note it's binary
+        result.content_base64 = buf.toString('base64');
+        result.note = 'Binary content — text extraction not available for this format.';
+      }
+
+      return result;
     }
 
     case 'otcs_upload_folder': {
@@ -1786,11 +1918,11 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         case 'apply_batch':
           if (!hold_id || !node_ids || node_ids.length === 0) throw new Error('hold_id and node_ids required');
           const applyBatchResult = await client.applyRMHoldBatch(node_ids, hold_id);
-          return { success: true, result: applyBatchResult, message: `Hold ${hold_id} applied to ${node_ids.length} node(s)` };
+          return { success: applyBatchResult.success, result: applyBatchResult, message: `Hold ${hold_id} applied to ${applyBatchResult.count}/${node_ids.length} node(s)${applyBatchResult.failed.length > 0 ? `, ${applyBatchResult.failed.length} failed` : ''}` };
         case 'remove_batch':
           if (!hold_id || !node_ids || node_ids.length === 0) throw new Error('hold_id and node_ids required');
           const removeBatchResult = await client.removeRMHoldBatch(node_ids, hold_id);
-          return { success: true, result: removeBatchResult, message: `Hold ${hold_id} removed from ${node_ids.length} node(s)` };
+          return { success: removeBatchResult.success, result: removeBatchResult, message: `Hold ${hold_id} removed from ${removeBatchResult.count}/${node_ids.length} node(s)${removeBatchResult.failed.length > 0 ? `, ${removeBatchResult.failed.length} failed` : ''}` };
         case 'get_hold_items':
           if (!hold_id) throw new Error('hold_id required');
           const holdItemsResult = await client.getRMHoldItems(hold_id);
@@ -2047,6 +2179,7 @@ function getMimeType(filePath: string): string {
     '.ppt': 'application/vnd.ms-powerpoint', '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     '.txt': 'text/plain', '.csv': 'text/csv', '.html': 'text/html', '.xml': 'application/xml', '.json': 'application/json', '.md': 'text/markdown',
     '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.svg': 'image/svg+xml',
+    '.tif': 'image/tiff', '.tiff': 'image/tiff',
     '.zip': 'application/zip', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4',
   };
   return mimeTypes[ext] || 'application/octet-stream';

@@ -1430,6 +1430,7 @@ export interface EnterpriseSearchOptions {
   modifier?: 'synonymsof' | 'relatedto' | 'soundslike' | 'wordbeginswith' | 'wordendswith';
   sort?: SearchSortType;
   filter_type?: SearchFilterType;
+  location_id?: number;
   include_facets?: boolean;
   include_highlights?: boolean;
   limit?: number;

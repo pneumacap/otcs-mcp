@@ -273,6 +273,64 @@ async function testRM() {
       logResult('remove_hold verification', 'fail', 'Hold still on document');
     }
 
+    // 2.8 Batch apply hold to multiple nodes
+    console.log('  Batch applying hold to both documents...');
+    try {
+      const batchApplyResult = await client.applyRMHoldBatch([testDoc1.id, testDoc2.id], newHold.id);
+      if (batchApplyResult.success && batchApplyResult.count === 2) {
+        logResult(`apply_batch: ${batchApplyResult.count} node(s) succeeded, ${batchApplyResult.failed.length} failed`, 'pass');
+      } else if (batchApplyResult.count > 0) {
+        logResult(`apply_batch: ${batchApplyResult.count}/2 succeeded, ${batchApplyResult.failed.length} failed`, 'pass');
+        for (const f of batchApplyResult.failed) {
+          console.log(`    - Failed node ${f.node_id}: ${f.error}`);
+        }
+      } else {
+        logResult('apply_batch', 'fail', `All nodes failed: ${JSON.stringify(batchApplyResult.failed)}`);
+      }
+
+      // Verify both nodes have the hold
+      const holds1 = await client.getNodeRMHolds(testDoc1.id);
+      const holds2 = await client.getNodeRMHolds(testDoc2.id);
+      const doc1HasHold = holds1.holds.some(h => h.id === newHold.id);
+      const doc2HasHold = holds2.holds.some(h => h.id === newHold.id);
+      if (doc1HasHold && doc2HasHold) {
+        logResult('apply_batch verification: both nodes have hold', 'pass');
+      } else {
+        logResult('apply_batch verification', 'fail', `doc1=${doc1HasHold}, doc2=${doc2HasHold}`);
+      }
+    } catch (err: any) {
+      logResult('apply_batch', 'fail', err.message);
+    }
+
+    // 2.9 Batch remove hold from multiple nodes
+    console.log('  Batch removing hold from both documents...');
+    try {
+      const batchRemoveResult = await client.removeRMHoldBatch([testDoc1.id, testDoc2.id], newHold.id);
+      if (batchRemoveResult.success && batchRemoveResult.count === 2) {
+        logResult(`remove_batch: ${batchRemoveResult.count} node(s) succeeded, ${batchRemoveResult.failed.length} failed`, 'pass');
+      } else if (batchRemoveResult.count > 0) {
+        logResult(`remove_batch: ${batchRemoveResult.count}/2 succeeded, ${batchRemoveResult.failed.length} failed`, 'pass');
+        for (const f of batchRemoveResult.failed) {
+          console.log(`    - Failed node ${f.node_id}: ${f.error}`);
+        }
+      } else {
+        logResult('remove_batch', 'fail', `All nodes failed: ${JSON.stringify(batchRemoveResult.failed)}`);
+      }
+
+      // Verify both nodes no longer have the hold
+      const holdsAfter1 = await client.getNodeRMHolds(testDoc1.id);
+      const holdsAfter2 = await client.getNodeRMHolds(testDoc2.id);
+      const doc1StillHas = holdsAfter1.holds.some(h => h.id === newHold.id);
+      const doc2StillHas = holdsAfter2.holds.some(h => h.id === newHold.id);
+      if (!doc1StillHas && !doc2StillHas) {
+        logResult('remove_batch verification: both nodes hold-free', 'pass');
+      } else {
+        logResult('remove_batch verification', 'fail', `doc1 still has hold=${doc1StillHas}, doc2=${doc2StillHas}`);
+      }
+    } catch (err: any) {
+      logResult('remove_batch', 'fail', err.message);
+    }
+
     // Delete hold
     console.log('  Deleting test hold...');
     await client.deleteRMHold(newHold.id);

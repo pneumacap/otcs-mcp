@@ -660,6 +660,28 @@ export class OTCSClient {
       }
     }
 
+    // Location scoping via OTLocation in complexquery mode
+    if (options.location_id) {
+      const locationFilter = `OTLocation:${options.location_id}`;
+      const isWildcardOnly = query.trim() === '*' || query.trim() === '';
+
+      if (isWildcardOnly) {
+        // Wildcard-only + location: use location as the sole query term
+        query = locationFilter;
+        lookfor = 'complexquery';
+      } else if (lookfor === 'complexquery') {
+        query = `(${query}) AND ${locationFilter}`;
+      } else {
+        query = `${query} ${locationFilter}`;
+        lookfor = 'complexquery';
+      }
+
+      // OTLocation is a metadata field, so we must search 'all'
+      if (within === 'content') {
+        within = 'all';
+      }
+    }
+
     // The query goes in the 'where' parameter
     params.append('where', query);
 
@@ -3150,33 +3172,67 @@ export class OTCSClient {
   }
 
   /**
-   * Apply hold to multiple nodes
+   * Apply hold to multiple nodes using concurrent single-node calls.
+   * Processes nodes in parallel batches with per-node error tracking.
    */
-  async applyRMHoldBatch(nodeIds: number[], holdId: number): Promise<{ success: boolean; count: number }> {
-    const formData = new URLSearchParams();
-    formData.append('holdID', holdId.toString());
-    // API expects array format - send each id as separate parameter
-    for (const id of nodeIds) {
-      formData.append('ids', id.toString());
+  async applyRMHoldBatch(nodeIds: number[], holdId: number): Promise<{ success: boolean; count: number; failed: Array<{ node_id: number; error: string }> }> {
+    const failed: Array<{ node_id: number; error: string }> = [];
+    let successCount = 0;
+
+    const maxConcurrency = 5;
+    for (let i = 0; i < nodeIds.length; i += maxConcurrency) {
+      const batch = nodeIds.slice(i, i + maxConcurrency);
+      const batchResults = await Promise.all(
+        batch.map(async (nodeId) => {
+          try {
+            await this.applyRMHold(nodeId, holdId);
+            return { success: true, nodeId };
+          } catch (error: any) {
+            failed.push({ node_id: nodeId, error: error?.message || String(error) });
+            return { success: false, nodeId };
+          }
+        })
+      );
+      successCount += batchResults.filter(r => r.success).length;
     }
 
-    await this.request<any>('POST', `/v1/rmclassifications/applyhold`, undefined, formData);
-    return { success: true, count: nodeIds.length };
+    return {
+      success: failed.length === 0,
+      count: successCount,
+      failed,
+    };
   }
 
   /**
-   * Remove hold from multiple nodes
+   * Remove hold from multiple nodes using concurrent single-node calls.
+   * Processes nodes in parallel batches with per-node error tracking.
    */
-  async removeRMHoldBatch(nodeIds: number[], holdId: number): Promise<{ success: boolean; count: number }> {
-    const formData = new URLSearchParams();
-    formData.append('holdID', holdId.toString());
-    // API expects array format - send each id as separate parameter
-    for (const id of nodeIds) {
-      formData.append('ids', id.toString());
+  async removeRMHoldBatch(nodeIds: number[], holdId: number): Promise<{ success: boolean; count: number; failed: Array<{ node_id: number; error: string }> }> {
+    const failed: Array<{ node_id: number; error: string }> = [];
+    let successCount = 0;
+
+    const maxConcurrency = 5;
+    for (let i = 0; i < nodeIds.length; i += maxConcurrency) {
+      const batch = nodeIds.slice(i, i + maxConcurrency);
+      const batchResults = await Promise.all(
+        batch.map(async (nodeId) => {
+          try {
+            await this.removeRMHold(nodeId, holdId);
+            return { success: true, nodeId };
+          } catch (error: any) {
+            failed.push({ node_id: nodeId, error: error?.message || String(error) });
+            return { success: false, nodeId };
+          }
+        })
+      );
+      successCount += batchResults.filter(r => r.success).length;
     }
 
-    await this.request<any>('POST', `/v1/rmclassifications/removehold`, undefined, formData);
-    return { success: true, count: nodeIds.length };
+    return {
+      success: failed.length === 0,
+      count: successCount,
+      failed,
+    };
   }
 
   /**

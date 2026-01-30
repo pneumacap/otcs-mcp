@@ -250,3 +250,26 @@ body {
   height: 2px;
   background: linear-gradient(90deg, transparent 0%, #d4a017 30%, #f6d365 50%, #d4a017 70%, transparent 100%);
 }
+
+/* ── Chat home staggered entrance ────────────────────── */
+@keyframes home-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-stagger {
+  opacity: 0;
+  animation: home-fade-in 0.45s ease-out forwards;
+}
+.home-stagger-1 { animation-delay: 0.05s; }
+.home-stagger-2 { animation-delay: 0.12s; }
+.home-stagger-3 { animation-delay: 0.20s; }
+.home-stagger-4 { animation-delay: 0.28s; }
+.home-stagger-5 { animation-delay: 0.36s; }
+.home-stagger-6 { animation-delay: 0.44s; }

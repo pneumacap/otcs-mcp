@@ -197,6 +197,7 @@ export async function handleToolCall(
           | "folders"
           | "workspaces"
           | "workflows";
+        location_id?: number;
         mode?: "allwords" | "anywords" | "exactphrase" | "complexquery";
         search_in?: "all" | "content" | "metadata";
         modifier?:
@@ -214,6 +215,7 @@ export async function handleToolCall(
       return await client.search({
         query: params.query,
         filter_type: params.filter_type,
+        location_id: params.location_id,
         lookfor: params.mode,
         within: params.search_in,
         modifier: params.modifier,
@@ -1933,9 +1935,9 @@ export async function handleToolCall(
             hold_id
           );
           return {
-            success: true,
+            success: applyBatchResult.success,
             result: applyBatchResult,
-            message: `Hold ${hold_id} applied to ${node_ids.length} node(s)`,
+            message: `Hold ${hold_id} applied to ${applyBatchResult.count}/${node_ids.length} node(s)${applyBatchResult.failed.length > 0 ? `, ${applyBatchResult.failed.length} failed` : ""}`,
           };
         case "remove_batch":
           if (!hold_id || !node_ids || node_ids.length === 0)
@@ -1945,9 +1947,9 @@ export async function handleToolCall(
             hold_id
           );
           return {
-            success: true,
+            success: removeBatchResult.success,
             result: removeBatchResult,
-            message: `Hold ${hold_id} removed from ${node_ids.length} node(s)`,
+            message: `Hold ${hold_id} removed from ${removeBatchResult.count}/${node_ids.length} node(s)${removeBatchResult.failed.length > 0 ? `, ${removeBatchResult.failed.length} failed` : ""}`,
           };
         case "get_hold_items":
           if (!hold_id) throw new Error("hold_id required");
