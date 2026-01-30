@@ -343,12 +343,12 @@ const allTools: Tool[] = [
   // ==================== Workspaces (4 tools) ====================
   {
     name: 'otcs_workspace_types',
-    description: 'Get workspace types or form schema. Actions: list (types), get_form (creation form).',
+    description: 'Get workspace types or form schema. Actions: list (types), get_form (creation form). IMPORTANT: Use the template_id from the list results (e.g. 17284), NOT the wksp_type_id (e.g. 13). Both are accepted and auto-resolved.',
     inputSchema: {
       type: 'object',
       properties: {
         action: { type: 'string', enum: ['list', 'get_form'], description: 'Action', default: 'list' },
-        template_id: { type: 'number', description: 'Template ID (required for get_form)' },
+        template_id: { type: 'number', description: 'Template node ID from list results (e.g. 17284). Also accepts wksp_type_id which will be auto-resolved. Required for get_form.' },
       },
     },
   },
@@ -358,7 +358,7 @@ const allTools: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {
-        template_id: { type: 'number', description: 'Workspace type/template ID' },
+        template_id: { type: 'number', description: 'Template node ID from workspace types list (e.g. 17284). Also accepts wksp_type_id which will be auto-resolved.' },
         name: { type: 'string', description: 'Workspace name' },
         parent_id: { type: 'number', description: 'Optional parent folder ID' },
         description: { type: 'string', description: 'Optional description' },

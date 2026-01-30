@@ -817,11 +817,30 @@ export class OTCSClient {
     });
   }
 
+  async resolveTemplateId(id: number): Promise<number> {
+    // If the ID is likely a wksp_type_id (small number), look up the actual template node ID
+    // First try using it directly; if it fails, look it up from workspace types
+    const types = await this.getWorkspaceTypes();
+    const matchByType = types.find(t => t.wksp_type_id === id);
+    if (matchByType?.template_id) {
+      return matchByType.template_id;
+    }
+    // Check if it's already a valid template_id
+    const matchByTemplate = types.find(t => t.template_id === id);
+    if (matchByTemplate) {
+      return id;
+    }
+    // Not found in either - return as-is and let the API error naturally
+    return id;
+  }
+
   async getWorkspaceForm(templateId: number): Promise<WorkspaceFormSchemaType> {
-    // Use template_id to get the form schema for workspace creation
+    // Resolve in case caller passed wksp_type_id instead of template node ID
+    const resolvedId = await this.resolveTemplateId(templateId);
+
     const response = await this.request<any>(
       'GET',
-      `/v2/forms/businessworkspaces/create?template_id=${templateId}`
+      `/v2/forms/businessworkspaces/create?template_id=${resolvedId}`
     );
 
     // Parse the form schema from the response
@@ -860,10 +879,11 @@ export class OTCSClient {
   }
 
   async createWorkspace(params: WorkspaceCreateParams): Promise<WorkspaceInfo> {
-    const formData = new URLSearchParams();
+    // Resolve in case caller passed wksp_type_id instead of template node ID
+    const resolvedTemplateId = await this.resolveTemplateId(params.template_id);
 
-    // template_id is the actual template node ID from the templates array
-    formData.append('template_id', params.template_id.toString());
+    const formData = new URLSearchParams();
+    formData.append('template_id', resolvedTemplateId.toString());
     formData.append('name', params.name);
 
     if (params.parent_id) {

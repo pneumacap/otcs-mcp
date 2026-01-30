@@ -1,7 +1,9 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import ToolCallDisplay from "./ToolCallDisplay";
+import ChartBlock, { ChartConfig } from "./ChartBlock";
 
 export interface ToolCall {
   id: string;
@@ -22,6 +24,30 @@ export interface Message {
   content: string; // user messages use this directly
   parts?: MessagePart[]; // assistant messages use ordered parts
 }
+
+const mdComponents: Components = {
+  pre({ children }) {
+    return <>{children}</>;
+  },
+  code({ className, children }) {
+    if (className === "language-chart") {
+      const raw = String(children).trim();
+      try {
+        const config: ChartConfig = JSON.parse(raw);
+        return <ChartBlock config={config} />;
+      } catch {
+        // Likely still streaming — show a placeholder
+        return (
+          <pre className="my-2 animate-pulse rounded-lg border border-dashed border-gray-300 p-4 text-xs text-gray-400 dark:border-gray-600 dark:text-gray-500">
+            Rendering chart…
+          </pre>
+        );
+      }
+    }
+    // Default inline/block code rendering
+    return <code className={className}>{children}</code>;
+  },
+};
 
 interface MessageBubbleProps {
   message: Message;
@@ -67,7 +93,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           if (!part.text.trim()) return null;
           return (
             <div key={`text-${i}`} className="assistant-prose">
-              <ReactMarkdown>{part.text}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{part.text}</ReactMarkdown>
             </div>
           );
         })}
