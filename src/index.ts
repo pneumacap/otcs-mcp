@@ -1927,7 +1927,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         case 'get_hold_items':
           if (!hold_id) throw new Error('hold_id required');
           const holdItemsResult = await client.getRMHoldItems(hold_id);
-          return { hold_id, items: holdItemsResult.items, count: holdItemsResult.items.length, message: `Hold ${hold_id} contains ${holdItemsResult.items.length} item(s)` };
+          return { hold_id, items: holdItemsResult.items, count: holdItemsResult.items.length, total_count: holdItemsResult.total_count, message: `Hold ${hold_id} contains ${holdItemsResult.total_count} item(s)` };
         case 'get_hold_users':
           if (!hold_id) throw new Error('hold_id required');
           const holdUsersResult = await client.getRMHoldUsers(hold_id);

@@ -1969,6 +1969,7 @@ export async function handleToolCall(
             hold_id,
             items: holdItemsResult.items,
             count: holdItemsResult.items.length,
+            total_count: holdItemsResult.total_count,
           };
         case "get_hold_users":
           if (!hold_id) throw new Error("hold_id required");

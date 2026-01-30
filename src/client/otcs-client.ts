@@ -3275,30 +3275,26 @@ export class OTCSClient {
 
     const response = await this.request<any>('GET', path);
 
-    // Parse response - API returns { collection: {...}, results: [...] }
+    // Parse response - API returns { collection: { paging: {...} }, results: { contents: [...] } }
+    // Each item in contents has properties directly (id, name, type, type_name, etc.)
     const items: Array<{ id: number; name: string; type: number; type_name: string }> = [];
 
-    // Try multiple response formats
     let itemsArray: any[] = [];
-    if (response.results && Array.isArray(response.results)) {
+    if (response.results?.contents && Array.isArray(response.results.contents)) {
+      itemsArray = response.results.contents;
+    } else if (Array.isArray(response.results)) {
+      // Fallback: some API versions may return results as array
       itemsArray = response.results;
-    } else if (response.data && Array.isArray(response.data)) {
-      itemsArray = response.data;
-    } else if (Array.isArray(response)) {
-      itemsArray = response;
-    } else if (response.data?.items) {
-      itemsArray = response.data.items;
-    } else if (response.items) {
-      itemsArray = response.items;
     }
 
     for (const item of itemsArray) {
-      if (item && item.id) {
+      const props = item?.data?.properties || item;
+      if (props && props.id) {
         items.push({
-          id: item.id,
-          name: item.name || '',
-          type: item.type || 0,
-          type_name: item.type_name || '',
+          id: props.id,
+          name: props.name || '',
+          type: props.type || 0,
+          type_name: props.type_name || '',
         });
       }
     }
