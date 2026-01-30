@@ -321,6 +321,30 @@ export interface WorkflowAssignmentsResponse {
   }>;
 }
 
+export interface WorkflowStatusAssignee {
+  userId: number;
+  loginName: string;
+  firstName?: string;
+  lastName?: string;
+  emailAddress?: string;
+  phone?: string;
+}
+
+export interface WorkflowStatusTask {
+  process_id: number;
+  subprocess_id: number;
+  task_id: number;
+  task_name: string;
+  task_due_date?: string;
+  task_start_date?: string;
+  task_status?: string;
+  task_assignees?: {
+    assignee: WorkflowStatusAssignee[];
+    assigneeCount: number;
+    currentAssignee?: string;
+  };
+}
+
 export interface WorkflowStatus {
   process_id: number;
   subprocess_id?: number;
@@ -328,12 +352,13 @@ export interface WorkflowStatus {
   workflow_name: string;
   status_key: string;
   step_name?: string;
-  current_assignee?: string;
+  assignees?: WorkflowStatusAssignee[];
   assignee_count?: number;
   date_initiated?: string;
   due_date?: string;
   steps_count?: number;
   comments_on?: boolean;
+  current_tasks?: WorkflowStatusTask[];
   permissions?: WorkflowPermissions;
 }
 

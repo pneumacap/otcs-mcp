@@ -55,7 +55,14 @@ async function runTests() {
       if (workflows.length > 0) {
         console.log('  Sample workflows:');
         workflows.slice(0, 5).forEach(w => {
-          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key}, Step: ${w.step_name || 'N/A'}, Assignee: ${w.current_assignee || 'N/A'})`);
+          const assigneeNames = w.assignees?.map(a => a.loginName).join(', ') || 'N/A';
+          console.log(`    - [${w.process_id}] ${w.workflow_name} (Status: ${w.status_key}, Step: ${w.step_name || 'N/A'}, Assignees: ${assigneeNames})`);
+          if (w.current_tasks?.length) {
+            w.current_tasks.forEach(t => {
+              const taskAssignees = t.task_assignees?.assignee?.map(a => a.loginName).join(', ') || 'N/A';
+              console.log(`      Task: ${t.task_name} → ${taskAssignees} (${t.task_status})`);
+            });
+          }
         });
       }
     } catch (error) {
@@ -128,8 +135,29 @@ async function runTests() {
     }
     console.log();
 
-    // Test 5: Logout
-    console.log('Test 5: Logout');
+    // Test 5: Get Workflow Tasks (task list with assignees)
+    console.log('Test 5: Get Workflow Tasks (process 177804)');
+    try {
+      const taskList = await client.getWorkflowTasks(177804);
+      console.log(`  ✓ Retrieved task list`);
+      if (taskList.details) {
+        console.log(`  Workflow: ${taskList.details.workflow_name} (ID: ${taskList.details.workflow_id})`);
+        console.log(`  Initiated: ${taskList.details.date_initiated}`);
+      }
+      if (taskList.tasks) {
+        console.log(`  Completed: ${taskList.tasks.completed?.length || 0}, Current: ${taskList.tasks.current?.length || 0}, Next: ${taskList.tasks.next?.length || 0}`);
+        taskList.tasks.current?.forEach((t: any) => {
+          const assignees = t.task_assignees?.assignee?.map((a: any) => a.loginName).join(', ') || 'N/A';
+          console.log(`    Current: ${t.task_name} → ${assignees} (${t.task_status})`);
+        });
+      }
+    } catch (error) {
+      console.log(`  ⚠ ${error instanceof Error ? error.message : error}`);
+    }
+    console.log();
+
+    // Test 6: Logout
+    console.log('Test 6: Logout');
     await client.logout();
     console.log('  ✓ Logged out successfully\n');
 

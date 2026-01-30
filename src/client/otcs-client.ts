@@ -1389,20 +1389,22 @@ export class OTCSClient {
     const response = await this.request<any>('GET', `/v2/workflows/status/processes/${processId}`);
 
     const data = response.results?.data || response.results || response;
+    const stepList = data.step_list || data.tasks;
+    const wfDetails = data.wf_details || data.details;
     return {
       attachments: data.attachments || [],
       data_packages: data.data_packages || [],
-      details: data.details ? {
-        date_initiated: data.details.date_initiated,
-        date_due: data.details.date_due,
-        initiator: data.details.initiator,
-        workflow_name: data.details.workflow_name,
-        workflow_id: data.details.workflow_id,
+      details: wfDetails ? {
+        date_initiated: wfDetails.date_initiated,
+        date_due: wfDetails.due_date || wfDetails.date_due,
+        initiator: wfDetails.initiator,
+        workflow_name: wfDetails.wf_name || wfDetails.workflow_name,
+        workflow_id: wfDetails.work_workID || wfDetails.workflow_id,
       } : undefined,
-      tasks: data.tasks ? {
-        completed: data.tasks.completed || [],
-        current: data.tasks.current || [],
-        next: data.tasks.next || [],
+      tasks: stepList ? {
+        completed: stepList.completed || [],
+        current: stepList.current || [],
+        next: stepList.next || [],
       } : undefined,
       permissions: data.permissions,
     };
@@ -2283,21 +2285,22 @@ export class OTCSClient {
       workflow_name: wfstatus.wf_name,
       status_key: wfstatus.status_key,
       step_name: wfstatus.step_name,
-      current_assignee: wfstatus.current_assignee,
+      assignees: wfstatus.assignee,
       assignee_count: wfstatus.assignee_count,
       date_initiated: wfstatus.date_initiated,
       due_date: wfstatus.due_date,
       steps_count: wfstatus.steps_count,
       comments_on: wfstatus.comments_on,
+      current_tasks: wfstatus.parallel_steps,
       permissions: permissions ? {
-        can_archive: permissions.archive,
-        can_change_attributes: permissions.change_attributes,
-        can_delete: permissions.delete,
-        can_modify_route: permissions.modify_route,
-        can_manage_permissions: permissions.manage_permissions,
-        can_see_details: permissions.see_details,
-        can_stop: permissions.stop,
-        can_suspend: permissions.suspend,
+        can_archive: permissions.Archive,
+        can_change_attributes: permissions.ChangeAttr,
+        can_delete: permissions.Delete,
+        can_modify_route: permissions.ChangeRoute,
+        can_manage_permissions: permissions.ManagerPerms,
+        can_see_details: permissions.SeeDetail,
+        can_stop: permissions.Stop,
+        can_suspend: permissions.Suspend,
       } : undefined,
     };
   }
