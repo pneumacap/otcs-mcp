@@ -72,6 +72,9 @@ export default function Footer() {
         <p className="text-center text-xs text-gray-400 dark:text-gray-600">
           &copy; 2026 OTCS AI Assistant. All rights reserved.
         </p>
+        <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-600">
+          Powered by Claude Opus 4.5
+        </p>
       </div>
     </footer>
   );
