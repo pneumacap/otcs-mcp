@@ -24,8 +24,8 @@ export default function AgenticSection() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left — copy */}
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#1a6aff]/20 bg-blue-50 px-3 py-1 text-xs font-medium text-[#1a6aff] dark:border-[#1a6aff]/30 dark:bg-blue-950/40 dark:text-blue-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#1a6aff]" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:border-amber-500/20 dark:bg-amber-950/40 dark:text-amber-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
               Industry First
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
