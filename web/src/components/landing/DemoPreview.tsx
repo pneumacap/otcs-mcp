@@ -299,7 +299,7 @@ export default function DemoPreview() {
               OT
             </span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              AeroCS
+              Altius
             </span>
             <span className="ml-auto flex gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-red-400" />

@@ -23,7 +23,7 @@ export default function SignInPage() {
             OT
           </span>
           <h1 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Sign in to AeroCS
+            Sign in to Altius
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Welcome back — manage Content Server with AI.

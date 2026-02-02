@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AeroCS — AI without Workspaces",
+  title: "Altius — AI without Workspaces",
   description:
     "Manage your entire OpenText Content Server through natural language. Browse folders, search documents, run workflows, and control permissions — all from a single conversation.",
 };

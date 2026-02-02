@@ -38,7 +38,7 @@ export default function Footer() {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-xs font-bold text-white">
               OT
             </span>
-            AeroCS
+            Altius
           </div>
           <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             AI-powered interface to OpenText Content Server.
@@ -70,7 +70,7 @@ export default function Footer() {
       {/* Copyright */}
       <div className="mx-auto mt-12 max-w-6xl border-t border-gray-200 pt-6 dark:border-gray-800">
         <p className="text-center text-xs text-gray-400 dark:text-gray-600">
-          &copy; 2026 AeroCS. All rights reserved.
+          &copy; 2026 Altius. All rights reserved.
         </p>
         <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-600">
           Powered by Claude Opus 4.5
