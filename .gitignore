@@ -20,3 +20,14 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Tesseract OCR data
+eng.traineddata
+
+# Test fixtures
+tests/Sample TIFs/
+tests/test-extraction.ts
+tests/test-real-tifs.ts
+
+# Docs
+docs/REFACTORING-PLAN.md
