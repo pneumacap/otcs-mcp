@@ -598,11 +598,11 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_start_workflow',
-    description: 'Start a workflow. Modes: direct (immediate start), draft (create draft first), initiate (with role assignments).',
+    description: 'Start a workflow. RECOMMENDED: Use mode "direct" (default) to immediately start with doc_ids and get a running instance in one call. Only use "draft" if you need to configure form fields before starting (requires separate otcs_draft_workflow initiate call). Use "initiate" for role assignments without documents.',
     inputSchema: {
       type: 'object',
       properties: {
-        mode: { type: 'string', enum: ['direct', 'draft', 'initiate'], description: 'Start mode', default: 'direct' },
+        mode: { type: 'string', enum: ['direct', 'draft', 'initiate'], description: 'Start mode. Use "direct" (default) for most cases - starts workflow immediately with attachments.', default: 'direct' },
         workflow_id: { type: 'number', description: 'Workflow map ID' },
         doc_ids: { type: 'string', description: 'Comma-separated document IDs to attach' },
         role_info: { type: 'object', description: 'Role assignments for initiate mode: {"RoleName": userId}' },
@@ -645,7 +645,7 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_draft_workflow',
-    description: 'Manage draft workflow forms. Actions: get_form, update_form, initiate.',
+    description: 'Manage draft workflow forms (advanced). Actions: get_form (view form fields), update_form (set field values), initiate (launch the draft as a running workflow). Note: documents must be attached during draft creation via otcs_start_workflow, not during initiate.',
     inputSchema: {
       type: 'object',
       properties: {

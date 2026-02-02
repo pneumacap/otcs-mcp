@@ -586,14 +586,16 @@ export const OTCS_TOOLS: Tool[] = [
   },
   {
     name: "otcs_start_workflow",
-    description: "Start a workflow. Modes: direct, draft, initiate.",
+    description:
+      'Start a workflow. RECOMMENDED: Use mode "direct" (default) to immediately start with doc_ids in one call. Only use "draft" if you need to configure form fields before starting.',
     input_schema: {
       type: "object" as const,
       properties: {
         mode: {
           type: "string",
           enum: ["direct", "draft", "initiate"],
-          description: "Start mode",
+          description:
+            'Start mode. Use "direct" (default) for most cases - starts workflow immediately with attachments.',
         },
         workflow_id: { type: "number", description: "Workflow map ID" },
         doc_ids: {
@@ -671,7 +673,7 @@ export const OTCS_TOOLS: Tool[] = [
   {
     name: "otcs_draft_workflow",
     description:
-      "Manage draft workflow forms. Actions: get_form, update_form, initiate.",
+      'Manage draft workflow forms (advanced). Actions: get_form, update_form, initiate. Documents must be attached during draft creation via otcs_start_workflow, not during initiate.',
     input_schema: {
       type: "object" as const,
       properties: {

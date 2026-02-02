@@ -1121,6 +1121,7 @@ export async function handleToolCall(
     }
 
     case "otcs_start_workflow": {
+      // Default to direct mode - most reliable for starting workflows with attachments
       const { mode, workflow_id, doc_ids, role_info, attach_documents } =
         args as {
           mode?: string;
