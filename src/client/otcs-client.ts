@@ -1688,7 +1688,8 @@ export class OTCSClient {
     const generalInfo = Array.isArray(results.generalInfo) ? results.generalInfo[0] : results.generalInfo || {};
     const managers = Array.isArray(results.ManagerList) ? results.ManagerList : [];
     const stepList = Array.isArray(results.stepList) ? results.stepList : [];
-    const comments = Array.isArray(results.comments) ? results.comments : [];
+    const comments = Array.isArray(results.Comments) ? results.Comments : [];
+    const auditInfo = Array.isArray(results.auditInfo) ? results.auditInfo : [];
     const attributes = Array.isArray(results.Attributes) ? results.Attributes : [];
 
     // Extract attribute values into a flat object
@@ -1719,16 +1720,26 @@ export class OTCSClient {
         name: m.name,
       })),
       steps: stepList.map((s: any) => ({
-        step_name: s.step_name || '',
-        status: s.status || '',
-        performer: s.performer,
-        disposition: s.disposition,
-        start_date: s.start_date,
+        step_name: s.TITLE || '',
+        task_id: s.TASKID,
+        type: s.TYPE,
+        status: s.WORKINFO?.SubWorkTask_Status || '',
+        performer_id: s.WORKINFO?.SubWorkTask_PerformerID,
+        date_started: s.WORKINFO?.Work_DateInitiated,
+        date_completed: s.WORKINFO?.SubWorkTask_DateDone,
       })),
       comments: comments.map((c: any) => ({
-        comment: c.comment || '',
-        date: c.date || '',
-        user_name: c.user_name || '',
+        comment: c.COMMENTS || '',
+        date: c.DATESAVED || '',
+        user_name: c.USERNAME || '',
+        step_name: c.STEPNAME || '',
+        task_id: c.TASKID,
+      })),
+      audit_info: auditInfo.map((a: any) => ({
+        date: a.AUDIT_DATE || '',
+        user_name: a.USER_NAME || '',
+        user_id: a.USER_ID,
+        message: a.AUDIT_MSG || '',
       })),
       attributes: attributeValues,
       attachment_count: results.Attachments,

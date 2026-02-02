@@ -756,15 +756,25 @@ export interface WorkflowInfo {
   }>;
   steps?: Array<{
     step_name: string;
+    task_id?: number;
+    type?: number;
     status: string;
-    performer?: string;
-    disposition?: string;
-    start_date?: string;
+    performer_id?: number;
+    date_started?: string;
+    date_completed?: string;
   }>;
   comments?: Array<{
     comment: string;
     date: string;
     user_name: string;
+    step_name?: string;
+    task_id?: number;
+  }>;
+  audit_info?: Array<{
+    date: string;
+    user_name: string;
+    user_id?: number;
+    message: string;
   }>;
   attributes?: Record<string, unknown>;
   attachment_count?: number;
