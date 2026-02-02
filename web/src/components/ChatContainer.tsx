@@ -183,7 +183,7 @@ export default function ChatContainer() {
     <div className="flex h-screen flex-col bg-white dark:bg-gray-950">
       {/* Header */}
       <header className="flex items-center gap-3 border-b border-gray-100 bg-white/80 px-5 py-3 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-[10px] font-bold text-white shadow-sm">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-[10px] font-bold text-white shadow-sm">
           OT
         </div>
         <div>
@@ -202,7 +202,7 @@ export default function ChatContainer() {
           {messages.length === 0 && (
             <div className="flex flex-col items-center pt-8 pb-4">
               {/* Logo + Greeting */}
-              <div className="home-stagger home-stagger-1 mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25">
+              <div className="home-stagger home-stagger-1 mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1a6aff] to-[#00008b] shadow-lg shadow-[#1a6aff]/25">
                 <span className="text-base font-bold text-white">OT</span>
               </div>
               <h2 className="home-stagger home-stagger-1 mb-1 text-xl font-semibold text-gray-900 dark:text-white">
@@ -228,7 +228,7 @@ export default function ChatContainer() {
                   disabled={isStreaming}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-gradient-to-br from-white to-blue-50/40 p-4 text-left transition-all hover:border-blue-200 hover:shadow-md hover:shadow-blue-100/50 disabled:opacity-50 dark:border-gray-800 dark:from-gray-900 dark:to-blue-950/20 dark:hover:border-blue-800 dark:hover:shadow-blue-900/20"
                 >
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950 dark:text-blue-400 dark:group-hover:bg-blue-600 dark:group-hover:text-white">
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-[#1a6aff] transition-colors group-hover:bg-[#1a6aff] group-hover:text-white dark:bg-blue-950 dark:text-blue-400 dark:group-hover:bg-[#1a6aff] dark:group-hover:text-white">
                     <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   </div>
                   <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">Search documents</div>
@@ -310,7 +310,7 @@ export default function ChatContainer() {
 
           {isStreaming && messages.length > 0 && !lastMsgHasParts && (
             <div className="flex gap-3">
-              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-[10px] font-bold text-white">
+              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-[10px] font-bold text-white">
                 OT
               </div>
               <div className="flex items-center gap-1 py-2">

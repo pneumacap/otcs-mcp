@@ -11,7 +11,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-xs font-bold text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-xs font-bold text-white">
             OT
           </span>
           OTCS AI Assistant
@@ -30,7 +30,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/sign-up"
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+            className="rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
           >
             Get Started
           </Link>
@@ -67,7 +67,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white"
+              className="rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] px-4 py-2 text-center text-sm font-semibold text-white"
             >
               Get Started
             </Link>

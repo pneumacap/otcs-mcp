@@ -5,7 +5,7 @@ export default function DemoPreview() {
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
           {/* Title bar */}
           <div className="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 text-[9px] font-bold text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-[9px] font-bold text-white">
               OT
             </span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -22,7 +22,7 @@ export default function DemoPreview() {
           <div className="space-y-4 p-6">
             {/* User message */}
             <div className="flex justify-end">
-              <div className="rounded-2xl rounded-br-md bg-blue-600 px-4 py-2.5 text-[13.5px] text-white">
+              <div className="rounded-2xl rounded-br-md bg-[#1a6aff] px-4 py-2.5 text-[13.5px] text-white">
                 Show me all contracts expiring in Q1 2026
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function DemoPreview() {
               <span className="flex-1 text-[13px] text-gray-400 dark:text-gray-600">
                 Ask about your Content Server...
               </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-white">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1a6aff] text-white">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>

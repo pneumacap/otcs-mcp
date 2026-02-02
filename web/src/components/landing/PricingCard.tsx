@@ -45,7 +45,7 @@ export default function PricingCard({
       <ul className="mt-5 space-y-2.5">
         {features.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-[13.5px] text-gray-700 dark:text-gray-300">
-            <svg className={`mt-0.5 h-4 w-4 shrink-0 ${highlighted ? "text-amber-500 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className={`mt-0.5 h-4 w-4 shrink-0 ${highlighted ? "text-amber-500 dark:text-amber-400" : "text-[#1a6aff] dark:text-blue-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             {feature}

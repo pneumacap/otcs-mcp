@@ -20,7 +20,7 @@ export default function SignUpPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-sm font-bold text-white">
             OT
           </span>
           <h1 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
@@ -82,7 +82,7 @@ export default function SignUpPage() {
           </div>
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+            className="mt-6 w-full rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
           >
             Create account
           </button>
@@ -90,7 +90,7 @@ export default function SignUpPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+          <Link href="/sign-in" className="font-medium text-[#1a6aff] hover:underline dark:text-blue-400">
             Sign in
           </Link>
         </p>

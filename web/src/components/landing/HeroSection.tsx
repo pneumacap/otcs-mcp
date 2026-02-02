@@ -14,7 +14,7 @@ export default function HeroSection() {
         </div>
 
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl dark:text-white">
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#1a6aff] to-[#00008b] bg-clip-text text-transparent">
             AI
           </span>{" "}
           WITHOUT WORKSPACES
@@ -27,7 +27,7 @@ export default function HeroSection() {
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
             href="/sign-up"
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:brightness-110"
+            className="rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:brightness-110"
           >
             Start Free
           </Link>

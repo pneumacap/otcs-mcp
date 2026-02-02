@@ -59,7 +59,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[75%] rounded-2xl bg-blue-600 px-4 py-2.5 text-[13.5px] leading-relaxed text-white">
+        <div className="max-w-[75%] rounded-2xl bg-[#1a6aff] px-4 py-2.5 text-[13.5px] leading-relaxed text-white">
           {message.content}
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <div className="flex gap-3">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-[10px] font-bold text-white">
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-[10px] font-bold text-white">
         OT
       </div>
       <div className="min-w-0 flex-1 space-y-2">
