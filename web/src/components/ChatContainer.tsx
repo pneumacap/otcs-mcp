@@ -188,7 +188,7 @@ export default function ChatContainer() {
         </div>
         <div>
           <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
-            OTCS AI Assistant
+            AeroCS
           </h1>
           <p className="text-[11px] text-gray-400 dark:text-gray-500">
             OpenText Content Server

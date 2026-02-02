@@ -14,7 +14,7 @@ export default function Navbar() {
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-xs font-bold text-white">
             OT
           </span>
-          OTCS AI Assistant
+          AeroCS
         </Link>
 
         {/* Desktop links */}
