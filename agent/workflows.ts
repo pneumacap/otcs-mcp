@@ -389,7 +389,7 @@ export async function executeActions(
       // ── Share documents with an email ──
       case "share": {
         const email = resolve((action.email as string) || "", extraction);
-        const perm = (action.perm as number) || 1;
+        const perm = ((action.perm as number) || 1) as 1 | 2 | 3 | 4;
         const ids = documentIds.length > 0 ? documentIds : [nodeId];
         const message = action.message ? resolve(action.message as string, extraction) : undefined;
         log(`  [${stepNum}/${actions.length}] Sharing ${ids.length} document(s) with ${email}...`);
