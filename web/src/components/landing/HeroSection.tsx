@@ -15,9 +15,9 @@ export default function HeroSection() {
           </span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-          Manage your entire OpenText Content Server through natural language.
-          Browse folders, search documents, run workflows, and control
-          permissions — all from a single conversation.
+          Automate complex content operations that once took hours into single
+          conversations. Upload, organize, analyze, and act on documents at
+          scale — powered by agentic AI that understands your business.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link

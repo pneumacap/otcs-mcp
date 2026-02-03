@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Altius — AI without Workspaces",
   description:
-    "Manage your entire OpenText Content Server through natural language. Browse folders, search documents, run workflows, and control permissions — all from a single conversation.",
+    "Automate complex content operations that once took hours into single conversations. Upload, organize, analyze, and act on documents at scale — powered by agentic AI that understands your business.",
 };
 
 export default function RootLayout({
