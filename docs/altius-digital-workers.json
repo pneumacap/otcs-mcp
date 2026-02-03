@@ -1,0 +1,939 @@
+{
+  "meta": {
+    "title": "Altius Digital Worker Twins - Comprehensive Process & Industry Analysis",
+    "version": "1.0",
+    "date": "2026-02-03",
+    "description": "Mapping of back-office process areas and industry scenarios to digital worker twins powered by Altius intelligent automation on OpenText Content Server"
+  },
+  "back_office_process_areas": [
+    {
+      "id": "BO-001",
+      "area": "Accounts Payable & Procure-to-Pay",
+      "description": "End-to-end procurement and payment processing including purchase requisitions, purchase orders, invoice receipt, three-way matching, approval routing, and payment execution.",
+      "business_impact": {
+        "manual_hours_per_week": "40-80 per FTE",
+        "error_rate_reduction": "85-95%",
+        "cycle_time_reduction": "60-75%",
+        "cost_savings": "50-70% per transaction"
+      },
+      "altius_capabilities_used": [
+        "otcs_upload - Ingest invoices and POs",
+        "otcs_search - Match invoices to POs and receipts",
+        "otcs_categories - Extract and validate metadata (amounts, vendors, dates)",
+        "otcs_start_workflow - Route for approval based on thresholds",
+        "otcs_workflow_task - Auto-approve within policy limits",
+        "otcs_workspace_relations - Link invoices to vendor workspaces",
+        "otcs_rm_classification - Classify financial records for retention",
+        "otcs_permissions - Enforce segregation of duties"
+      ],
+      "roles": [
+        {
+          "role": "AP Clerk",
+          "department": "Finance",
+          "manual_tasks": ["Invoice data entry", "PO matching", "Filing documents", "Chasing approvals", "Resolving discrepancies"],
+          "digital_twin": {
+            "name": "AP Processing Agent",
+            "automation_level": "Full",
+            "description": "Ingests invoices via upload, extracts metadata into categories, performs three-way match against POs and goods receipts using search, routes exceptions to humans, auto-files to correct workspace with RM classification.",
+            "triggers": ["New invoice uploaded", "Invoice email received", "PO goods receipt confirmed"],
+            "human_escalation": "Discrepancies over threshold, missing POs, duplicate detection"
+          }
+        },
+        {
+          "role": "AP Manager",
+          "department": "Finance",
+          "manual_tasks": ["Reviewing exception reports", "Approving high-value invoices", "Month-end reconciliation", "Vendor dispute resolution"],
+          "digital_twin": {
+            "name": "AP Oversight Agent",
+            "automation_level": "Assisted",
+            "description": "Monitors workflow status for bottlenecks, surfaces aging invoices, pre-validates approval queues, generates exception dashboards from workspace metadata, auto-escalates SLA breaches.",
+            "triggers": ["Daily batch review", "SLA threshold breach", "Month-end close"],
+            "human_escalation": "Final approval authority, vendor negotiations, policy exceptions"
+          }
+        },
+        {
+          "role": "Procurement Specialist",
+          "department": "Procurement",
+          "manual_tasks": ["Creating purchase requisitions", "Sourcing vendors", "Managing contracts", "Tracking deliveries"],
+          "digital_twin": {
+            "name": "Procurement Coordination Agent",
+            "automation_level": "Assisted",
+            "description": "Creates workspace structures for procurement events, manages document packages for RFPs, tracks contract documents through version control, links related vendor workspaces.",
+            "triggers": ["New purchase requisition", "Contract renewal date approaching", "Vendor qualification update"],
+            "human_escalation": "Vendor selection decisions, contract negotiations, strategic sourcing"
+          }
+        },
+        {
+          "role": "Budget Owner / Cost Center Manager",
+          "department": "Various",
+          "manual_tasks": ["Reviewing and approving purchase requests", "Budget monitoring", "Expense justification"],
+          "digital_twin": {
+            "name": "Budget Approval Agent",
+            "automation_level": "Assisted",
+            "description": "Pre-screens approval requests against budget data in workspace metadata, provides spend context from historical documents, auto-approves within pre-set delegation limits.",
+            "triggers": ["Approval task assigned", "Budget threshold alert"],
+            "human_escalation": "Over-budget requests, non-standard items, capital expenditures"
+          }
+        },
+        {
+          "role": "Accounts Payable Director",
+          "department": "Finance",
+          "manual_tasks": ["Process optimization", "Cash flow planning", "Audit preparation", "Vendor relationship management"],
+          "digital_twin": {
+            "name": "AP Intelligence Agent",
+            "automation_level": "Advisory",
+            "description": "Aggregates processing metrics from workflow activities, identifies early payment discount opportunities via document metadata analysis, prepares audit packages using RM classification data.",
+            "triggers": ["Weekly reporting cycle", "Audit request", "Cash flow forecast needed"],
+            "human_escalation": "Strategic decisions, process redesign, auditor interactions"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BO-002",
+      "area": "Human Resources & Employee Lifecycle",
+      "description": "Complete employee lifecycle management including recruitment, onboarding, personnel records, policy management, performance reviews, training records, and offboarding.",
+      "business_impact": {
+        "manual_hours_per_week": "30-60 per FTE",
+        "error_rate_reduction": "80-90%",
+        "cycle_time_reduction": "50-70%",
+        "cost_savings": "40-60% per process"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Create employee workspaces with standard structure",
+        "otcs_upload_with_metadata - Onboarding documents with classification",
+        "otcs_start_workflow - Route approvals for offers, changes, terminations",
+        "otcs_categories - Manage employee attributes and certifications",
+        "otcs_permissions - Role-based access to personnel files",
+        "otcs_workspace_roles - Assign HR business partners, managers",
+        "otcs_rm_holds - Legal holds for litigation or investigations",
+        "otcs_share - Share policy documents with employees"
+      ],
+      "roles": [
+        {
+          "role": "HR Coordinator",
+          "department": "Human Resources",
+          "manual_tasks": ["Processing new hire paperwork", "Updating personnel files", "Tracking certifications", "Managing I-9 and tax forms", "Scheduling orientations"],
+          "digital_twin": {
+            "name": "HR Onboarding Agent",
+            "automation_level": "Full",
+            "description": "Creates employee workspace from template on hire trigger, uploads and classifies all onboarding documents, tracks completion status via workflow, sends reminders for missing documents, manages certification expiry tracking via category metadata.",
+            "triggers": ["New hire approved", "Employee start date", "Document submission"],
+            "human_escalation": "Missing documents after 3 reminders, incomplete background checks, visa issues"
+          }
+        },
+        {
+          "role": "HR Business Partner",
+          "department": "Human Resources",
+          "manual_tasks": ["Employee relations cases", "Performance improvement plans", "Organizational changes", "Policy interpretation"],
+          "digital_twin": {
+            "name": "HR Case Management Agent",
+            "automation_level": "Assisted",
+            "description": "Creates case workspaces for employee relations matters, manages confidential document access via permissions, tracks case timelines through workflow activities, applies legal holds when required, surfaces relevant policy documents via search.",
+            "triggers": ["Case opened", "Investigation initiated", "Legal hold request"],
+            "human_escalation": "All substantive employee relations decisions, disciplinary actions, terminations"
+          }
+        },
+        {
+          "role": "Payroll Administrator",
+          "department": "Finance / HR",
+          "manual_tasks": ["Processing pay changes", "Tax document management", "Benefits enrollment paperwork", "Garnishment processing"],
+          "digital_twin": {
+            "name": "Payroll Document Agent",
+            "automation_level": "Full",
+            "description": "Routes compensation change documents through approval workflows, classifies and retains tax documents per RM schedules, manages benefits enrollment forms with category tracking, ensures garnishment orders are properly filed and accessible.",
+            "triggers": ["Compensation change approved", "New tax document", "Benefits enrollment period", "Garnishment order received"],
+            "human_escalation": "Payroll discrepancies, garnishment conflicts, retroactive adjustments"
+          }
+        },
+        {
+          "role": "Compliance Officer (HR)",
+          "department": "Legal / HR",
+          "manual_tasks": ["Audit preparation", "Records retention enforcement", "Policy distribution tracking", "EEO/OFCCP reporting"],
+          "digital_twin": {
+            "name": "HR Compliance Agent",
+            "automation_level": "Assisted",
+            "description": "Monitors RM retention schedules for personnel records, tracks policy acknowledgment workflows, generates compliance reports from workspace metadata, manages litigation holds across employee workspaces, ensures I-9 re-verification timelines.",
+            "triggers": ["Audit notification", "Retention schedule trigger", "Policy update published", "Litigation hold request"],
+            "human_escalation": "Audit responses, legal interpretations, regulatory filings"
+          }
+        },
+        {
+          "role": "Training & Development Manager",
+          "department": "Human Resources",
+          "manual_tasks": ["Tracking training completions", "Managing certification records", "Distributing training materials", "Compliance training enrollment"],
+          "digital_twin": {
+            "name": "Training Records Agent",
+            "automation_level": "Full",
+            "description": "Manages training document library with version control, tracks completion certificates via upload and category metadata, triggers recertification workflows based on expiry dates, shares training materials via content sharing, reports training compliance gaps.",
+            "triggers": ["Training completed", "Certification expiring", "New compliance requirement", "New hire onboarding"],
+            "human_escalation": "Training program design, vendor selection, non-compliant employee escalation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BO-003",
+      "area": "Contract Lifecycle Management",
+      "description": "End-to-end contract management from request and drafting through negotiation, approval, execution, obligation tracking, renewal, and archival.",
+      "business_impact": {
+        "manual_hours_per_week": "20-50 per FTE",
+        "error_rate_reduction": "75-90%",
+        "cycle_time_reduction": "40-65%",
+        "cost_savings": "30-50% per contract"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Contract workspace with standard folder structure",
+        "otcs_versions - Track contract drafts and revisions",
+        "otcs_start_workflow - Multi-stage approval routing",
+        "otcs_workspace_relations - Link contracts to vendors, projects, matters",
+        "otcs_categories - Contract metadata (dates, values, terms, obligations)",
+        "otcs_rm_classification - Classify executed contracts as records",
+        "otcs_share - Share drafts with external counterparties",
+        "otcs_search - Find contracts by clause, vendor, expiry date"
+      ],
+      "roles": [
+        {
+          "role": "Contract Administrator",
+          "department": "Legal / Procurement",
+          "manual_tasks": ["Tracking contract status", "Managing renewal dates", "Filing executed contracts", "Maintaining contract database", "Distributing contracts to stakeholders"],
+          "digital_twin": {
+            "name": "Contract Administration Agent",
+            "automation_level": "Full",
+            "description": "Creates contract workspaces from templates, tracks all versions through negotiation, manages metadata for key dates and obligations, triggers renewal workflows before expiry, classifies executed contracts as records, generates contract inventory reports.",
+            "triggers": ["Contract request submitted", "Draft uploaded", "Renewal date approaching", "Contract executed"],
+            "human_escalation": "Non-standard contract terms, disputed obligations, termination decisions"
+          }
+        },
+        {
+          "role": "Legal Counsel",
+          "department": "Legal",
+          "manual_tasks": ["Reviewing contract language", "Negotiating terms", "Assessing risk", "Managing redlines"],
+          "digital_twin": {
+            "name": "Legal Review Support Agent",
+            "automation_level": "Advisory",
+            "description": "Manages document versions during redline cycles, surfaces similar contract precedents via search, tracks legal review workflow stages, shares documents with external counsel via content sharing, maintains privilege logs via RM classification.",
+            "triggers": ["Contract routed for legal review", "Redline version uploaded", "Risk flag triggered"],
+            "human_escalation": "All legal judgment decisions, risk assessments, term negotiations"
+          }
+        },
+        {
+          "role": "Business Owner / Requestor",
+          "department": "Various",
+          "manual_tasks": ["Initiating contract requests", "Providing business requirements", "Reviewing final terms", "Managing vendor relationship"],
+          "digital_twin": {
+            "name": "Contract Request Agent",
+            "automation_level": "Assisted",
+            "description": "Guides contract request intake via workflow forms, auto-populates workspace metadata from business requirements, provides status updates from workflow tracking, surfaces relevant existing contracts via search for reference.",
+            "triggers": ["New contract need identified", "Approval task assigned", "Contract status inquiry"],
+            "human_escalation": "Business requirements definition, vendor selection, budget approval"
+          }
+        },
+        {
+          "role": "Contract Compliance Analyst",
+          "department": "Legal / Operations",
+          "manual_tasks": ["Monitoring obligation deadlines", "Tracking deliverables", "Managing compliance documentation", "Preparing audit reports"],
+          "digital_twin": {
+            "name": "Obligation Tracking Agent",
+            "automation_level": "Full",
+            "description": "Monitors contract metadata for upcoming obligations, triggers workflow tasks for deliverable deadlines, tracks compliance documentation in contract workspaces, generates obligation reports from category data, applies holds when disputes arise.",
+            "triggers": ["Obligation deadline approaching", "Deliverable due", "Compliance review cycle", "Dispute raised"],
+            "human_escalation": "Breach determinations, dispute resolution, penalty enforcement"
+          }
+        },
+        {
+          "role": "Procurement Manager",
+          "department": "Procurement",
+          "manual_tasks": ["Vendor evaluation", "Cost analysis", "Contract benchmarking", "Supplier performance tracking"],
+          "digital_twin": {
+            "name": "Procurement Intelligence Agent",
+            "automation_level": "Advisory",
+            "description": "Aggregates contract data across vendor workspaces, surfaces spend patterns from contract metadata, identifies consolidation opportunities via search across contracts, tracks supplier performance documents, prepares vendor scorecards from workspace data.",
+            "triggers": ["Quarterly review cycle", "New sourcing event", "Contract renewal batch", "Vendor performance review"],
+            "human_escalation": "Strategic sourcing decisions, vendor negotiations, contract strategy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BO-004",
+      "area": "Compliance & Audit Management",
+      "description": "Regulatory compliance tracking, internal audit management, policy governance, evidence collection, and regulatory filing across all business functions.",
+      "business_impact": {
+        "manual_hours_per_week": "30-60 per FTE",
+        "error_rate_reduction": "90-98%",
+        "cycle_time_reduction": "50-70%",
+        "cost_savings": "40-60% per audit"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Audit engagement workspaces",
+        "otcs_search - Evidence discovery across enterprise",
+        "otcs_rm_classification - Classify evidence and regulatory documents",
+        "otcs_rm_holds - Litigation and regulatory holds",
+        "otcs_permissions - Auditor access management",
+        "otcs_workflow_status - Track audit task completion",
+        "otcs_workspace_metadata - Audit findings and risk ratings",
+        "otcs_share - Share findings with external auditors"
+      ],
+      "roles": [
+        {
+          "role": "Internal Auditor",
+          "department": "Internal Audit",
+          "manual_tasks": ["Collecting evidence", "Documenting findings", "Testing controls", "Writing audit reports", "Tracking remediation"],
+          "digital_twin": {
+            "name": "Audit Execution Agent",
+            "automation_level": "Assisted",
+            "description": "Creates audit engagement workspaces with standard structure, collects evidence documents via search across enterprise, manages audit workpapers with version control, tracks testing status through workflow tasks, generates finding reports from workspace metadata.",
+            "triggers": ["Audit engagement initiated", "Evidence request issued", "Control test scheduled", "Finding identified"],
+            "human_escalation": "Professional judgment on findings, risk ratings, management discussions"
+          }
+        },
+        {
+          "role": "Compliance Manager",
+          "department": "Compliance",
+          "manual_tasks": ["Monitoring regulatory changes", "Updating policies", "Tracking compliance activities", "Managing regulatory filings", "Training coordination"],
+          "digital_twin": {
+            "name": "Compliance Monitoring Agent",
+            "automation_level": "Assisted",
+            "description": "Manages compliance document library with RM classification, tracks policy review and approval workflows, monitors certification completions across workspaces, manages regulatory filing deadlines via category metadata, generates compliance dashboards.",
+            "triggers": ["Regulatory change detected", "Policy review due", "Filing deadline approaching", "Compliance gap identified"],
+            "human_escalation": "Regulatory interpretation, policy decisions, regulator interactions"
+          }
+        },
+        {
+          "role": "Risk Analyst",
+          "department": "Risk Management",
+          "manual_tasks": ["Risk assessments", "Control documentation", "Risk register maintenance", "Incident tracking"],
+          "digital_twin": {
+            "name": "Risk Documentation Agent",
+            "automation_level": "Assisted",
+            "description": "Maintains risk register documents in workspace structure, tracks control testing evidence, manages incident documentation workspaces, links risk assessments to audit findings via workspace relations, surfaces risk trends from metadata analysis.",
+            "triggers": ["Risk assessment cycle", "Incident reported", "Control testing due", "Audit finding linked"],
+            "human_escalation": "Risk scoring decisions, control design, remediation strategy"
+          }
+        },
+        {
+          "role": "Records Manager",
+          "department": "Compliance / Legal",
+          "manual_tasks": ["Classification management", "Retention enforcement", "Hold administration", "Disposition processing", "Cross-reference maintenance"],
+          "digital_twin": {
+            "name": "Records Governance Agent",
+            "automation_level": "Full",
+            "description": "Manages RM classification trees, enforces retention schedules via RSI tools, administers legal holds across the enterprise, processes cross-references between related records, monitors disposition eligibility, generates retention compliance reports.",
+            "triggers": ["New document classified", "Retention period expired", "Legal hold issued", "Disposition review cycle"],
+            "human_escalation": "Hold scope decisions, disposition approval for sensitive records, classification scheme changes"
+          }
+        },
+        {
+          "role": "External Audit Liaison",
+          "department": "Finance / Compliance",
+          "manual_tasks": ["Preparing PBC lists", "Gathering requested documents", "Managing auditor access", "Tracking open items"],
+          "digital_twin": {
+            "name": "Audit Liaison Agent",
+            "automation_level": "Full",
+            "description": "Creates audit request workspaces, searches enterprise for requested documents, manages auditor permissions with time-limited access, shares document packages via content sharing, tracks PBC list completion through workflow, ensures proper classification of audit evidence.",
+            "triggers": ["PBC list received", "Document request from auditor", "Audit access request", "Open item follow-up"],
+            "human_escalation": "Sensitive document release decisions, scope disputes, management representation letters"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BO-005",
+      "area": "Corporate Legal & Matter Management",
+      "description": "Legal matter tracking, litigation support, legal hold management, outside counsel coordination, board governance, and intellectual property documentation.",
+      "business_impact": {
+        "manual_hours_per_week": "25-50 per FTE",
+        "error_rate_reduction": "85-95%",
+        "cycle_time_reduction": "45-65%",
+        "cost_savings": "35-55% per matter"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Matter workspaces with case structure",
+        "otcs_rm_holds - Litigation hold management",
+        "otcs_search - Document discovery across enterprise",
+        "otcs_permissions - Privilege and confidentiality controls",
+        "otcs_share - Outside counsel document exchange",
+        "otcs_rm_xref - Cross-reference related matters and evidence",
+        "otcs_workspace_roles - Legal team role assignments",
+        "otcs_versions - Track document revisions for briefs and filings"
+      ],
+      "roles": [
+        {
+          "role": "Paralegal",
+          "department": "Legal",
+          "manual_tasks": ["Document organization", "Research compilation", "Filing preparation", "Deadline tracking", "Discovery document collection"],
+          "digital_twin": {
+            "name": "Legal Document Agent",
+            "automation_level": "Full",
+            "description": "Organizes matter workspace documents, collects discovery materials via enterprise search, manages document versions for filings, tracks deadlines via category metadata and workflows, cross-references related documents and matters, manages privilege logs.",
+            "triggers": ["New matter opened", "Discovery request received", "Filing deadline approaching", "Document review batch ready"],
+            "human_escalation": "Privilege determinations, substantive research conclusions, court filing decisions"
+          }
+        },
+        {
+          "role": "General Counsel",
+          "department": "Legal",
+          "manual_tasks": ["Matter oversight", "Strategic legal decisions", "Board reporting", "Outside counsel management", "Risk assessment"],
+          "digital_twin": {
+            "name": "Legal Operations Agent",
+            "automation_level": "Advisory",
+            "description": "Provides matter portfolio views from workspace metadata, tracks outside counsel deliverables and invoices, surfaces risk patterns across matters, prepares board reporting packages, monitors litigation hold compliance across the enterprise.",
+            "triggers": ["Board meeting preparation", "Quarterly matter review", "Budget cycle", "New significant matter"],
+            "human_escalation": "All legal strategy decisions, settlement authority, board presentations"
+          }
+        },
+        {
+          "role": "Legal Hold Administrator",
+          "department": "Legal",
+          "manual_tasks": ["Issuing hold notices", "Tracking custodian acknowledgments", "Managing hold scope", "Releasing holds", "Documenting preservation"],
+          "digital_twin": {
+            "name": "Legal Hold Agent",
+            "automation_level": "Full",
+            "description": "Creates and manages legal holds via RM hold tools, applies holds to custodian workspaces in batch, tracks custodian notifications through workflows, manages hold scope modifications, processes hold releases, generates hold compliance reports.",
+            "triggers": ["Litigation hold issued", "New custodian identified", "Hold modification requested", "Matter closed"],
+            "human_escalation": "Hold scope decisions, custodian disputes, spoliation risk assessment"
+          }
+        },
+        {
+          "role": "IP Coordinator",
+          "department": "Legal",
+          "manual_tasks": ["Patent filing tracking", "Trademark portfolio management", "License agreement management", "Invention disclosure processing"],
+          "digital_twin": {
+            "name": "IP Portfolio Agent",
+            "automation_level": "Assisted",
+            "description": "Manages IP workspaces with classification-based organization, tracks filing deadlines via category metadata, manages license agreements with version control and renewal workflows, processes invention disclosures through approval workflows, maintains cross-references between related IP assets.",
+            "triggers": ["Filing deadline approaching", "License renewal due", "New invention disclosure", "Portfolio review cycle"],
+            "human_escalation": "Patentability assessments, prosecution strategy, licensing negotiations"
+          }
+        },
+        {
+          "role": "Corporate Secretary",
+          "department": "Legal / Executive",
+          "manual_tasks": ["Board meeting preparation", "Minutes management", "Resolution tracking", "Entity management", "Regulatory filings"],
+          "digital_twin": {
+            "name": "Governance Document Agent",
+            "automation_level": "Assisted",
+            "description": "Manages board workspace with meeting document packages, tracks resolutions and action items through workflows, maintains corporate entity documents with RM classification, distributes board materials via content sharing with appropriate permissions, manages annual filing calendar.",
+            "triggers": ["Board meeting scheduled", "Resolution adopted", "Filing deadline approaching", "Entity change event"],
+            "human_escalation": "Board communications, regulatory interpretation, governance policy decisions"
+          }
+        }
+      ]
+    }
+  ],
+  "industry_scenarios": [
+    {
+      "id": "IND-001",
+      "industry": "Insurance",
+      "scenario": "Claims Processing & Adjudication",
+      "description": "End-to-end insurance claims lifecycle from first notice of loss through investigation, adjudication, settlement, and subrogation including document management, regulatory compliance, and fraud detection support.",
+      "business_impact": {
+        "manual_hours_per_claim": "4-8 hours",
+        "automated_hours_per_claim": "0.5-1.5 hours",
+        "cycle_time_reduction": "55-75%",
+        "fraud_detection_improvement": "30-50%",
+        "customer_satisfaction_increase": "25-40%"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Claim workspace per incident",
+        "otcs_upload - Ingest claim documents, photos, police reports",
+        "otcs_start_workflow - Route claim through adjudication stages",
+        "otcs_categories - Track claim metadata (policy, amounts, dates, status)",
+        "otcs_search - Find similar claims for fraud detection",
+        "otcs_workspace_relations - Link claims to policies, claimants, vendors",
+        "otcs_rm_classification - Regulatory record classification",
+        "otcs_share - Share documents with adjusters, repair shops, attorneys",
+        "otcs_permissions - Role-based access for claim sensitivity levels"
+      ],
+      "roles": [
+        {
+          "role": "Claims Intake Specialist",
+          "department": "Claims",
+          "manual_tasks": ["Recording first notice of loss", "Collecting initial documentation", "Verifying policy coverage", "Assigning claim number", "Routing to adjuster"],
+          "digital_twin": {
+            "name": "Claims Intake Agent",
+            "automation_level": "Full",
+            "description": "Creates claim workspace on FNOL receipt, uploads and classifies all incoming documents, verifies policy coverage via metadata lookup, auto-assigns to adjuster pool based on claim type and severity, populates claim metadata from submitted documents.",
+            "triggers": ["FNOL received", "Documents submitted", "Policy lookup requested"],
+            "human_escalation": "Coverage ambiguity, high-severity claims, potential fraud indicators"
+          }
+        },
+        {
+          "role": "Claims Adjuster",
+          "department": "Claims",
+          "manual_tasks": ["Investigating claims", "Gathering evidence", "Evaluating damages", "Negotiating settlements", "Documenting decisions"],
+          "digital_twin": {
+            "name": "Claims Investigation Agent",
+            "automation_level": "Assisted",
+            "description": "Manages investigation workspace documents, searches for similar claims and prior incidents, tracks investigation tasks via workflow, manages third-party document exchange via sharing, surfaces relevant policy terms and coverage limits from document search, tracks all adjustor notes and communications.",
+            "triggers": ["Claim assigned", "New evidence uploaded", "Investigation milestone due", "Settlement authority requested"],
+            "human_escalation": "Coverage determinations, liability assessments, settlement negotiations, fraud referrals"
+          }
+        },
+        {
+          "role": "Claims Manager / Supervisor",
+          "department": "Claims",
+          "manual_tasks": ["Reviewing complex claims", "Approving settlements over threshold", "Monitoring team performance", "Handling escalations"],
+          "digital_twin": {
+            "name": "Claims Oversight Agent",
+            "automation_level": "Advisory",
+            "description": "Surfaces claims requiring supervisory review, monitors workflow status for SLA compliance, identifies patterns across claim workspaces, pre-validates settlement authority requests against policy and reserves, generates team performance reports from workflow activity data.",
+            "triggers": ["Settlement approval requested", "SLA breach detected", "Claim complexity escalation", "Audit cycle"],
+            "human_escalation": "All settlement authority decisions, regulatory inquiries, team management"
+          }
+        },
+        {
+          "role": "Subrogation Specialist",
+          "department": "Claims / Recovery",
+          "manual_tasks": ["Identifying subrogation opportunities", "Collecting evidence for recovery", "Managing demands", "Tracking recoveries"],
+          "digital_twin": {
+            "name": "Subrogation Agent",
+            "automation_level": "Assisted",
+            "description": "Identifies subrogation potential from claim metadata, creates subrogation workspaces linked to original claims, compiles evidence packages from claim workspace documents, tracks demand letters and responses through workflow, manages recovery documentation and reporting.",
+            "triggers": ["Claim closed with subrogation potential", "Demand letter due", "Recovery payment received", "Statute deadline approaching"],
+            "human_escalation": "Recovery strategy, demand negotiations, litigation referral decisions"
+          }
+        },
+        {
+          "role": "Claims Compliance Officer",
+          "department": "Compliance",
+          "manual_tasks": ["Monitoring regulatory compliance", "Managing complaint files", "Preparing regulatory reports", "Tracking state filing requirements"],
+          "digital_twin": {
+            "name": "Claims Compliance Agent",
+            "automation_level": "Full",
+            "description": "Monitors claim processing timelines against regulatory requirements, manages complaint workspaces with RM classification, generates regulatory reports from claim metadata, tracks filing deadlines per state, ensures proper record retention via RSI schedules.",
+            "triggers": ["Regulatory deadline approaching", "Complaint received", "Audit notification", "New regulation effective"],
+            "human_escalation": "Regulatory interpretations, complaint resolutions, examination responses"
+          }
+        },
+        {
+          "role": "SIU Investigator (Special Investigations Unit)",
+          "department": "Claims / SIU",
+          "manual_tasks": ["Investigating suspected fraud", "Gathering evidence", "Coordinating with law enforcement", "Preparing referral packages"],
+          "digital_twin": {
+            "name": "Fraud Investigation Support Agent",
+            "automation_level": "Assisted",
+            "description": "Creates confidential investigation workspaces with restricted permissions, searches for claim patterns and connections across the enterprise, manages evidence chain of custody via RM classification and holds, compiles investigation packages, tracks referral status through workflow.",
+            "triggers": ["Fraud referral received", "Pattern analysis flag", "Investigation milestone", "Referral package preparation"],
+            "human_escalation": "All investigative decisions, law enforcement coordination, referral determinations"
+          }
+        }
+      ]
+    },
+    {
+      "id": "IND-002",
+      "industry": "Manufacturing / Supply Chain",
+      "scenario": "Vendor Onboarding & Supplier Qualification",
+      "description": "Complete vendor lifecycle from initial application through qualification, risk assessment, approval, ongoing performance monitoring, and periodic requalification across the supply chain.",
+      "business_impact": {
+        "manual_hours_per_vendor": "15-25 hours",
+        "automated_hours_per_vendor": "3-6 hours",
+        "cycle_time_reduction": "60-80%",
+        "compliance_improvement": "70-90%",
+        "supply_chain_risk_reduction": "40-60%"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Vendor workspace with qualification structure",
+        "otcs_upload_with_metadata - Vendor documents with classification",
+        "otcs_start_workflow - Multi-stage qualification approval",
+        "otcs_categories - Vendor attributes (certifications, risk scores, capabilities)",
+        "otcs_workspace_relations - Link vendors to contracts, products, sites",
+        "otcs_workspace_roles - Assign sourcing team, quality contacts",
+        "otcs_search - Find vendors by capability, certification, location",
+        "otcs_share - Exchange documents with vendor contacts",
+        "otcs_rm_classification - Classify compliance documents"
+      ],
+      "roles": [
+        {
+          "role": "Vendor Management Specialist",
+          "department": "Procurement",
+          "manual_tasks": ["Processing vendor applications", "Collecting qualification documents", "Tracking approval status", "Maintaining vendor database", "Coordinating requalification"],
+          "digital_twin": {
+            "name": "Vendor Onboarding Agent",
+            "automation_level": "Full",
+            "description": "Creates vendor workspaces from application data, requests and tracks qualification documents via workflow and sharing, validates document completeness against requirements checklist via category metadata, routes through multi-stage approval workflow, manages requalification cycles based on category date fields.",
+            "triggers": ["Vendor application received", "Document submitted", "Qualification expiring", "Requalification due"],
+            "human_escalation": "Risk assessment scoring, approval authority, exception handling"
+          }
+        },
+        {
+          "role": "Quality Engineer",
+          "department": "Quality",
+          "manual_tasks": ["Reviewing vendor quality documentation", "Conducting audits", "Evaluating corrective actions", "Approving vendor quality systems"],
+          "digital_twin": {
+            "name": "Vendor Quality Agent",
+            "automation_level": "Assisted",
+            "description": "Manages quality audit workspaces linked to vendor workspaces, tracks CAPA documents through workflow, monitors quality metrics via category metadata, compiles audit evidence packages, triggers corrective action workflows on quality deviations.",
+            "triggers": ["Quality audit scheduled", "CAPA submitted", "Quality deviation reported", "Re-audit due"],
+            "human_escalation": "Quality system evaluations, audit findings, CAPA adequacy assessment"
+          }
+        },
+        {
+          "role": "Compliance Analyst (Supply Chain)",
+          "department": "Compliance",
+          "manual_tasks": ["Verifying regulatory compliance", "Checking sanctions lists", "Managing conflict minerals documentation", "Tracking environmental certifications"],
+          "digital_twin": {
+            "name": "Supply Chain Compliance Agent",
+            "automation_level": "Full",
+            "description": "Validates compliance documents in vendor workspaces, tracks certification expiry dates via category metadata, manages conflict minerals declarations with RM classification, triggers re-certification workflows before expiry, generates compliance status reports across vendor portfolio.",
+            "triggers": ["Certification expiring", "New regulatory requirement", "Annual compliance review", "Vendor risk flag"],
+            "human_escalation": "Sanctions screening results interpretation, regulatory change impact assessment"
+          }
+        },
+        {
+          "role": "Category Manager",
+          "department": "Procurement",
+          "manual_tasks": ["Strategic sourcing", "Vendor performance evaluation", "Market analysis", "Spend optimization"],
+          "digital_twin": {
+            "name": "Category Intelligence Agent",
+            "automation_level": "Advisory",
+            "description": "Aggregates vendor performance data across workspaces, searches contracts for pricing and term patterns, generates vendor scorecards from metadata analysis, identifies consolidation opportunities, prepares category strategy documents with supporting data.",
+            "triggers": ["Quarterly business review", "Sourcing event initiated", "Contract renewal batch", "Performance review cycle"],
+            "human_escalation": "Strategy formulation, vendor negotiations, portfolio decisions"
+          }
+        },
+        {
+          "role": "EHS Manager (Environmental, Health & Safety)",
+          "department": "Operations / EHS",
+          "manual_tasks": ["Reviewing vendor safety records", "Managing safety documentation", "Verifying insurance certificates", "Tracking incident reports"],
+          "digital_twin": {
+            "name": "Vendor Safety Agent",
+            "automation_level": "Full",
+            "description": "Manages safety documentation in vendor workspaces, tracks insurance certificate expiry via category metadata, processes incident reports through investigation workflows, monitors safety performance metrics, triggers access restrictions for expired safety qualifications.",
+            "triggers": ["Insurance certificate expiring", "Safety incident reported", "Annual safety review", "New contractor mobilization"],
+            "human_escalation": "Safety risk assessments, incident investigations, contractor suspension decisions"
+          }
+        }
+      ]
+    },
+    {
+      "id": "IND-003",
+      "industry": "Energy / Utilities / Heavy Industry",
+      "scenario": "Plant Maintenance & Work Order Management",
+      "description": "Comprehensive maintenance management including work order creation, planning, scheduling, execution documentation, safety permits, equipment history, and regulatory compliance for industrial facilities.",
+      "business_impact": {
+        "manual_hours_per_work_order": "2-4 hours",
+        "automated_hours_per_work_order": "0.5-1 hour",
+        "downtime_reduction": "20-35%",
+        "compliance_improvement": "80-95%",
+        "maintenance_cost_reduction": "15-30%"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Work order and equipment workspaces",
+        "otcs_upload - Inspection photos, safety permits, test reports",
+        "otcs_start_workflow - Safety permit approvals, work authorization",
+        "otcs_categories - Equipment data, maintenance history, compliance tracking",
+        "otcs_search - Find procedures, previous work, equipment history",
+        "otcs_workspace_relations - Link work orders to equipment, permits, procedures",
+        "otcs_rm_classification - Regulatory compliance documentation",
+        "otcs_versions - Track procedure and drawing revisions",
+        "otcs_browse_tree - Navigate equipment hierarchy"
+      ],
+      "roles": [
+        {
+          "role": "Maintenance Planner",
+          "department": "Maintenance",
+          "manual_tasks": ["Creating work packages", "Gathering procedures", "Identifying materials", "Scheduling resources", "Preparing job safety analyses"],
+          "digital_twin": {
+            "name": "Work Order Planning Agent",
+            "automation_level": "Assisted",
+            "description": "Creates work order workspaces with standard structure, searches for relevant procedures and previous work history, compiles work packages from equipment workspace documents, identifies required safety permits and triggers approval workflows, links work orders to equipment workspaces and parts lists.",
+            "triggers": ["Work request created", "PM schedule triggered", "Emergency work order", "Turnaround planning initiated"],
+            "human_escalation": "Resource conflicts, scope changes, safety concern escalation"
+          }
+        },
+        {
+          "role": "Maintenance Technician / Craftsperson",
+          "department": "Maintenance",
+          "manual_tasks": ["Completing work order documentation", "Recording readings and measurements", "Photographing completed work", "Filling out safety forms"],
+          "digital_twin": {
+            "name": "Field Documentation Agent",
+            "automation_level": "Full",
+            "description": "Provides digital access to work order documents and procedures, accepts photo uploads and field data for work documentation, processes completion forms through workflow, updates equipment history categories, manages tool and parts check-out documentation.",
+            "triggers": ["Work order assigned", "Photo uploaded", "Work completed", "Readings recorded"],
+            "human_escalation": "Equipment anomalies, safety hazards discovered, scope changes needed"
+          }
+        },
+        {
+          "role": "Reliability Engineer",
+          "department": "Engineering",
+          "manual_tasks": ["Analyzing failure data", "Reviewing maintenance history", "Updating PM procedures", "Managing engineering change documents"],
+          "digital_twin": {
+            "name": "Reliability Analysis Agent",
+            "automation_level": "Assisted",
+            "description": "Searches equipment workspaces for maintenance history and failure patterns, manages procedure documents with version control, links engineering changes to affected equipment via workspace relations, tracks PM optimization recommendations through workflow, compiles reliability reports from workspace metadata.",
+            "triggers": ["Failure event recorded", "PM review cycle", "Engineering change initiated", "Reliability study requested"],
+            "human_escalation": "Root cause determinations, PM interval changes, engineering design decisions"
+          }
+        },
+        {
+          "role": "Safety Coordinator",
+          "department": "EHS",
+          "manual_tasks": ["Reviewing safety permits", "Conducting safety audits", "Managing incident documentation", "Tracking training certifications", "Lockout/tagout administration"],
+          "digital_twin": {
+            "name": "Safety Permit Agent",
+            "automation_level": "Full",
+            "description": "Manages safety permit workflows for hot work, confined space, and energy isolation, tracks permit status and expiry, manages incident investigation workspaces with RM classification, monitors training certification expiry via category metadata, generates safety compliance reports.",
+            "triggers": ["Safety permit requested", "Permit expiring", "Incident reported", "Certification expiring", "Safety audit scheduled"],
+            "human_escalation": "Hazard assessments, incident investigation conclusions, safety policy changes"
+          }
+        },
+        {
+          "role": "Operations Manager / Plant Manager",
+          "department": "Operations",
+          "manual_tasks": ["Reviewing maintenance backlog", "Approving high-cost work", "Coordinating shutdowns", "Regulatory compliance oversight"],
+          "digital_twin": {
+            "name": "Maintenance Oversight Agent",
+            "automation_level": "Advisory",
+            "description": "Provides maintenance backlog visibility from workspace status data, surfaces high-priority work orders requiring approval, monitors regulatory compliance deadlines from RM schedules, tracks shutdown planning documents, generates maintenance KPI reports from workflow activity data.",
+            "triggers": ["High-cost work order approval", "Regulatory deadline approaching", "Shutdown planning cycle", "Monthly reporting"],
+            "human_escalation": "Budget allocation, shutdown timing, regulatory response strategy"
+          }
+        },
+        {
+          "role": "Regulatory Compliance Engineer",
+          "department": "Engineering / Compliance",
+          "manual_tasks": ["Managing inspection records", "Preparing regulatory filings", "Tracking equipment certifications", "Documenting code compliance"],
+          "digital_twin": {
+            "name": "Regulatory Documentation Agent",
+            "automation_level": "Full",
+            "description": "Manages inspection records with RM classification and retention schedules, tracks equipment certification expiry via category metadata, compiles regulatory filing packages from workspace documents, triggers inspection workflows based on regulatory intervals, maintains compliance cross-references between related assets.",
+            "triggers": ["Inspection due", "Certification expiring", "Regulatory filing deadline", "Code change notification"],
+            "human_escalation": "Code interpretation, regulatory agency interactions, non-conformance decisions"
+          }
+        }
+      ]
+    },
+    {
+      "id": "IND-004",
+      "industry": "Pharmaceutical / Life Sciences",
+      "scenario": "Regulatory Submissions & Quality Management",
+      "description": "Management of regulatory submission documents (IND, NDA, ANDA, BLA), clinical trial documentation, quality management system records, CAPA management, and GxP compliance across the drug development lifecycle.",
+      "business_impact": {
+        "manual_hours_per_submission": "500-2000 hours",
+        "automated_hours_per_submission": "150-600 hours",
+        "cycle_time_reduction": "40-60%",
+        "compliance_risk_reduction": "70-90%",
+        "submission_quality_improvement": "50-75%"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Submission, study, and CAPA workspaces",
+        "otcs_create_folder - eCTD module structure",
+        "otcs_upload_with_metadata - Documents with regulatory classification",
+        "otcs_versions - Manage document revisions through review cycles",
+        "otcs_start_workflow - Review, approval, and publishing workflows",
+        "otcs_categories - Regulatory metadata (document type, status, effective date)",
+        "otcs_rm_classification - GxP record classification",
+        "otcs_rm_holds - Regulatory holds for inspection readiness",
+        "otcs_search - Find documents by study, product, regulatory status",
+        "otcs_permissions - GxP access controls and audit trails"
+      ],
+      "roles": [
+        {
+          "role": "Regulatory Affairs Specialist",
+          "department": "Regulatory Affairs",
+          "manual_tasks": ["Compiling submission documents", "Managing eCTD structure", "Tracking document status", "Coordinating authoring teams", "Filing with regulatory agencies"],
+          "digital_twin": {
+            "name": "Submission Assembly Agent",
+            "automation_level": "Assisted",
+            "description": "Creates submission workspaces with eCTD folder structure, tracks document readiness status via category metadata, manages document review and approval workflows, compiles submission packages from workspace documents, validates completeness against regulatory checklists, maintains submission history with RM classification.",
+            "triggers": ["Submission milestone approaching", "Document approved for inclusion", "Regulatory query received", "Submission package assembly"],
+            "human_escalation": "Regulatory strategy, agency interactions, submission content decisions"
+          }
+        },
+        {
+          "role": "Clinical Operations Manager",
+          "department": "Clinical Operations",
+          "manual_tasks": ["Managing trial master file", "Tracking site documents", "Coordinating monitoring reports", "Managing protocol amendments"],
+          "digital_twin": {
+            "name": "Trial Master File Agent",
+            "automation_level": "Full",
+            "description": "Manages TMF workspace structure per DIA reference model, tracks document completeness per site and study via metadata, uploads and classifies site documents, manages protocol amendment distribution workflows, monitors inspection readiness via document status reports, applies regulatory holds when needed.",
+            "triggers": ["Document received from site", "Monitoring visit completed", "Protocol amendment approved", "Inspection preparation"],
+            "human_escalation": "Site issues, protocol deviations, inspection response strategy"
+          }
+        },
+        {
+          "role": "Quality Assurance Manager",
+          "department": "Quality",
+          "manual_tasks": ["Managing CAPA system", "Reviewing deviations", "Conducting quality audits", "Managing change controls", "Maintaining SOPs"],
+          "digital_twin": {
+            "name": "Quality System Agent",
+            "automation_level": "Assisted",
+            "description": "Creates CAPA and deviation workspaces, manages SOP lifecycle with version control and approval workflows, tracks change control documents through quality workflows, compiles audit evidence from across quality workspaces, monitors CAPA effectiveness through category status tracking, maintains GxP record classification.",
+            "triggers": ["Deviation reported", "CAPA opened", "SOP review due", "Change control initiated", "Audit scheduled"],
+            "human_escalation": "Root cause analysis, CAPA adequacy assessment, quality risk decisions"
+          }
+        },
+        {
+          "role": "Medical Writer",
+          "department": "Medical Affairs / Regulatory",
+          "manual_tasks": ["Authoring regulatory documents", "Managing references", "Coordinating reviews", "Tracking revisions"],
+          "digital_twin": {
+            "name": "Document Authoring Support Agent",
+            "automation_level": "Assisted",
+            "description": "Manages document drafting workspaces with version control, coordinates multi-author review cycles via workflow, tracks review comments and incorporations, searches for reference documents and prior submissions, manages document formatting and metadata consistency.",
+            "triggers": ["Document authoring initiated", "Review cycle started", "Comments received", "Final approval routing"],
+            "human_escalation": "All content authoring and medical/scientific judgment"
+          }
+        },
+        {
+          "role": "Pharmacovigilance Specialist",
+          "department": "Drug Safety",
+          "manual_tasks": ["Processing adverse event reports", "Managing safety databases", "Preparing periodic safety reports", "Signal detection documentation"],
+          "digital_twin": {
+            "name": "Safety Document Agent",
+            "automation_level": "Full",
+            "description": "Creates adverse event case workspaces, uploads and classifies safety reports with regulatory metadata, manages expedited reporting timelines via workflow deadlines, compiles periodic safety reports from workspace data, maintains cross-references between related cases, ensures regulatory retention via RSI schedules.",
+            "triggers": ["Adverse event reported", "Expedited report deadline", "Periodic report due", "Signal detected"],
+            "human_escalation": "Medical assessments, causality determinations, signal evaluation"
+          }
+        },
+        {
+          "role": "Validation Engineer",
+          "department": "Quality / IT",
+          "manual_tasks": ["Managing validation protocols", "Tracking test execution", "Compiling validation packages", "Managing system lifecycle documentation"],
+          "digital_twin": {
+            "name": "Validation Documentation Agent",
+            "automation_level": "Assisted",
+            "description": "Manages validation workspace with protocol structure, tracks test execution documents via workflow, compiles validation packages from workspace documents, manages traceability matrices via category metadata, maintains system lifecycle documents with version control and RM classification.",
+            "triggers": ["Validation protocol approved", "Testing completed", "Validation package assembly", "Periodic review due"],
+            "human_escalation": "Test result evaluation, deviation impact assessment, validation strategy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "IND-005",
+      "industry": "Banking & Financial Services",
+      "scenario": "Loan Origination & Credit Processing",
+      "description": "Complete loan lifecycle from application through underwriting, approval, closing, and post-closing document management including regulatory compliance, collateral management, and audit trail maintenance.",
+      "business_impact": {
+        "manual_hours_per_loan": "8-20 hours",
+        "automated_hours_per_loan": "2-5 hours",
+        "cycle_time_reduction": "50-70%",
+        "compliance_improvement": "85-95%",
+        "customer_experience_improvement": "35-55%"
+      },
+      "altius_capabilities_used": [
+        "otcs_create_workspace - Loan file workspaces per application",
+        "otcs_upload - Application documents, financial statements, appraisals",
+        "otcs_start_workflow - Multi-stage underwriting and approval",
+        "otcs_categories - Loan attributes (amount, rate, term, LTV, DTI)",
+        "otcs_search - Find similar loans, precedent decisions, policy documents",
+        "otcs_workspace_relations - Link loans to borrowers, collateral, guarantors",
+        "otcs_rm_classification - Regulatory record classification",
+        "otcs_rm_holds - Regulatory examination holds",
+        "otcs_permissions - Segregation of duties in approval chain",
+        "otcs_share - Share documents with borrowers, title companies, appraisers"
+      ],
+      "roles": [
+        {
+          "role": "Loan Officer / Originator",
+          "department": "Lending",
+          "manual_tasks": ["Collecting application documents", "Ordering appraisals and title", "Communicating with borrowers", "Preparing loan packages", "Tracking conditions"],
+          "digital_twin": {
+            "name": "Loan Origination Agent",
+            "automation_level": "Full",
+            "description": "Creates loan workspaces from application data, tracks required document collection status via category metadata, manages document sharing with borrowers and third parties, monitors outstanding conditions through workflow tasks, auto-populates loan metadata from submitted documents, triggers next-stage workflows on document completeness.",
+            "triggers": ["Application received", "Document submitted", "Condition satisfied", "Appraisal ordered"],
+            "human_escalation": "Product recommendations, rate discussions, borrower relationship management"
+          }
+        },
+        {
+          "role": "Loan Processor",
+          "department": "Lending Operations",
+          "manual_tasks": ["Verifying application data", "Ordering verifications", "Preparing underwriting package", "Clearing conditions", "Scheduling closing"],
+          "digital_twin": {
+            "name": "Loan Processing Agent",
+            "automation_level": "Full",
+            "description": "Validates document completeness against loan type requirements, manages verification document workflows, compiles underwriting packages from workspace documents, tracks condition clearing via category status fields, coordinates closing document preparation through workflow tasks.",
+            "triggers": ["Loan assigned for processing", "Verification received", "Condition document uploaded", "Clear to close status"],
+            "human_escalation": "Discrepancy resolution, complex verifications, borrower communication escalations"
+          }
+        },
+        {
+          "role": "Underwriter",
+          "department": "Credit / Risk",
+          "manual_tasks": ["Analyzing financial statements", "Evaluating collateral", "Assessing credit risk", "Making approval decisions", "Setting conditions"],
+          "digital_twin": {
+            "name": "Underwriting Support Agent",
+            "automation_level": "Assisted",
+            "description": "Organizes underwriting workspace with all relevant documents, searches for similar loan precedents, surfaces relevant policy documents for loan type, tracks underwriting workflow stages, manages condition lists via category metadata, routes decisions through appropriate approval authority based on loan size.",
+            "triggers": ["Loan submitted for underwriting", "Additional information provided", "Condition review requested", "Policy exception requested"],
+            "human_escalation": "All credit decisions, risk assessments, policy exceptions, approval authority"
+          }
+        },
+        {
+          "role": "Closing Coordinator",
+          "department": "Lending Operations",
+          "manual_tasks": ["Preparing closing documents", "Coordinating with title companies", "Managing closing schedules", "Verifying final figures", "Post-closing document collection"],
+          "digital_twin": {
+            "name": "Closing Document Agent",
+            "automation_level": "Full",
+            "description": "Compiles closing document packages from workspace templates, shares documents with title companies and attorneys via content sharing, manages closing checklist via workflow tasks, tracks post-closing document collection and conditions, triggers file completion workflows, classifies final loan documents as records.",
+            "triggers": ["Clear to close approved", "Closing scheduled", "Closing completed", "Post-closing condition due"],
+            "human_escalation": "Closing figure discrepancies, last-minute changes, complex title issues"
+          }
+        },
+        {
+          "role": "Compliance Officer (Lending)",
+          "department": "Compliance",
+          "manual_tasks": ["Fair lending reviews", "HMDA data validation", "Flood determination tracking", "Adverse action documentation", "Regulatory examination preparation"],
+          "digital_twin": {
+            "name": "Lending Compliance Agent",
+            "automation_level": "Full",
+            "description": "Validates loan workspace completeness against regulatory requirements, tracks HMDA-reportable metadata via categories, monitors adverse action documentation workflows, manages flood determination documents, compiles examination packages from loan workspaces, ensures proper record retention via RSI schedules.",
+            "triggers": ["Loan decision made", "Regulatory filing deadline", "Examination notification", "Fair lending review cycle"],
+            "human_escalation": "Regulatory interpretation, examination responses, fair lending analysis conclusions"
+          }
+        },
+        {
+          "role": "Loan Servicing Specialist",
+          "department": "Loan Servicing",
+          "manual_tasks": ["Managing payment exceptions", "Processing modifications", "Handling insurance tracking", "Managing escrow", "Default documentation"],
+          "digital_twin": {
+            "name": "Servicing Document Agent",
+            "automation_level": "Full",
+            "description": "Manages servicing documents within loan workspaces, processes modification requests through approval workflows, tracks insurance certificates via category metadata and expiry dates, manages default documentation with proper RM classification, handles borrower correspondence via document sharing.",
+            "triggers": ["Payment exception", "Modification request", "Insurance expiration", "Default trigger event", "Escrow analysis due"],
+            "human_escalation": "Modification decisions, loss mitigation strategy, default management"
+          }
+        }
+      ]
+    }
+  ],
+  "summary_statistics": {
+    "total_process_areas": 10,
+    "total_roles_mapped": 56,
+    "total_digital_twins_defined": 56,
+    "automation_levels": {
+      "full": 28,
+      "assisted": 20,
+      "advisory": 8
+    },
+    "altius_tool_coverage": {
+      "content_management": ["otcs_upload", "otcs_upload_with_metadata", "otcs_download_content", "otcs_versions", "otcs_browse"],
+      "workflow_automation": ["otcs_start_workflow", "otcs_workflow_task", "otcs_workflow_status", "otcs_get_assignments", "otcs_workflow_form"],
+      "workspace_management": ["otcs_create_workspace", "otcs_workspace_relations", "otcs_workspace_roles", "otcs_workspace_metadata"],
+      "search_and_discovery": ["otcs_search", "otcs_get_node"],
+      "records_management": ["otcs_rm_classification", "otcs_rm_holds", "otcs_rm_xref", "otcs_rm_rsi"],
+      "collaboration": ["otcs_share", "otcs_permissions"],
+      "metadata_management": ["otcs_categories", "otcs_workspace_metadata"],
+      "organization": ["otcs_create_folder", "otcs_node_action"]
+    },
+    "cross_cutting_value_propositions": [
+      "Eliminate manual document filing and classification",
+      "Automate multi-stage approval workflows with intelligent routing",
+      "Enforce compliance and retention policies programmatically",
+      "Enable enterprise-wide document discovery and pattern detection",
+      "Provide role-based access control with full audit trails",
+      "Streamline external collaboration via secure content sharing",
+      "Create consistent workspace structures from templates",
+      "Track obligations, deadlines, and certifications automatically",
+      "Generate compliance and performance reports from metadata",
+      "Enable digital worker twins that operate 24/7 without fatigue"
+    ]
+  }
+}

@@ -1,0 +1,192 @@
+/**
+ * Headless (non-streaming) agentic loop for the autonomous agent.
+ *
+ * Simplified version of web/src/lib/ai-orchestrator.ts that collects
+ * results into a structured response instead of streaming SSE events.
+ * Reuses handleToolCall/getSuggestion from otcs-bridge and OTCS_TOOLS
+ * from tool-definitions via the bridge wrapper.
+ */
+
+import Anthropic from "@anthropic-ai/sdk";
+import { OTCSClient } from "../src/client/otcs-client.js";
+import { getTools, handleToolCall, getSuggestion } from "./bridge.js";
+import { log } from "./logger.js";
+
+// ── compactToolResult (copied from ai-orchestrator.ts since not exported) ──
+
+const BROWSE_KEEP = new Set(["id", "name", "type", "type_name", "container_size"]);
+const SEARCH_KEEP = new Set(["id", "name", "type", "type_name", "description", "parent_id", "summary", "highlight_summary"]);
+
+function pickKeys(obj: Record<string, unknown>, keys: Set<string>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of keys) {
+    if (k in obj) out[k] = obj[k];
+  }
+  return out;
+}
+
+function compactToolResult(toolName: string, result: unknown): string {
+  if (toolName === "otcs_browse" && result && typeof result === "object") {
+    const r = result as Record<string, unknown>;
+    if (Array.isArray(r.items)) {
+      return JSON.stringify({
+        ...r,
+        items: r.items.map((item: Record<string, unknown>) => pickKeys(item, BROWSE_KEEP)),
+      });
+    }
+  }
+  if (toolName === "otcs_search" && result && typeof result === "object") {
+    const r = result as Record<string, unknown>;
+    if (Array.isArray(r.results)) {
+      return JSON.stringify({
+        total_count: r.total_count,
+        results: r.results.slice(0, 50).map((item: Record<string, unknown>) => pickKeys(item, SEARCH_KEEP)),
+      });
+    }
+  }
+  return JSON.stringify(result);
+}
+
+// ── Types ──
+
+export interface ToolCallRecord {
+  name: string;
+  args: Record<string, unknown>;
+  result: string;
+  isError: boolean;
+}
+
+export interface AgentResult {
+  toolCalls: ToolCallRecord[];
+  finalText: string;
+  rounds: number;
+  usage: { inputTokens: number; outputTokens: number };
+}
+
+// ── Agent loop ──
+
+export async function runAgentLoop(
+  client: OTCSClient,
+  anthropicApiKey: string,
+  messages: Anthropic.MessageParam[],
+  systemPrompt: string,
+  maxRounds: number,
+  model: string,
+  toolFilter?: string[],
+): Promise<AgentResult> {
+  const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+  let tools = getTools();
+  if (toolFilter && toolFilter.length > 0) {
+    const allowed = new Set(toolFilter);
+    tools = tools.filter((t) => allowed.has(t.name));
+  }
+  const allToolCalls: ToolCallRecord[] = [];
+  let currentMessages = [...messages];
+  let finalText = "";
+  let totalInput = 0;
+  let totalOutput = 0;
+  let round = 0;
+
+  while (round < maxRounds) {
+    round++;
+
+    // Retry on transient errors (overloaded, rate limit)
+    let response: Anthropic.Message;
+    const MAX_RETRIES = 3;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        response = await anthropic.messages.create({
+          model,
+          max_tokens: 8192,
+          system: [
+            {
+              type: "text",
+              text: systemPrompt,
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+          tools: tools as Anthropic.Tool[],
+          messages: currentMessages,
+        });
+        break;
+      } catch (err: any) {
+        const status = err?.status ?? err?.statusCode;
+        const isRetryable = status === 429 || status === 529 || status === 503;
+        if (isRetryable && attempt < MAX_RETRIES) {
+          const delay = attempt * 5000;
+          log(`  → API ${status}, retrying in ${delay / 1000}s (attempt ${attempt}/${MAX_RETRIES})...`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    // Accumulate usage
+    if (response.usage) {
+      totalInput += response.usage.input_tokens;
+      totalOutput += response.usage.output_tokens;
+    }
+
+    // Collect text blocks
+    for (const block of response.content) {
+      if (block.type === "text") {
+        finalText += block.text;
+      }
+    }
+
+    // Extract tool_use blocks
+    const toolUseBlocks = response.content.filter(
+      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+    );
+
+    // If no tool use, we're done
+    if (response.stop_reason !== "tool_use" || toolUseBlocks.length === 0) {
+      break;
+    }
+
+    // Execute all tool calls
+    const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+    for (const block of toolUseBlocks) {
+      const toolArgs = block.input as Record<string, unknown>;
+      log(`  → Tool: ${block.name}(${JSON.stringify(toolArgs).slice(0, 120)})`);
+
+      let resultContent: string;
+      let isError = false;
+      try {
+        const result = await handleToolCall(client, block.name, toolArgs);
+        resultContent = compactToolResult(block.name, result);
+      } catch (err: any) {
+        isError = true;
+        const errorMsg = err.message || String(err);
+        resultContent = JSON.stringify({
+          error: true,
+          message: errorMsg,
+          suggestion: getSuggestion(errorMsg),
+        });
+        log(`  → Error: ${errorMsg}`);
+      }
+
+      allToolCalls.push({ name: block.name, args: toolArgs, result: resultContent, isError });
+
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: block.id,
+        content: resultContent,
+        is_error: isError,
+      });
+    }
+
+    // Append assistant message and tool results for next round
+    currentMessages.push({ role: "assistant", content: response.content });
+    currentMessages.push({ role: "user", content: toolResults });
+  }
+
+  return {
+    toolCalls: allToolCalls,
+    finalText,
+    rounds: round,
+    usage: { inputTokens: totalInput, outputTokens: totalOutput },
+  };
+}

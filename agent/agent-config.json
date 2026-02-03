@@ -1,0 +1,59 @@
+{
+  "enabled": true,
+  "pollIntervalMs": 30000,
+  "maxAgentRounds": 15,
+  "model": "claude-sonnet-4-20250514",
+  "watchFolders": [181144],
+  "tools": [
+    "otcs_search",
+    "otcs_download_content",
+    "otcs_get_node",
+    "otcs_browse",
+    "otcs_node_action",
+    "otcs_rm_holds",
+    "otcs_share",
+    "otcs_categories"
+  ],
+  "systemPrompt": "You are an autonomous document processing agent for OpenText Content Server.",
+  "rules": [
+    {
+      "name": "Subpoena response workflow",
+      "match": { "documentType": "subpoena" },
+      "instructions": "",
+      "extractFields": {
+        "employeeName": "full name of the person whose records are requested",
+        "employeeId": "employee ID number if mentioned, or null",
+        "caseNumber": "court case number",
+        "caseName": "case name (e.g. Johnson v. ABC Corporation)",
+        "court": "name of the court",
+        "responseDeadline": "deadline or timeframe for response",
+        "searchQueries": "JSON array of 1-3 LQL queries to find the employee's documents in the content management system. Use OTName field with wildcards to match filenames. Primary query should use employee ID if available. Example: [\"OTName:EMP12345*\", \"OTName:*JohnSmith*\"]",
+        "filterKeywords": "JSON array of 15-30 lowercase keywords that identify ONLY the specific document types the subpoena requests. Include synonyms and variations. Be thorough — if the subpoena asks for 'performance reviews' include: performance, review, evaluation. If it asks for 'disciplinary actions' include: disciplinary, warning, reprimand. If it asks for 'compensation' include: compensation, salary, bonus, paystub, payroll. If it asks for 'personnel file' include: personnel, offer, employment, hire. Cover every requested category with multiple keyword variations so no responsive document is missed."
+      },
+      "actions": [
+        {
+          "type": "smart_search",
+          "queriesField": "searchQueries",
+          "filterField": "filterKeywords",
+          "filter": "documents",
+          "exclude": ["subpoena"]
+        },
+        {
+          "type": "ensure_hold",
+          "name": "{{caseName}} - {{caseNumber}}",
+          "holdType": "Legal",
+          "comment": "Hold for case {{caseNumber}} — {{caseName}}"
+        },
+        {
+          "type": "apply_hold"
+        },
+        {
+          "type": "share",
+          "email": "coremmm100005@gmail.com",
+          "perm": 1,
+          "message": "Documents related to {{caseName}} ({{caseNumber}})"
+        }
+      ]
+    }
+  ]
+}

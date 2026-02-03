@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "../dist-agent",
+    "baseUrl": "..",
+    "paths": {
+      "@otcs/client": ["./src/client/otcs-client.ts"],
+      "@otcs/types": ["./src/types.ts"]
+    }
+  },
+  "include": ["./**/*.ts", "../src/**/*.ts", "../web/src/lib/otcs-bridge.ts", "../web/src/lib/tool-definitions.ts"],
+  "exclude": ["node_modules"]
+}

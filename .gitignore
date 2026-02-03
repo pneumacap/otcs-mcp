@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+dist-agent/
 
 # Environment variables
 .env
@@ -20,6 +21,9 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Agent state
+agent/logs/.last-poll
 
 # Tesseract OCR data
 eng.traineddata
