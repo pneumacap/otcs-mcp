@@ -108,7 +108,7 @@ function SlideCharts() {
 
   return (
     <div className="space-y-4">
-      <UserMessage text="Summarize demo_dashboard.csv using charts" />
+      <UserMessage text="Visualize revenue-products.csv with charts" />
       <ToolBadge label="Search Documents" />
       <ToolBadge label="Download Content" />
       <div className="space-y-3">
@@ -187,7 +187,7 @@ function SlideWorkflow() {
       <ToolBadge label="Get Assignments" />
       <div className="space-y-3">
         <p className="text-[13.5px] text-gray-700 dark:text-gray-300">
-          You have <strong className="font-semibold text-gray-900 dark:text-white">7 pending workflow tasks</strong>:
+          You have <strong className="font-semibold text-gray-900 dark:text-white">4 pending workflow tasks</strong>:
         </p>
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
           <table className="w-full text-left text-[12.5px]">
@@ -208,7 +208,7 @@ function SlideWorkflow() {
           </table>
         </div>
         <p className="text-[12.5px] text-gray-600 dark:text-gray-400">
-          You have 5 &quot;Review Document&quot; and 2 &quot;Pending Approval&quot; tasks. Would you like details on any of these?
+          You have 3 &quot;Review Document&quot; and 1 &quot;Pending Approval&quot; tasks. Would you like details on any of these?
         </p>
       </div>
       <FauxInput />
@@ -223,7 +223,7 @@ function SlideWorkflow() {
 function SlideExtraction() {
   return (
     <div className="space-y-4">
-      <UserMessage text="Summarize the scanned loan deed" />
+      <UserMessage text="Summarize LN Deed - 500301.tif" />
       <ToolBadge label="Search Documents" />
       <ToolBadge label="Download Content" />
       <ToolBadge label="OCR Extraction" />
