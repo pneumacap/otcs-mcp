@@ -259,6 +259,18 @@ export async function handleToolCall(
     }
 
     // ==================== Node Operations ====================
+    case "otcs_delete_nodes": {
+      const { node_ids } = args as { node_ids: number[] };
+      const results = await client.deleteNodes(node_ids);
+      const succeeded = results.filter((r) => r.success).length;
+      const failed = results.filter((r) => !r.success).length;
+      return {
+        success: failed === 0,
+        message: `Deleted ${succeeded}/${results.length} nodes${failed > 0 ? ` (${failed} failed)` : ""}`,
+        results,
+      };
+    }
+
     case "otcs_node_action": {
       const { action, node_id, destination_id, new_name, description } = args as {
         action: string;
@@ -917,6 +929,26 @@ export async function handleToolCall(
         success: true,
         workspace,
         message: `Workspace "${name}" created with ID ${workspace.id}`,
+      };
+    }
+
+    case "otcs_create_workspaces": {
+      const { workspaces } = args as {
+        workspaces: Array<{
+          template_id: number;
+          name: string;
+          parent_id?: number;
+          description?: string;
+          business_properties?: Record<string, unknown>;
+        }>;
+      };
+      const results = await client.createWorkspaces(workspaces);
+      const succeeded = results.filter((r) => r.success).length;
+      const failed = results.filter((r) => !r.success).length;
+      return {
+        success: failed === 0,
+        message: `Created ${succeeded}/${results.length} workspaces${failed > 0 ? ` (${failed} failed)` : ""}`,
+        results,
       };
     }
 
@@ -2416,6 +2448,30 @@ export async function handleToolCall(
         default:
           throw new Error(`Unknown action: ${action}`);
       }
+    }
+
+    // ==================== Tree Browsing & Creation ====================
+    case "otcs_browse_tree": {
+      const { folder_id, max_depth, folders_only } = args as {
+        folder_id: number;
+        max_depth?: number;
+        folders_only?: boolean;
+      };
+      const tree = await client.getTree(
+        folder_id,
+        max_depth ?? 5,
+        folders_only ?? true
+      );
+      return { tree };
+    }
+
+    case "otcs_create_folder_structure": {
+      const { parent_id, folders } = args as {
+        parent_id: number;
+        folders: Array<{ name: string; children?: Array<any> }>;
+      };
+      const result = await client.createFolderTree(parent_id, folders);
+      return { success: true, folders: result };
     }
 
     default:

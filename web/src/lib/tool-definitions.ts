@@ -157,7 +157,23 @@ export const OTCS_TOOLS: Tool[] = [
     },
   },
 
-  // ==================== Node Operations (1 tool) ====================
+  // ==================== Node Operations ====================
+  {
+    name: "otcs_delete_nodes",
+    description:
+      "Delete multiple nodes in a single call with graceful partial failure.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        node_ids: {
+          type: "array",
+          description: "Array of node IDs to delete",
+          items: { type: "number" },
+        },
+      },
+      required: ["node_ids"],
+    },
+  },
   {
     name: "otcs_node_action",
     description: "Perform action on a node: copy, move, rename, delete, or update_description.",
@@ -384,6 +400,38 @@ export const OTCS_TOOLS: Tool[] = [
         },
       },
       required: ["template_id", "name"],
+    },
+  },
+  {
+    name: "otcs_create_workspaces",
+    description:
+      "Create multiple business workspaces in a single call with graceful partial failure.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        workspaces: {
+          type: "array",
+          description: "Array of workspace definitions to create",
+          items: {
+            type: "object",
+            properties: {
+              template_id: {
+                type: "number",
+                description: "Workspace type/template ID",
+              },
+              name: { type: "string", description: "Workspace name" },
+              parent_id: { type: "number", description: "Parent folder ID" },
+              description: { type: "string", description: "Description" },
+              business_properties: {
+                type: "object",
+                description: "Business properties",
+              },
+            },
+            required: ["template_id", "name"],
+          },
+        },
+      },
+      required: ["workspaces"],
     },
   },
   {
@@ -1182,6 +1230,64 @@ export const OTCS_TOOLS: Tool[] = [
         },
       },
       required: ["action"],
+    },
+  },
+  // ==================== Tree Browsing & Creation (2 tools) ====================
+  {
+    name: "otcs_browse_tree",
+    description:
+      "Recursively browse a folder hierarchy and return the full tree structure in a single call. Useful for understanding folder layouts without multiple browse requests.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        folder_id: {
+          type: "number",
+          description: "The ID of the root folder to browse",
+        },
+        max_depth: {
+          type: "number",
+          description: "Maximum depth to recurse (default 5)",
+        },
+        folders_only: {
+          type: "boolean",
+          description:
+            "If true, only include folders in the tree (default true)",
+        },
+      },
+      required: ["folder_id"],
+    },
+  },
+  {
+    name: "otcs_create_folder_structure",
+    description:
+      "Create an entire folder tree structure in a single call. Accepts a nested array of folder names with optional children. Existing folders are reused rather than duplicated.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        parent_id: {
+          type: "number",
+          description:
+            "The parent folder ID under which to create the structure",
+        },
+        folders: {
+          type: "array",
+          description:
+            "Array of folders to create, each with a name and optional children array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Folder name" },
+              children: {
+                type: "array",
+                description: "Nested child folders (same structure)",
+                items: { type: "object" },
+              },
+            },
+            required: ["name"],
+          },
+        },
+      },
+      required: ["parent_id", "folders"],
     },
     // Mark the last tool for Anthropic prompt caching.
     // Everything up to and including this block is cached for 5 minutes.

@@ -8,7 +8,7 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { OTCSClient } from './client/otcs-client.js';
-import { NodeTypes, NodeInfo, FolderContents } from './types.js';
+import { NodeTypes, NodeInfo, FolderContents, FolderTreeNode } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
@@ -126,7 +126,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
   core: [
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
-    'otcs_create_folder', 'otcs_node_action',
+    'otcs_create_folder', 'otcs_node_action', 'otcs_delete_nodes',
     'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace',
@@ -138,7 +138,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     // Core tools plus full workflow support
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
-    'otcs_create_folder', 'otcs_node_action',
+    'otcs_create_folder', 'otcs_node_action', 'otcs_delete_nodes',
     'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace', 'otcs_workspace_types',
@@ -152,10 +152,10 @@ const TOOL_PROFILES: Record<string, string[]> = {
     // Core tools plus admin/permission management and RM
     'otcs_authenticate', 'otcs_session_status', 'otcs_logout',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
-    'otcs_create_folder', 'otcs_node_action',
+    'otcs_create_folder', 'otcs_node_action', 'otcs_delete_nodes',
     'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
-    'otcs_search_workspaces', 'otcs_get_workspace', 'otcs_create_workspace',
+    'otcs_search_workspaces', 'otcs_get_workspace', 'otcs_create_workspace', 'otcs_create_workspaces',
     'otcs_workspace_types', 'otcs_workspace_relations', 'otcs_workspace_roles',
     'otcs_get_assignments', 'otcs_workflow_form', 'otcs_workflow_task',
     'otcs_members', 'otcs_group_membership',
@@ -167,7 +167,7 @@ const TOOL_PROFILES: Record<string, string[]> = {
     // Core tools plus Records Management
     'otcs_authenticate', 'otcs_session_status',
     'otcs_get_node', 'otcs_browse', 'otcs_search',
-    'otcs_create_folder', 'otcs_node_action',
+    'otcs_create_folder', 'otcs_node_action', 'otcs_delete_nodes',
     'otcs_upload', 'otcs_upload_folder', 'otcs_upload_batch', 'otcs_upload_with_metadata', 'otcs_download_content',
     'otcs_versions',
     'otcs_search_workspaces', 'otcs_get_workspace',
@@ -349,6 +349,22 @@ const allTools: Tool[] = [
     },
   },
 
+  {
+    name: 'otcs_delete_nodes',
+    description: 'Delete multiple nodes in a single call. Each deletion is performed sequentially with graceful partial failure — if one fails, the rest still proceed.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        node_ids: {
+          type: 'array',
+          description: 'Array of node IDs to delete',
+          items: { type: 'number' },
+        },
+      },
+      required: ['node_ids'],
+    },
+  },
+
   // ==================== Documents (2 tools) ====================
   {
     name: 'otcs_upload',
@@ -474,6 +490,31 @@ const allTools: Tool[] = [
         business_properties: { type: 'object', description: 'Optional business properties keyed as {category_id}_{attribute_id}. These are applied after workspace creation via category update.' },
       },
       required: ['template_id', 'name'],
+    },
+  },
+  {
+    name: 'otcs_create_workspaces',
+    description: 'Create multiple business workspaces in a single call. Each workspace is created sequentially using the same logic as otcs_create_workspace, with graceful partial failure.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        workspaces: {
+          type: 'array',
+          description: 'Array of workspace definitions to create',
+          items: {
+            type: 'object',
+            properties: {
+              template_id: { type: 'number', description: 'Template node ID from workspace types list (e.g. 17284). Also accepts wksp_type_id which will be auto-resolved.' },
+              name: { type: 'string', description: 'Workspace name' },
+              parent_id: { type: 'number', description: 'Optional parent folder ID' },
+              description: { type: 'string', description: 'Optional description' },
+              business_properties: { type: 'object', description: 'Optional business properties keyed as {category_id}_{attribute_id}.' },
+            },
+            required: ['template_id', 'name'],
+          },
+        },
+      },
+      required: ['workspaces'],
     },
   },
   {
@@ -913,6 +954,42 @@ const allTools: Tool[] = [
       required: ['action'],
     },
   },
+  {
+    name: 'otcs_browse_tree',
+    description: 'Recursively browse a folder hierarchy and return the full tree structure in a single call. Useful for understanding folder layouts without multiple browse requests.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder_id: { type: 'number', description: 'The ID of the root folder to browse' },
+        max_depth: { type: 'number', description: 'Maximum depth to recurse (default 5)' },
+        folders_only: { type: 'boolean', description: 'If true, only include folders in the tree (default true)' },
+      },
+      required: ['folder_id'],
+    },
+  },
+  {
+    name: 'otcs_create_folder_structure',
+    description: 'Create an entire folder tree structure in a single call. Accepts a nested array of folder names with optional children. Existing folders are reused rather than duplicated.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        parent_id: { type: 'number', description: 'The parent folder ID under which to create the structure' },
+        folders: {
+          type: 'array',
+          description: 'Array of folders to create, each with a name and optional children array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Folder name' },
+              children: { type: 'array', description: 'Nested child folders (same structure)', items: { type: 'object' } },
+            },
+            required: ['name'],
+          },
+        },
+      },
+      required: ['parent_id', 'folders'],
+    },
+  },
 ];
 
 // ============ Tool Handler ============
@@ -1027,6 +1104,18 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         default:
           throw new Error(`Unknown action: ${action}`);
       }
+    }
+
+    case 'otcs_delete_nodes': {
+      const { node_ids } = args as { node_ids: number[] };
+      const results = await client.deleteNodes(node_ids);
+      const succeeded = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+      return {
+        success: failed === 0,
+        message: `Deleted ${succeeded}/${results.length} nodes${failed > 0 ? ` (${failed} failed)` : ''}`,
+        results,
+      };
     }
 
     // ==================== Documents ====================
@@ -1460,6 +1549,18 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         }
       }
       return { success: true, workspace, message, categories_updated: propResults?.updated, categories_failed: propResults?.failed };
+    }
+
+    case 'otcs_create_workspaces': {
+      const { workspaces } = args as { workspaces: Array<{ template_id: number; name: string; parent_id?: number; description?: string; business_properties?: Record<string, unknown> }> };
+      const results = await client.createWorkspaces(workspaces);
+      const succeeded = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+      return {
+        success: failed === 0,
+        message: `Created ${succeeded}/${results.length} workspaces${failed > 0 ? ` (${failed} failed)` : ''}`,
+        results,
+      };
     }
 
     case 'otcs_get_workspace': {
@@ -2135,6 +2236,19 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         default:
           throw new Error(`Unknown action: ${action}`);
       }
+    }
+
+    // ==================== Tree Browsing & Creation ====================
+    case 'otcs_browse_tree': {
+      const { folder_id, max_depth, folders_only } = args as { folder_id: number; max_depth?: number; folders_only?: boolean };
+      const tree = await client.getTree(folder_id, max_depth ?? 5, folders_only ?? true);
+      return { tree };
+    }
+
+    case 'otcs_create_folder_structure': {
+      const { parent_id, folders } = args as { parent_id: number; folders: Array<{ name: string; children?: Array<any> }> };
+      const result = await client.createFolderTree(parent_id, folders);
+      return { success: true, folders: result };
     }
 
     default:

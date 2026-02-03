@@ -98,6 +98,7 @@ import {
   SearchMode,
   SearchWithinType,
   SearchSortType,
+  FolderTreeNode,
 } from '../types.js';
 
 export class OTCSClient {
@@ -408,6 +409,23 @@ export class OTCSClient {
 
   async deleteNode(nodeId: number): Promise<void> {
     await this.request<void>('DELETE', `/v2/nodes/${nodeId}`);
+  }
+
+  /**
+   * Delete multiple nodes in a single call.
+   * Deletes sequentially with graceful partial failure.
+   */
+  async deleteNodes(nodeIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    const results: Array<{ id: number; success: boolean; error?: string }> = [];
+    for (const nodeId of nodeIds) {
+      try {
+        await this.deleteNode(nodeId);
+        results.push({ id: nodeId, success: true });
+      } catch (error: any) {
+        results.push({ id: nodeId, success: false, error: error.message });
+      }
+    }
+    return results;
   }
 
   async renameNode(nodeId: number, newName: string): Promise<NodeInfo> {
@@ -950,6 +968,25 @@ export class OTCSClient {
     }
 
     return workspace;
+  }
+
+  /**
+   * Create multiple business workspaces in a single call.
+   * Delegates to createWorkspace() per item with graceful partial failure.
+   */
+  async createWorkspaces(
+    workspaces: WorkspaceCreateParams[]
+  ): Promise<Array<{ name: string; success: boolean; workspace?: WorkspaceInfo; error?: string }>> {
+    const results: Array<{ name: string; success: boolean; workspace?: WorkspaceInfo; error?: string }> = [];
+    for (const params of workspaces) {
+      try {
+        const workspace = await this.createWorkspace(params);
+        results.push({ name: params.name, success: true, workspace });
+      } catch (error: any) {
+        results.push({ name: params.name, success: false, error: error.message });
+      }
+    }
+    return results;
   }
 
   /**
@@ -4106,5 +4143,86 @@ export class OTCSClient {
       case 4: return 'Owner';
       default: return 'Unknown';
     }
+  }
+
+  // ==================== Tree Browsing & Creation ====================
+
+  async getTree(
+    nodeId: number,
+    maxDepth: number = 5,
+    foldersOnly: boolean = true
+  ): Promise<FolderTreeNode> {
+    const rootInfo = await this.getNode(nodeId);
+
+    const buildTree = async (id: number, name: string, type: number, typeName: string, depth: number): Promise<FolderTreeNode> => {
+      const node: FolderTreeNode = { id, name, type, type_name: typeName };
+
+      if (depth >= maxDepth || type !== NodeTypes.FOLDER) {
+        return node;
+      }
+
+      const options: { limit: number; where_type?: number[] } = { limit: 100 };
+      if (foldersOnly) {
+        options.where_type = [NodeTypes.FOLDER];
+      }
+
+      const contents = await this.getSubnodes(id, options);
+      if (contents.items.length > 0) {
+        node.children = await Promise.all(
+          contents.items.map(child =>
+            buildTree(child.id, child.name, child.type, child.type_name, depth + 1)
+          )
+        );
+      }
+
+      return node;
+    };
+
+    return buildTree(rootInfo.id, rootInfo.name, rootInfo.type, rootInfo.type_name, 0);
+  }
+
+  async createFolderTree(
+    parentId: number,
+    folders: Array<{ name: string; children?: Array<any> }>
+  ): Promise<Array<{ name: string; id: number; path: string; created: boolean; children: any[] }>> {
+    const processLevel = async (
+      currentParentId: number,
+      items: Array<{ name: string; children?: Array<any> }>,
+      parentPath: string
+    ): Promise<Array<{ name: string; id: number; path: string; created: boolean; children: any[] }>> => {
+      const results: Array<{ name: string; id: number; path: string; created: boolean; children: any[] }> = [];
+
+      for (const item of items) {
+        const folderPath = parentPath ? `${parentPath}/${item.name}` : item.name;
+        let folderId: number;
+        let created = false;
+
+        const existing = await this.findChildByName(currentParentId, item.name);
+        if (existing) {
+          folderId = existing.id;
+        } else {
+          const newFolder = await this.createFolder(currentParentId, item.name);
+          folderId = newFolder.id;
+          created = true;
+        }
+
+        let childResults: any[] = [];
+        if (item.children && item.children.length > 0) {
+          childResults = await processLevel(folderId, item.children, folderPath);
+        }
+
+        results.push({
+          name: item.name,
+          id: folderId,
+          path: folderPath,
+          created,
+          children: childResults,
+        });
+      }
+
+      return results;
+    };
+
+    return processLevel(parentId, folders, '');
   }
 }
