@@ -249,20 +249,19 @@ const allTools: Tool[] = [
   },
   {
     name: 'otcs_search',
-    description: `Enterprise search — the primary discovery tool. Searches document content, names, descriptions, and category metadata. Use this FIRST when finding documents by topic, type, or content.
+    description: `Enterprise search — the primary discovery tool. Searches document content, names, descriptions, and category metadata.
 
-**Best practices for discovery:**
-- Use **mode: "anywords"** + multiple keywords for broad discovery (finds documents matching ANY term)
-- Use **location_id** to scope search to a workspace/folder subtree — finds all matching documents in that container
-- Use **include_highlights: true** to see highlighted snippets showing why each result matched
-- Document descriptions and category attributes are searchable metadata — searches match against these by default
-- Combine location_id + query "*" to enumerate all documents within a container
+**Strategy depends on intent:**
+- **"Find all" / comprehensive discovery:** First search by keyword to locate the workspace/folder, then do query: "*" + location_id + filter_type: "documents" to get every document inside it. Keyword search alone misses documents without the search terms in indexed fields.
+- **Keyword / content search:** Use directly with keywords. Use mode: "anywords" for broad matching, "allwords" for strict. Add location_id to scope if needed.
+- **Structured queries:** Use mode: "complexquery" for LQL field-level queries (OTName:contract*, date ranges, MIME types).
 
-**LQL Query Examples (use mode: "complexquery"):**
-- Wildcards: "OTName:contract*" (names starting with contract), "OTName:*report*" (names containing report)
-- Field queries: "OTName:invoice AND OTMIMEType:pdf" (PDF files named invoice)
-- Date ranges: "OTObjectDate:[2024-01-01 TO 2024-12-31]" (items from 2024)
-- Combined: "budget OTName:*.xlsx" (Excel files with "budget" in content)
+**Tips:**
+- Use **include_highlights: true** to see match context
+- Use **location_id** to scope to a specific folder/workspace subtree
+
+**LQL Examples (mode: "complexquery"):**
+- "OTName:contract*" | "OTName:invoice AND OTMIMEType:pdf" | "OTObjectDate:[2024-01-01 TO 2024-12-31]"
 
 **Filter Types:** Use filter_type to restrict results to specific object types (documents, folders, workspaces, workflows).`,
     inputSchema: {

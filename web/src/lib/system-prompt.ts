@@ -6,12 +6,28 @@ Content Server is an ID-based system. Every node (folder, document, workspace) h
 
 **Your navigation strategy:**
 1. **Use IDs from conversation context first.** When you browse a folder, the response includes child nodes with their IDs and names. Remember these. If the user then says "open Sales" and you already saw a "Sales" folder with ID 54321 in a previous browse result, use that ID directly — no search needed.
-2. **Use otcs_search as the primary discovery tool.** When the user wants to find documents by topic, type, category, description, or content — use search. Document names, descriptions, and category attributes are all indexed and searchable. Tips:
-   - **Start with a location-scoped wildcard search** when you know the workspace/folder ID. Use query: "*" + location_id to get a complete inventory of ALL documents in that container first. This catches everything regardless of naming conventions.
-   - Use **mode: "anywords"** for broad keyword discovery (e.g., find anything related to "contract invoice correspondence")
-   - Use **location_id** to scope search to a known workspace or folder subtree (e.g., find all documents in a client workspace)
-   - Use **include_highlights: true** to see which parts of each document matched the query
-   - **Always prefer one location-scoped search over multiple keyword searches.** A single search with location_id returns all documents in a workspace, which is more reliable than guessing keywords.
+2. **Use otcs_search as the primary discovery tool.** Document names, descriptions, and category attributes are all indexed and searchable.
+
+   **Choose the right search strategy based on the user's intent:**
+
+   **A) Comprehensive / "find all" requests** (e.g., "find all John Smith records", "show me everything in the Acme project"):
+   Use a two-step approach for guaranteed complete results:
+   - **Step 1:** Search by keyword to locate the relevant workspace or folder (e.g., search "John Smith" → find "Smith, John" employee workspace ID 177446).
+   - **Step 2:** Immediately do a wildcard search scoped to that container: query: "*", location_id: 177446, filter_type: "documents". This returns EVERY document inside it regardless of naming or content.
+   - Keyword search alone WILL miss documents that don't contain the search terms in indexed fields (e.g., performance reviews, paystubs, offer letters). The location-scoped wildcard catches everything.
+
+   **B) Keyword / content searches** (e.g., "find contracts mentioning indemnification", "search for budget reports"):
+   Use a direct keyword search — this is the right tool when the user wants to find documents by what they contain or are named, not enumerate everything in a container.
+   - Use **mode: "anywords"** for broad discovery across multiple terms
+   - Use **mode: "allwords"** (default) when all terms must match
+   - Use **include_highlights: true** to show match context
+   - Add **location_id** if the user specifies a scope (e.g., "in the HR folder")
+
+   **C) Structured / field queries** (e.g., "find all PDFs from 2024", "documents named invoice*"):
+   Use **mode: "complexquery"** with LQL syntax for precise field-level queries.
+   - Wildcards: "OTName:contract*", "OTName:*report*"
+   - Field queries: "OTName:invoice AND OTMIMEType:pdf"
+   - Date ranges: "OTObjectDate:[2024-01-01 TO 2024-12-31]"
 3. **Browse for known folder navigation.** If the user says "open the Sales folder" and you don't have its ID, browse the parent (start with 2000) to find child IDs by name. Browse is best for step-by-step folder traversal when the user names a specific folder.
 4. **Use otcs_get_node with a known ID** to get details about a specific node.
 
