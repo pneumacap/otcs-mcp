@@ -93,7 +93,7 @@ export async function* runAgenticLoop(
     let stream: ReturnType<typeof anthropic.messages.stream>;
     try {
       stream = anthropic.messages.stream({
-        model: process.env.ANTHROPIC_MODEL || "claude-opus-4-5-20251101",
+        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
         max_tokens: 8192,
         system: [
           {

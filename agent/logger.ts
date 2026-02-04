@@ -14,6 +14,14 @@ const LOGS_DIR = resolve(__dirname, "logs");
 // Ensure logs directory exists
 mkdirSync(LOGS_DIR, { recursive: true });
 
+export interface UsageStats {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  cost: number;
+}
+
 export interface LogEntry {
   timestamp: string;
   nodeId: number;
@@ -22,6 +30,7 @@ export interface LogEntry {
   toolCalls: { name: string; args: Record<string, unknown>; result: string }[];
   result: string;
   durationMs: number;
+  usage?: UsageStats;
 }
 
 function getLogPath(): string {

@@ -93,7 +93,7 @@ export async function classifyAndExtract(
   model: string,
   documentText: string,
   extraFields?: Record<string, string>,
-): Promise<{ extraction: Extraction; usage: { input: number; output: number } }> {
+): Promise<{ extraction: Extraction; usage: { input: number; output: number; cacheRead: number; cacheWrite: number } }> {
   const anthropic = new Anthropic({ apiKey: anthropicApiKey });
 
   // Build dynamic extraction fields from config — supports custom hints per field
@@ -125,6 +125,8 @@ export async function classifyAndExtract(
     usage: {
       input: response.usage.input_tokens,
       output: response.usage.output_tokens,
+      cacheRead: (response.usage as any).cache_read_input_tokens || 0,
+      cacheWrite: (response.usage as any).cache_creation_input_tokens || 0,
     },
   };
 }

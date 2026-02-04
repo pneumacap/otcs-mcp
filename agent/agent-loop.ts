@@ -56,11 +56,18 @@ export interface ToolCallRecord {
   isError: boolean;
 }
 
+export interface AgentUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+}
+
 export interface AgentResult {
   toolCalls: ToolCallRecord[];
   finalText: string;
   rounds: number;
-  usage: { inputTokens: number; outputTokens: number };
+  usage: AgentUsage;
 }
 
 // ── Agent loop ──
@@ -85,6 +92,8 @@ export async function runAgentLoop(
   let finalText = "";
   let totalInput = 0;
   let totalOutput = 0;
+  let totalCacheRead = 0;
+  let totalCacheWrite = 0;
   let round = 0;
 
   while (round < maxRounds) {
@@ -122,10 +131,12 @@ export async function runAgentLoop(
       }
     }
 
-    // Accumulate usage
+    // Accumulate usage (including cache tokens)
     if (response.usage) {
       totalInput += response.usage.input_tokens;
       totalOutput += response.usage.output_tokens;
+      totalCacheRead += (response.usage as any).cache_read_input_tokens || 0;
+      totalCacheWrite += (response.usage as any).cache_creation_input_tokens || 0;
     }
 
     // Collect text blocks
@@ -183,10 +194,21 @@ export async function runAgentLoop(
     currentMessages.push({ role: "user", content: toolResults });
   }
 
-  return {
-    toolCalls: allToolCalls,
-    finalText,
-    rounds: round,
-    usage: { inputTokens: totalInput, outputTokens: totalOutput },
+  const usage: AgentUsage = {
+    inputTokens: totalInput,
+    outputTokens: totalOutput,
+    cacheReadTokens: totalCacheRead,
+    cacheWriteTokens: totalCacheWrite,
   };
+
+  // Log usage summary
+  const nonCachedInput = Math.max(0, totalInput - totalCacheRead - totalCacheWrite);
+  const cost =
+    nonCachedInput * (3 / 1_000_000) +
+    totalOutput * (15 / 1_000_000) +
+    totalCacheRead * (0.3 / 1_000_000) +
+    totalCacheWrite * (3.75 / 1_000_000);
+  log(`  [USAGE] input=${totalInput} output=${totalOutput} cache_read=${totalCacheRead} cache_write=${totalCacheWrite} rounds=${round} cost=$${cost.toFixed(4)}`);
+
+  return { toolCalls: allToolCalls, finalText, rounds: round, usage };
 }

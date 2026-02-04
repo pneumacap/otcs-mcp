@@ -3,11 +3,20 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import MessageBubble, { Message, MessagePart, ToolCall } from "./MessageBubble";
 import ChatInput from "./ChatInput";
+import UsageBadge, { TokenUsage } from "./UsageBadge";
+
+const EMPTY_USAGE: TokenUsage = {
+  input_tokens: 0,
+  output_tokens: 0,
+  cache_read_input_tokens: 0,
+  cache_creation_input_tokens: 0,
+};
 
 export default function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [usage, setUsage] = useState<TokenUsage>(EMPTY_USAGE);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -155,6 +164,19 @@ export default function ChatContainer() {
                   break;
                 }
 
+                case "usage": {
+                  const u = event.usage;
+                  setUsage((prev) => ({
+                    input_tokens: prev.input_tokens + (u.input_tokens || 0),
+                    output_tokens: prev.output_tokens + (u.output_tokens || 0),
+                    cache_read_input_tokens:
+                      prev.cache_read_input_tokens + (u.cache_read_input_tokens || 0),
+                    cache_creation_input_tokens:
+                      prev.cache_creation_input_tokens + (u.cache_creation_input_tokens || 0),
+                  }));
+                  break;
+                }
+
                 case "error":
                   parts.push({
                     type: "text",
@@ -207,7 +229,10 @@ export default function ChatContainer() {
             OpenText Content Server
           </p>
         </div>
-        <div className="ml-auto relative" ref={userMenuRef}>
+        <div className="ml-auto flex items-center gap-3">
+          <UsageBadge usage={usage} />
+        </div>
+        <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -270,7 +295,7 @@ export default function ChatContainer() {
                 What can I help you with in Content Server?
               </p>
               <p className="home-stagger home-stagger-2 mb-9 text-[11px] text-gray-300 dark:text-gray-600">
-                Powered by Claude Opus 4.5
+                Powered by Claude Sonnet 4
               </p>
 
               {/* Feature cards — 2x2 */}

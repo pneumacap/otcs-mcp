@@ -60,12 +60,22 @@ export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      const usageTotals = { input: 0, output: 0, cache_read: 0, cache_write: 0 };
+      let rounds = 0;
       try {
         for await (const event of runAgenticLoop(
           client,
           anthropicApiKey,
           anthropicMessages
         )) {
+          if (event.type === "usage") {
+            rounds++;
+            const u = event.usage;
+            usageTotals.input += u.input_tokens || 0;
+            usageTotals.output += u.output_tokens || 0;
+            usageTotals.cache_read += u.cache_read_input_tokens || 0;
+            usageTotals.cache_write += u.cache_creation_input_tokens || 0;
+          }
           const data = `data: ${JSON.stringify(event)}\n\n`;
           controller.enqueue(encoder.encode(data));
         }
@@ -73,6 +83,19 @@ export async function POST(request: NextRequest) {
         const errorEvent = `data: ${JSON.stringify({ type: "error", message: err.message })}\n\n`;
         controller.enqueue(encoder.encode(errorEvent));
       }
+
+      // Log usage summary
+      if (rounds > 0) {
+        const cost =
+          Math.max(0, usageTotals.input - usageTotals.cache_read - usageTotals.cache_write) * (3 / 1_000_000) +
+          usageTotals.output * (15 / 1_000_000) +
+          usageTotals.cache_read * (0.3 / 1_000_000) +
+          usageTotals.cache_write * (3.75 / 1_000_000);
+        console.log(
+          `[USAGE] input=${usageTotals.input} output=${usageTotals.output} cache_read=${usageTotals.cache_read} cache_write=${usageTotals.cache_write} rounds=${rounds} cost=$${cost.toFixed(4)}`
+        );
+      }
+
       controller.close();
     },
   });

@@ -26,7 +26,7 @@ import {
   executeActions,
   type WorkflowRule,
 } from "./workflows.js";
-import { log, logError, logEntry, type LogEntry } from "./logger.js";
+import { log, logError, logEntry, type LogEntry, type UsageStats } from "./logger.js";
 import { initBridge } from "./bridge.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,10 +34,32 @@ const __dirname = dirname(__filename);
 
 const LAST_POLL_FILE = resolve(__dirname, "logs", ".last-poll");
 
+// ── Pricing (Anthropic) ──
+
+function computeCost(input: number, output: number, cacheRead: number, cacheWrite: number): number {
+  const nonCachedInput = Math.max(0, input - cacheRead - cacheWrite);
+  return (
+    nonCachedInput * (3 / 1_000_000) +
+    output * (15 / 1_000_000) +
+    cacheRead * (0.3 / 1_000_000) +
+    cacheWrite * (3.75 / 1_000_000)
+  );
+}
+
 // ── State ──
 
 const processedIds = new Set<number>();
 let lastPollTimestamp: string | null = null;
+
+// Session-level cumulative usage
+const sessionUsage = {
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
+  cost: 0,
+  documentsProcessed: 0,
+};
 
 function loadLastPollTimestamp(): void {
   if (existsSync(LAST_POLL_FILE)) {
@@ -118,7 +140,18 @@ async function processDocument(
 
     const durationMs = Date.now() - startTime;
     const totalTokens = usage.input + usage.output;
-    log(`  Done (programmatic) in ${durationMs}ms — 1 LLM call (${totalTokens} tokens), ${steps.length} API calls`);
+    const docCost = computeCost(usage.input, usage.output, usage.cacheRead, usage.cacheWrite);
+
+    // Accumulate session totals
+    sessionUsage.inputTokens += usage.input;
+    sessionUsage.outputTokens += usage.output;
+    sessionUsage.cacheReadTokens += usage.cacheRead;
+    sessionUsage.cacheWriteTokens += usage.cacheWrite;
+    sessionUsage.cost += docCost;
+    sessionUsage.documentsProcessed++;
+
+    log(`  Done (programmatic) in ${durationMs}ms — 1 LLM call (${totalTokens} tokens), ${steps.length} API calls, cost=$${docCost.toFixed(4)}`);
+    log(`  [SESSION] docs=${sessionUsage.documentsProcessed} total_tokens=${sessionUsage.inputTokens + sessionUsage.outputTokens} total_cost=$${sessionUsage.cost.toFixed(4)}`);
 
     return {
       timestamp: new Date().toISOString(),
@@ -131,6 +164,13 @@ async function processDocument(
       ],
       result: `Matched "${matchedRule.name}". Type: ${extraction.documentType}. ${extraction.summary}`,
       durationMs,
+      usage: {
+        inputTokens: usage.input,
+        outputTokens: usage.output,
+        cacheReadTokens: usage.cacheRead,
+        cacheWriteTokens: usage.cacheWrite,
+        cost: docCost,
+      },
     };
   } else {
     // ── Agentic fallback: give AI the extraction so the classify call isn't wasted ──
@@ -155,7 +195,24 @@ async function processDocument(
     const durationMs = Date.now() - startTime;
     const classifyTokens = usage.input + usage.output;
     const agentTokens = agentResult.usage.inputTokens + agentResult.usage.outputTokens;
-    log(`  Done (agentic) in ${durationMs}ms — ${agentResult.rounds} round(s), ${classifyTokens + agentTokens} total tokens`);
+
+    // Combine classify + agent usage
+    const totalInput = usage.input + agentResult.usage.inputTokens;
+    const totalOutput = usage.output + agentResult.usage.outputTokens;
+    const totalCacheRead = usage.cacheRead + agentResult.usage.cacheReadTokens;
+    const totalCacheWrite = usage.cacheWrite + agentResult.usage.cacheWriteTokens;
+    const docCost = computeCost(totalInput, totalOutput, totalCacheRead, totalCacheWrite);
+
+    // Accumulate session totals
+    sessionUsage.inputTokens += totalInput;
+    sessionUsage.outputTokens += totalOutput;
+    sessionUsage.cacheReadTokens += totalCacheRead;
+    sessionUsage.cacheWriteTokens += totalCacheWrite;
+    sessionUsage.cost += docCost;
+    sessionUsage.documentsProcessed++;
+
+    log(`  Done (agentic) in ${durationMs}ms — ${agentResult.rounds} round(s), ${classifyTokens + agentTokens} total tokens, cost=$${docCost.toFixed(4)}`);
+    log(`  [SESSION] docs=${sessionUsage.documentsProcessed} total_tokens=${sessionUsage.inputTokens + sessionUsage.outputTokens} total_cost=$${sessionUsage.cost.toFixed(4)}`);
 
     return {
       timestamp: new Date().toISOString(),
@@ -172,6 +229,13 @@ async function processDocument(
       ],
       result: agentResult.finalText.slice(0, 1000),
       durationMs,
+      usage: {
+        inputTokens: totalInput,
+        outputTokens: totalOutput,
+        cacheReadTokens: totalCacheRead,
+        cacheWriteTokens: totalCacheWrite,
+        cost: docCost,
+      },
     };
   }
 }
