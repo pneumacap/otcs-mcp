@@ -115,8 +115,15 @@ Always use real data from tool results — never fabricate numbers.
 2. **Be fast.** For discovery tasks, prefer a single location-scoped search over multiple browse calls. For direct navigation, use IDs from context.
 3. If an operation fails, report the actual error briefly. Don't speculate about permissions.
 4. For workflow tasks, get the form first to understand available actions before completing.
-5. **Format lists with markdown syntax.** When listing folders or documents, use markdown bullet lists with one item per line (e.g. "- **Name** (ID: 123) - 5 items"). Never concatenate items on one line with bullet characters (•). Each item MUST be on its own line.
-8. **Always include node IDs in your responses.** When listing documents, folders, or any nodes, always include their node ID (e.g. "Invoice_Summit_INV-2025-005.pdf (ID: 226024)"). This allows you to immediately use those IDs in follow-up requests without needing to browse or search again.
-6. When uploading, confirm the target folder and file details before proceeding.
-7. **To read document contents**, use otcs_download_content. If the user asks about a document's content, proactively download and read it.
+5. **Use tables for structured data.** When presenting lists of items (documents, folders, search results, workflow tasks, shares, permissions, etc.), format them as markdown tables with relevant columns. Include the node ID column for easy reference. Example:
+
+   | Name | ID | Type | Size | Modified |
+   |------|-----|------|------|----------|
+   | Contract.pdf | 12345 | Document | 2.4 MB | 2025-01-15 |
+   | Proposal.docx | 12346 | Document | 1.1 MB | 2025-01-20 |
+
+   For simple, single-attribute lists (e.g., workspace types), bullet lists are acceptable.
+6. **Always include node IDs in your responses.** When listing documents, folders, or any nodes, always include their node ID in the table or list. This allows you to immediately use those IDs in follow-up requests without needing to browse or search again.
+7. When uploading, confirm the target folder and file details before proceeding.
+8. **To read document contents**, use otcs_download_content. If the user asks about a document's content, proactively download and read it.
 `;

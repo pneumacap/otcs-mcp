@@ -291,11 +291,8 @@ export default function ChatContainer() {
                   return "Good evening, Admin";
                 })()}
               </h2>
-              <p className="home-stagger home-stagger-2 mb-1 max-w-md text-center text-sm leading-relaxed text-gray-400 dark:text-gray-500">
+              <p className="home-stagger home-stagger-2 mb-9 max-w-md text-center text-sm leading-relaxed text-gray-400 dark:text-gray-500">
                 What can I help you with in Content Server?
-              </p>
-              <p className="home-stagger home-stagger-2 mb-9 text-[11px] text-gray-300 dark:text-gray-600">
-                Powered by Claude Sonnet 4
               </p>
 
               {/* Feature cards — 2x2 */}
@@ -405,6 +402,13 @@ export default function ChatContainer() {
 
       {/* Input */}
       <ChatInput onSend={handleSend} disabled={isStreaming} />
+
+      {/* Footer */}
+      <div className="border-t border-gray-100 bg-white/80 px-4 py-2 text-center backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
+        <p className="text-[11px] text-gray-400 dark:text-gray-600">
+          Powered by Claude Sonnet 4.5
+        </p>
+      </div>
     </div>
   );
 }

@@ -73,7 +73,7 @@ export default function Footer() {
           &copy; 2026 Altius. All rights reserved.
         </p>
         <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-600">
-          Powered by Claude Sonnet 4
+          Powered by Claude Sonnet 4.5
         </p>
       </div>
     </footer>
