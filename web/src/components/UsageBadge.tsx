@@ -9,7 +9,7 @@ export interface TokenUsage {
   cache_creation_input_tokens: number;
 }
 
-// Anthropic Sonnet 4 pricing per token
+// Anthropic Sonnet 4.5 pricing per token
 const PRICING = {
   input: 3 / 1_000_000,          // $3/MTok
   output: 15 / 1_000_000,        // $15/MTok

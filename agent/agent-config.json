@@ -2,7 +2,7 @@
   "enabled": true,
   "pollIntervalMs": 30000,
   "maxAgentRounds": 15,
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "watchFolders": [181144],
   "tools": [
     "otcs_search",

@@ -83,7 +83,7 @@ export function loadConfig(): AgentConfig {
     otcsBaseUrl,
     otcsUsername,
     otcsPassword,
-    anthropicModel: raw.model || process.env.AGENT_MODEL || "claude-sonnet-4-20250514",
+    anthropicModel: raw.model || process.env.AGENT_MODEL || "claude-sonnet-4-5-20250929",
     tools: raw.tools as string[] | undefined,
   };
 }
