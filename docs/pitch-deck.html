@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altius Pitch Deck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            position: relative;
+            scroll-snap-align: start;
+        }
+
+        .slide-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+
+        /* Title slide */
+        .slide-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide-title h1 {
+            font-size: 120px;
+            font-weight: 900;
+            margin-bottom: 40px;
+            letter-spacing: -0.02em;
+        }
+
+        .slide-title .tagline {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 80px;
+            opacity: 0.9;
+        }
+
+        .slide-title .hook {
+            font-size: 28px;
+            font-weight: 400;
+            line-height: 1.6;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .slide-title .hook strong {
+            color: #ffd700;
+        }
+
+        /* Content slides */
+        .slide-content {
+            background: #0f0f0f;
+            align-items: flex-start;
+            padding: 80px 120px;
+        }
+
+        .slide-content h2 {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 60px;
+            color: #667eea;
+        }
+
+        .slide-content h3 {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 40px 0 20px 0;
+            color: #a78bfa;
+        }
+
+        .slide-content p, .slide-content li {
+            font-size: 24px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .slide-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .slide-content li {
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .slide-content li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            width: 100%;
+            margin-top: 60px;
+        }
+
+        .stat-card {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 40px;
+            border-radius: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 64px;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        /* Before/After comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .comparison-side {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 16px;
+        }
+
+        .comparison-side h4 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .comparison-side.before h4 {
+            color: #ef4444;
+        }
+
+        .comparison-side.after h4 {
+            color: #10b981;
+        }
+
+        .comparison-side ul {
+            font-size: 20px;
+        }
+
+        .comparison-side .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .comparison-side.before .result {
+            color: #ef4444;
+        }
+
+        .comparison-side.after .result {
+            color: #10b981;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            font-size: 20px;
+        }
+
+        table th {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        table td {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Highlight boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-left: 4px solid #667eea;
+            padding: 30px 40px;
+            margin: 40px 0;
+            font-size: 24px;
+            line-height: 1.8;
+            border-radius: 8px;
+        }
+
+        .highlight-box strong {
+            color: #ffd700;
+        }
+
+        /* Impact numbers */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .impact-item {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .impact-item .metric {
+            font-size: 48px;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+
+        .impact-item .description {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        /* Slide number */
+        .slide-number {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-size: 18px;
+            opacity: 0.5;
+        }
+
+        /* Logo placeholder */
+        .logo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Use case slide */
+        .use-case {
+            background: #0a0a0a;
+        }
+
+        .use-case-title {
+            font-size: 40px;
+            color: #ffd700;
+            margin-bottom: 40px;
+        }
+
+        .process-flow {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 18px;
+            line-height: 2;
+        }
+
+        .process-flow.traditional {
+            border-left: 4px solid #ef4444;
+        }
+
+        .process-flow.altius {
+            border-left: 4px solid #10b981;
+        }
+
+        /* Emoji support */
+        .emoji {
+            font-size: 48px;
+            margin-right: 20px;
+        }
+
+        /* Responsive */
+        @media print {
+            .slide {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title">
+            <h1>ALTIUS</h1>
+            <div class="tagline">Intelligence at Scale for OpenText Content Server</div>
+            <div class="hook">
+                Organizations waste <strong>millions</strong> processing documents manually<br>
+                while their <strong>$30B ECM investments</strong> sit idle.<br><br>
+                <strong>Altius transforms passive repositories into intelligent, autonomous systems.</strong>
+            </div>
+            <div class="slide-number">1</div>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>The Problem</h2>
+            <h3>Document-Intensive Work is Painfully Manual</h3>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">40-60%</div>
+                    <div class="label">of time on document handling</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">15-30d</div>
+                    <div class="label">cycle time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">5-15%</div>
+                    <div class="label">error rate</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 60px;">
+                <strong>Industries hit hardest:</strong> Healthcare • Financial Services • Legal • Government • Manufacturing
+            </div>
+
+            <div class="slide-number">2</div>
+        </div>
+
+        <!-- Slide 3: Why Now -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Why Now?</h2>
+            <h3>Three Market Shifts Create Perfect Timing</h3>
+
+            <ul style="margin-top: 40px;">
+                <li style="margin-bottom: 40px;"><strong>AI Goes Mainstream</strong> — ChatGPT made conversational AI acceptable. Claude Sonnet 4.5 enables accurate document understanding. Executives ask: "How do we use AI in our operations?"</li>
+
+                <li style="margin-bottom: 40px;"><strong>RPA Failed to Deliver</strong> — $3B+ spent on UiPath, Automation Anywhere. 30-50% project failure rate. Brittle, expensive, requires armies of developers.</li>
+
+                <li style="margin-bottom: 40px;"><strong>ECM Needs ROI</strong> — $30B in enterprise content management. Deployments 10-15 years old. No modernization path without full migration.</li>
+            </ul>
+
+            <div class="highlight-box">
+                <strong>The Gap:</strong> Enterprises need practical AI automation on top of existing ECM investments.
+            </div>
+
+            <div class="slide-number">3</div>
+        </div>
+
+        <!-- Slide 4: The Solution -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>The Solution</h2>
+            <h3>Three Products, One Platform</h3>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="emoji">💬</div>
+                    <h4 style="color: #667eea; margin-bottom: 20px;">Conversational Interface</h4>
+                    <p style="font-size: 18px;">Natural language access to all Content Server operations. Zero training required.</p>
+                </div>
+                <div class="stat-card">
+                    <div class="emoji">🤖</div>
+                    <h4 style="color: #667eea; margin-bottom: 20px;">Autonomous Agents</h4>
+                    <p style="font-size: 18px;">Monitor folders, classify documents, execute workflows. ~$0.01-0.03 per document.</p>
+                </div>
+                <div class="stat-card">
+                    <div class="emoji">🔌</div>
+                    <h4 style="color: #667eea; margin-bottom: 20px;">Developer Tools</h4>
+                    <p style="font-size: 18px;">41 pre-built integrations. Works with any AI agent via MCP standard.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 60px;">
+                <strong>Key Differentiator:</strong> Purpose-built for OpenText Content Server — the only OTCS-native AI automation solution.
+            </div>
+
+            <div class="slide-number">4</div>
+        </div>
+
+        <!-- Slide 5: How It Works -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>How It Works</h2>
+
+            <div class="comparison">
+                <div class="comparison-side before">
+                    <h4>❌ BEFORE ALTIUS</h4>
+                    <ul>
+                        <li>Manual review (30-60 min)</li>
+                        <li>Data entry (15-20 min)</li>
+                        <li>Route to person (email/calls)</li>
+                        <li>Approval workflow (days/weeks)</li>
+                        <li>Manual compliance check</li>
+                        <li>File in correct location</li>
+                    </ul>
+                    <div class="result">
+                        Total: 15-30 days<br>
+                        Cost: $15-25 per document<br>
+                        Error rate: 5-15%
+                    </div>
+                </div>
+
+                <div class="comparison-side after">
+                    <h4>✅ WITH ALTIUS</h4>
+                    <ul>
+                        <li>AI extracts all fields (30 sec)</li>
+                        <li>Classification + routing (auto)</li>
+                        <li>Workflow started with data</li>
+                        <li>Compliance holds applied</li>
+                        <li>Stakeholders notified</li>
+                        <li>Complete audit trail</li>
+                    </ul>
+                    <div class="result">
+                        Total: 2-5 minutes<br>
+                        Cost: $5-8 per document<br>
+                        Error rate: 0.5-2%
+                    </div>
+                </div>
+            </div>
+
+            <div class="impact-grid" style="margin-top: 60px;">
+                <div class="impact-item">
+                    <div class="metric">70-80%</div>
+                    <div class="description">Faster</div>
+                </div>
+                <div class="impact-item">
+                    <div class="metric">60-70%</div>
+                    <div class="description">Lower Cost</div>
+                </div>
+            </div>
+
+            <div class="slide-number">5</div>
+        </div>
+
+        <!-- Slide 6: Use Case - Legal Discovery -->
+        <div class="slide slide-content use-case">
+            <div class="logo">ALTIUS</div>
+            <h2 style="color: #ffd700;">Use Case: Legal Discovery</h2>
+            <div class="use-case-title">Subpoena Response Automation</div>
+
+            <div class="process-flow traditional">
+                <strong style="color: #ef4444;">TRADITIONAL PROCESS (3-5 days):</strong><br>
+                Legal receives subpoena → Manually read 10-20 pages → Identify records requested → Email IT with criteria → IT searches, sends results → Legal reviews 100-1000+ documents → Apply legal hold manually → Package for external counsel<br><br>
+                <strong>Cost: $3,000-6,000</strong> (40-80 hours paralegal time)
+            </div>
+
+            <div class="process-flow altius">
+                <strong style="color: #10b981;">WITH ALTIUS (2 minutes):</strong><br>
+                Upload subpoena to folder → AI extracts employee, case number, doc types → Auto-search with optimized queries → Filter by relevance → Create legal hold → Apply to all responsive docs → Share with counsel → Log all actions<br><br>
+                <strong>Cost: $0.10</strong> (AI processing + 5 min review)
+            </div>
+
+            <div style="text-align: center; margin-top: 60px;">
+                <div style="font-size: 72px; font-weight: 900; color: #10b981;">99.5%</div>
+                <div style="font-size: 32px; margin-top: 20px;">Cost Reduction</div>
+                <div style="font-size: 28px; margin-top: 10px; opacity: 0.8;">2,000x Faster</div>
+            </div>
+
+            <div class="slide-number">6</div>
+        </div>
+
+        <!-- Slide 7: Use Case - Contract Management -->
+        <div class="slide slide-content use-case">
+            <div class="logo">ALTIUS</div>
+            <h2 style="color: #ffd700;">Use Case: Contract Management</h2>
+            <div class="use-case-title">Contract Approval Automation</div>
+
+            <div class="process-flow traditional">
+                <strong style="color: #ef4444;">TRADITIONAL PROCESS (2-4 weeks):</strong><br>
+                Contract received → Manual filing → Email to legal → Download, read, analyze → Fill out risk assessment → Route to approver → Multiple approval rounds → Countersigning → File executed version → Set up obligation tracking<br><br>
+                <strong>Cost: $800-1,200</strong> (8-12 hours, 4-6 people)
+            </div>
+
+            <div class="process-flow altius">
+                <strong style="color: #10b981;">WITH ALTIUS (1 hour human time):</strong><br>
+                Upload to folder → AI extracts parties, value, terms, obligations, risks → Risk assessment (financial, legal, operational) → Workflow started with pre-populated fields → Route to correct approver → Human reviews AI assessment → Obligations tracked → Full audit trail<br><br>
+                <strong>Cost: $0.15</strong> (AI + 1 hour review)
+            </div>
+
+            <div style="text-align: center; margin-top: 60px;">
+                <div style="font-size: 72px; font-weight: 900; color: #10b981;">90%</div>
+                <div style="font-size: 32px; margin-top: 20px;">Time Reduction</div>
+                <div style="font-size: 28px; margin-top: 10px; opacity: 0.8;">Perfect Audit Trail • No Lost Contracts</div>
+            </div>
+
+            <div class="slide-number">7</div>
+        </div>
+
+        <!-- Slide 8: The Market -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>The Market</h2>
+            <h3>$30B TAM, Underserved Niche</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Segment</th>
+                        <th>Market Size</th>
+                        <th>Altius Opportunity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OpenText Content Server</strong></td>
+                        <td>10,000+ enterprises, 5M+ users</td>
+                        <td style="color: #10b981; font-weight: bold;">Primary Target</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise Content Management</td>
+                        <td>$30B globally</td>
+                        <td>$100-300M niche</td>
+                    </tr>
+                    <tr>
+                        <td>Knowledge Worker Automation</td>
+                        <td>$150B+</td>
+                        <td>Vertical-specific expansion</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 60px;">Ideal Customer Profile</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">Company Size</div>
+                    <div class="number" style="font-size: 48px;">1K-50K</div>
+                    <div class="label">employees</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">Annual Budget</div>
+                    <div class="number" style="font-size: 48px;">$50K-500K</div>
+                    <div class="label">automation spend</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">Industries</div>
+                    <div style="font-size: 20px; margin-top: 20px;">Healthcare<br>Financial<br>Legal<br>Government</div>
+                </div>
+            </div>
+
+            <div class="slide-number">8</div>
+        </div>
+
+        <!-- Slide 9: Business Model -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Business Model</h2>
+            <h3>Land-and-Expand SaaS with Services</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Monthly Price</th>
+                        <th>Target Customer</th>
+                        <th>Annual Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Starter</strong></td>
+                        <td>$1,499</td>
+                        <td>Departments, POCs</td>
+                        <td>$18K ARR</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Professional</strong></td>
+                        <td>$3,999</td>
+                        <td>Business units</td>
+                        <td style="color: #667eea; font-weight: bold;">$48K ARR</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enterprise</strong></td>
+                        <td>$9,999</td>
+                        <td>Enterprise-wide</td>
+                        <td style="color: #667eea; font-weight: bold;">$120K ARR</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 60px;">Unit Economics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">CAC</div>
+                    <div class="number" style="font-size: 48px;">$8-12K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">LTV</div>
+                    <div class="number" style="font-size: 48px;">$180-350K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label" style="margin-bottom: 10px;">LTV/CAC</div>
+                    <div class="number" style="font-size: 48px; color: #10b981;">15-30x</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <strong>Payback Period:</strong> 6-9 months • <strong>Gross Margin:</strong> 75-80% • <strong>NRR:</strong> 120%+
+            </div>
+
+            <div class="slide-number">9</div>
+        </div>
+
+        <!-- Slide 10: Revenue Projections -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Revenue Projections</h2>
+            <h3>Path to $13M ARR in 3 Years</h3>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 60px;">
+                <div style="background: rgba(102, 126, 234, 0.1); padding: 40px; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 24px; margin-bottom: 20px; color: #667eea;">YEAR 1</div>
+                    <div style="font-size: 72px; font-weight: 900; color: #fff; margin-bottom: 10px;">$1.8M</div>
+                    <div style="font-size: 20px; opacity: 0.8;">ARR</div>
+                    <div style="font-size: 48px; font-weight: 700; margin-top: 20px; color: #667eea;">50</div>
+                    <div style="font-size: 18px; opacity: 0.8;">Customers</div>
+                </div>
+
+                <div style="background: rgba(102, 126, 234, 0.15); padding: 40px; border-radius: 16px; text-align: center;">
+                    <div style="font-size: 24px; margin-bottom: 20px; color: #667eea;">YEAR 2</div>
+                    <div style="font-size: 72px; font-weight: 900; color: #fff; margin-bottom: 10px;">$5.7M</div>
+                    <div style="font-size: 20px; opacity: 0.8;">ARR</div>
+                    <div style="font-size: 48px; font-weight: 700; margin-top: 20px; color: #667eea;">170</div>
+                    <div style="font-size: 18px; opacity: 0.8;">Customers</div>
+                </div>
+
+                <div style="background: rgba(102, 126, 234, 0.2); padding: 40px; border-radius: 16px; text-align: center; border: 3px solid #667eea;">
+                    <div style="font-size: 24px; margin-bottom: 20px; color: #667eea;">YEAR 3</div>
+                    <div style="font-size: 72px; font-weight: 900; color: #10b981; margin-bottom: 10px;">$13.2M</div>
+                    <div style="font-size: 20px; opacity: 0.8;">ARR</div>
+                    <div style="font-size: 48px; font-weight: 700; margin-top: 20px; color: #667eea;">367</div>
+                    <div style="font-size: 18px; opacity: 0.8;">Customers</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 80px;">
+                <h4 style="font-size: 28px; margin-bottom: 30px; color: #a78bfa;">Key Assumptions</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; font-size: 20px;">
+                    <div>→ 20% MoM customer growth (Y1-2)</div>
+                    <div>→ 5% monthly churn</div>
+                    <div>→ 120% Net Revenue Retention</div>
+                    <div>→ Average $3,600/mo by Year 3</div>
+                </div>
+            </div>
+
+            <div class="slide-number">10</div>
+        </div>
+
+        <!-- Slide 11: Competition -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Competition</h2>
+            <h3>No Direct Competitors, Strong Positioning</h3>
+
+            <table style="font-size: 18px;">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th style="background: rgba(102, 126, 234, 0.4); color: #fff;">Altius</th>
+                        <th>RPA Vendors</th>
+                        <th>AI Doc Processors</th>
+                        <th>OpenText Native</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OTCS Integration</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: bold;">✅ Native, 41 tools</td>
+                        <td style="color: #ef4444;">❌ Custom scripting</td>
+                        <td>⚠️ Via APIs</td>
+                        <td>✅ Native</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AI-First</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: bold;">✅ Conversational</td>
+                        <td style="color: #ef4444;">❌ Visual designers</td>
+                        <td>⚠️ Extraction only</td>
+                        <td style="color: #ef4444;">❌ Traditional</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Time to Value</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); font-weight: bold;">Days</td>
+                        <td>Months</td>
+                        <td>Weeks</td>
+                        <td>Months</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Implementation Cost</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); font-weight: bold;">$25k-150k</td>
+                        <td>$200k-1M+</td>
+                        <td>$100k-500k</td>
+                        <td>$500k-2M+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Compliance-Aware</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: bold;">✅ Built-in RM</td>
+                        <td style="color: #ef4444;">❌ Custom build</td>
+                        <td style="color: #ef4444;">❌ No</td>
+                        <td>✅ Yes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Modern UI</strong></td>
+                        <td style="background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: bold;">✅ Conversational</td>
+                        <td style="color: #ef4444;">❌ Clunky</td>
+                        <td>⚠️ Admin only</td>
+                        <td style="color: #ef4444;">❌ Legacy</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <strong>The Moat:</strong> First mover in OTCS AI automation + embedded customer workflows = high switching costs
+            </div>
+
+            <div class="slide-number">11</div>
+        </div>
+
+        <!-- Slide 12: The Ask -->
+        <div class="slide slide-content" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h2 style="color: #fff; font-size: 72px;">The Ask</h2>
+
+            <div style="text-align: center; margin: 80px 0;">
+                <div style="font-size: 120px; font-weight: 900; color: #ffd700;">$3M</div>
+                <div style="font-size: 48px; margin-top: 20px;">Seed Round</div>
+                <div style="font-size: 32px; margin-top: 20px; opacity: 0.9;">$12M pre-money valuation</div>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 60px; border-radius: 20px; font-size: 24px; line-height: 2;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px;">
+                    <div>
+                        <strong style="color: #ffd700;">Use of Funds:</strong><br>
+                        45% Sales & Marketing<br>
+                        25% Product & Engineering<br>
+                        15% Customer Success<br>
+                        10% Operations<br>
+                        5% Reserve
+                    </div>
+                    <div>
+                        <strong style="color: #ffd700;">18-Month Milestones:</strong><br>
+                        200+ customers<br>
+                        $600k MRR ($7.2M ARR)<br>
+                        10+ channel partners<br>
+                        Approaching profitability<br>
+                        Series A ready
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 60px; font-size: 28px;">
+                <strong>Runway:</strong> 18-24 months to profitability or Series A
+            </div>
+
+            <div class="slide-number">12</div>
+        </div>
+
+        <!-- Slide 13: Closing -->
+        <div class="slide slide-title" style="background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);">
+            <h1 style="font-size: 80px;">Intelligence at Scale</h1>
+            <div class="tagline" style="font-size: 32px;">For Enterprise Content</div>
+
+            <div style="margin-top: 80px; font-size: 28px; line-height: 2; text-align: center; max-width: 1000px;">
+                <p><strong style="color: #667eea;">The Problem:</strong> Millions wasted on manual document processing</p>
+                <p><strong style="color: #667eea;">The Solution:</strong> AI automation for OpenText Content Server</p>
+                <p><strong style="color: #667eea;">The Market:</strong> $30B ECM, 10,000+ customers, zero direct competitors</p>
+                <p><strong style="color: #667eea;">The Traction:</strong> Production-ready, 1,400-7,000% ROI</p>
+                <p style="margin-top: 60px; font-size: 36px; color: #ffd700;"><strong>$3M to capture the category before competitors emerge</strong></p>
+            </div>
+
+            <div style="margin-top: 100px; font-size: 24px; opacity: 0.8;">
+                <strong>Let's talk.</strong><br><br>
+                [Your Name]<br>
+                [Your Email] • [Your Phone]<br>
+                [Company Website]
+            </div>
+
+            <div class="slide-number">13</div>
+        </div>
+
+    </div>
+
+    <script>
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const slides = document.querySelectorAll('.slide');
+            const currentSlide = Math.round(window.scrollY / window.innerHeight);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                if (currentSlide < slides.length - 1) {
+                    slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentSlide > 0) {
+                    slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                slides[0].scrollIntoView({ behavior: 'smooth' });
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Print instructions
+        console.log('Keyboard navigation:');
+        console.log('→/↓/Space: Next slide');
+        console.log('←/↑: Previous slide');
+        console.log('Home: First slide');
+        console.log('End: Last slide');
+        console.log('Ctrl/Cmd+P: Print to PDF');
+    </script>
+</body>
+</html>
