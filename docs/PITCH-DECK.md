@@ -90,7 +90,59 @@ AI automation that unlocks existing investment — no migration required.
 
 ---
 
-## Slide 5: How It Works
+## Slide 5: User Experience — Why 70% of ECM Projects Fail
+
+### Users Hate the Interface → No Adoption → No ROI
+
+**LEGACY OTCS:**
+- Complex navigation trees
+- 20+ clicks to find documents
+- Cryptic field names
+- Requires weeks of training
+- Users avoid the system
+- 90s-era UI design
+- **Result:** Low adoption = Failed ROI
+
+**ALTIUS EXPERIENCE:**
+- Natural language queries
+- Instant search results
+- Visual analytics & charts
+- Zero training required
+- Users prefer it over email
+- Modern, delightful UI
+- **Result:** 90%+ adoption = Realized ROI
+
+### Four Conversational Interfaces
+
+**🔍 Search**
+- "Show me all contracts expiring in Q1 2026"
+- AI understands natural language
+- Instant results with metadata
+- Charts, tables, export options
+
+**📊 Analytics**
+- "Show revenue trends from Q1 report"
+- Extracts data from documents
+- Generates charts automatically
+- Interactive visualizations
+
+**⚡ Workflows**
+- "What approvals are waiting for me?"
+- See all pending tasks instantly
+- One-click approvals
+- Full workflow history
+
+**📄 Extraction**
+- "Extract key terms from this contract"
+- OCR + AI document understanding
+- Structured metadata tables
+- Copy, export, or auto-populate
+
+**Key Insight:** UX = Adoption = ROI. Users choose Altius over legacy OTCS for every task. This solves the #1 reason ECM projects fail: poor user experience.
+
+---
+
+## Slide 6: How It Works
 
 ### From Manual to Autonomous in 3 Steps
 
@@ -136,7 +188,7 @@ Error rate: 0.5-2%
 
 ---
 
-## Slide 6: Use Case — Legal Discovery
+## Slide 7: Use Case — Legal Discovery
 
 ### Real Example: Subpoena Response Automation
 
@@ -169,7 +221,7 @@ Error rate: 0.5-2%
 
 ---
 
-## Slide 7: Use Case — Contract Management
+## Slide 8: Use Case — Contract Management
 
 ### Real Example: Contract Approval Automation
 
@@ -204,7 +256,7 @@ Error rate: 0.5-2%
 
 ---
 
-## Slide 8: The Market
+## Slide 9: The Market
 
 ### $200-300B Stranded ECM Investment
 
@@ -238,7 +290,7 @@ Error rate: 0.5-2%
 
 ---
 
-## Slide 9: Business Model
+## Slide 10: Business Model
 
 ### Land-and-Expand SaaS with Services
 
@@ -274,7 +326,7 @@ Error rate: 0.5-2%
 
 ---
 
-## Slide 10: Revenue Projections
+## Slide 11: Revenue Projections
 
 ### Path to $13M ARR in 3 Years
 
@@ -324,7 +376,7 @@ Services revenue: $3M
 
 ---
 
-## Slide 11: Traction & Proof Points
+## Slide 12: Traction & Proof Points
 
 ### Production Ready, Early Validation
 
@@ -359,7 +411,7 @@ Services revenue: $3M
 
 ---
 
-## Slide 12: Competition
+## Slide 13: Competition
 
 ### No Direct Competitors, Strong Positioning vs Adjacent Players
 
@@ -397,7 +449,7 @@ Services revenue: $3M
 
 ---
 
-## Slide 13: Go-to-Market Strategy
+## Slide 14: Go-to-Market Strategy
 
 ### Land-and-Expand Through OpenText Ecosystem
 
@@ -447,7 +499,7 @@ Reference Calls → More Customers
 
 ---
 
-## Slide 14: Team
+## Slide 15: Team
 
 ### [Customize with Your Team Info]
 
@@ -475,7 +527,7 @@ Reference Calls → More Customers
 
 ---
 
-## Slide 15: Funding & Use of Funds
+## Slide 16: Funding & Use of Funds
 
 ### Raising $2-5M Seed Round
 
@@ -523,7 +575,7 @@ Reference Calls → More Customers
 
 ---
 
-## Slide 16: Why This Will Win
+## Slide 17: Why This Will Win
 
 ### The Perfect Storm
 
@@ -558,7 +610,7 @@ Reference Calls → More Customers
 
 ---
 
-## Slide 17: The Ask
+## Slide 18: The Ask
 
 ### $3M Seed Round
 
@@ -595,7 +647,7 @@ Reference Calls → More Customers
 
 ---
 
-## Slide 18: Closing
+## Slide 19: Closing
 
 ### Intelligence at Scale for Enterprise Content
 

@@ -20,7 +20,7 @@
 
         .slide {
             width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -28,12 +28,14 @@
             padding: 80px;
             position: relative;
             scroll-snap-align: start;
+            overflow: visible;
         }
 
         .slide-container {
             scroll-snap-type: y mandatory;
             overflow-y: scroll;
             height: 100vh;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Title slide */
@@ -71,27 +73,29 @@
         .slide-content {
             background: #0f0f0f;
             align-items: flex-start;
-            padding: 80px 120px;
+            padding: 60px 100px;
+            overflow-y: auto;
+            max-width: 100vw;
         }
 
         .slide-content h2 {
-            font-size: 56px;
+            font-size: 48px;
             font-weight: 700;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
             color: #667eea;
         }
 
         .slide-content h3 {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 600;
-            margin: 40px 0 20px 0;
+            margin: 30px 0 20px 0;
             color: #a78bfa;
         }
 
         .slide-content p, .slide-content li {
-            font-size: 24px;
-            line-height: 1.8;
-            margin-bottom: 20px;
+            font-size: 22px;
+            line-height: 1.7;
+            margin-bottom: 18px;
         }
 
         .slide-content ul {
@@ -116,14 +120,14 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
+            gap: 30px;
             width: 100%;
-            margin-top: 60px;
+            margin-top: 40px;
         }
 
         .stat-card {
             background: rgba(102, 126, 234, 0.1);
-            padding: 40px;
+            padding: 30px;
             border-radius: 16px;
             border: 2px solid rgba(102, 126, 234, 0.3);
         }
@@ -144,20 +148,20 @@
         .comparison {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: 40px;
             width: 100%;
-            margin-top: 40px;
+            margin-top: 30px;
         }
 
         .comparison-side {
             background: rgba(255, 255, 255, 0.05);
-            padding: 40px;
+            padding: 30px;
             border-radius: 16px;
         }
 
         .comparison-side h4 {
-            font-size: 32px;
-            margin-bottom: 30px;
+            font-size: 28px;
+            margin-bottom: 25px;
             text-align: center;
         }
 
@@ -194,20 +198,20 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 40px;
-            font-size: 20px;
+            margin-top: 30px;
+            font-size: 18px;
         }
 
         table th {
             background: rgba(102, 126, 234, 0.2);
-            padding: 20px;
+            padding: 16px;
             text-align: left;
             font-weight: 600;
             color: #667eea;
         }
 
         table td {
-            padding: 20px;
+            padding: 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -219,10 +223,10 @@
         .highlight-box {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
             border-left: 4px solid #667eea;
-            padding: 30px 40px;
-            margin: 40px 0;
-            font-size: 24px;
-            line-height: 1.8;
+            padding: 25px 30px;
+            margin: 30px 0;
+            font-size: 22px;
+            line-height: 1.7;
             border-radius: 8px;
         }
 
@@ -234,14 +238,14 @@
         .impact-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            margin-top: 40px;
+            gap: 25px;
+            margin-top: 30px;
         }
 
         .impact-item {
             background: rgba(16, 185, 129, 0.1);
             border: 2px solid rgba(16, 185, 129, 0.3);
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
         }
 
@@ -414,7 +418,88 @@
             <div class="slide-number">4</div>
         </div>
 
-        <!-- Slide 5: How It Works -->
+        <!-- Slide 5: User Experience -->
+        <div class="slide slide-content" style="padding: 60px 100px;">
+            <div class="logo">ALTIUS</div>
+            <h2 style="font-size: 48px; margin-bottom: 30px;">The UX Advantage</h2>
+            <h3 style="font-size: 24px; margin-bottom: 30px;">Why 70% of ECM Projects Fail: Poor User Experience</h3>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 30px;">
+                <!-- Search -->
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 2px solid rgba(102, 126, 234, 0.3);">
+                    <div style="color: #667eea; font-size: 20px; font-weight: 700; margin-bottom: 12px;">🔍 Search</div>
+                    <div style="background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 14px; color: #a78bfa;">
+                        "Show me all contracts expiring in Q1 2026"
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8; line-height: 1.5;">
+                        Natural language → Instant results with charts
+                    </div>
+                </div>
+
+                <!-- Analytics -->
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 2px solid rgba(102, 126, 234, 0.3);">
+                    <div style="color: #667eea; font-size: 20px; font-weight: 700; margin-bottom: 12px;">📊 Analytics</div>
+                    <div style="background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 14px; color: #a78bfa;">
+                        "Show revenue trends from Q1 report"
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8; line-height: 1.5;">
+                        Extracts data → Generates visualizations
+                    </div>
+                </div>
+
+                <!-- Workflows -->
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 2px solid rgba(102, 126, 234, 0.3);">
+                    <div style="color: #667eea; font-size: 20px; font-weight: 700; margin-bottom: 12px;">⚡ Workflows</div>
+                    <div style="background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 14px; color: #a78bfa;">
+                        "What approvals are waiting for me?"
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8; line-height: 1.5;">
+                        Instant task view → One-click approvals
+                    </div>
+                </div>
+
+                <!-- Extraction -->
+                <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; border: 2px solid rgba(102, 126, 234, 0.3);">
+                    <div style="color: #667eea; font-size: 20px; font-weight: 700; margin-bottom: 12px;">📄 Extraction</div>
+                    <div style="background: rgba(0, 0, 0, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 10px; font-size: 14px; color: #a78bfa;">
+                        "Extract key terms from this contract"
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8; line-height: 1.5;">
+                        OCR + AI → Structured metadata tables
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison" style="margin-top: 20px;">
+                <div class="comparison-side before">
+                    <h4 style="font-size: 24px;">❌ LEGACY OTCS</h4>
+                    <ul style="font-size: 16px;">
+                        <li>20+ clicks to find documents</li>
+                        <li>Weeks of training required</li>
+                        <li>90s-era UI → Users avoid it</li>
+                    </ul>
+                    <div class="result" style="font-size: 15px; margin-top: 15px; padding: 15px;">
+                        Low adoption = Failed ROI
+                    </div>
+                </div>
+
+                <div class="comparison-side after">
+                    <h4 style="font-size: 24px;">✅ ALTIUS</h4>
+                    <ul style="font-size: 16px;">
+                        <li>Natural language queries</li>
+                        <li>Zero training needed</li>
+                        <li>Modern UI → 90%+ adoption</li>
+                    </ul>
+                    <div class="result" style="font-size: 15px; margin-top: 15px; padding: 15px;">
+                        High adoption = Realized ROI
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-number">5</div>
+        </div>
+
+        <!-- Slide 6: How It Works -->
         <div class="slide slide-content">
             <div class="logo">ALTIUS</div>
             <h2>How It Works</h2>
@@ -466,10 +551,10 @@
                 </div>
             </div>
 
-            <div class="slide-number">5</div>
+            <div class="slide-number">6</div>
         </div>
 
-        <!-- Slide 6: Use Case - Legal Discovery -->
+        <!-- Slide 7: Use Case - Legal Discovery -->
         <div class="slide slide-content use-case">
             <div class="logo">ALTIUS</div>
             <h2 style="color: #ffd700;">Use Case: Legal Discovery</h2>
@@ -493,10 +578,10 @@
                 <div style="font-size: 28px; margin-top: 10px; opacity: 0.8;">2,000x Faster</div>
             </div>
 
-            <div class="slide-number">6</div>
+            <div class="slide-number">7</div>
         </div>
 
-        <!-- Slide 7: Use Case - Contract Management -->
+        <!-- Slide 8: Use Case - Contract Management -->
         <div class="slide slide-content use-case">
             <div class="logo">ALTIUS</div>
             <h2 style="color: #ffd700;">Use Case: Contract Management</h2>
@@ -520,10 +605,10 @@
                 <div style="font-size: 28px; margin-top: 10px; opacity: 0.8;">Perfect Audit Trail • No Lost Contracts</div>
             </div>
 
-            <div class="slide-number">7</div>
+            <div class="slide-number">8</div>
         </div>
 
-        <!-- Slide 8: The Market -->
+        <!-- Slide 9: The Market -->
         <div class="slide slide-content">
             <div class="logo">ALTIUS</div>
             <h2>The Market</h2>
@@ -578,10 +663,10 @@
                 </div>
             </div>
 
-            <div class="slide-number">8</div>
+            <div class="slide-number">9</div>
         </div>
 
-        <!-- Slide 9: Business Model -->
+        <!-- Slide 10: Business Model -->
         <div class="slide slide-content">
             <div class="logo">ALTIUS</div>
             <h2>Business Model</h2>
@@ -638,10 +723,10 @@
                 <strong>Payback Period:</strong> 6-9 months • <strong>Gross Margin:</strong> 75-80% • <strong>NRR:</strong> 120%+
             </div>
 
-            <div class="slide-number">9</div>
+            <div class="slide-number">10</div>
         </div>
 
-        <!-- Slide 10: Revenue Projections -->
+        <!-- Slide 11: Revenue Projections -->
         <div class="slide slide-content">
             <div class="logo">ALTIUS</div>
             <h2>Revenue Projections</h2>
@@ -683,10 +768,10 @@
                 </div>
             </div>
 
-            <div class="slide-number">10</div>
+            <div class="slide-number">11</div>
         </div>
 
-        <!-- Slide 11: Competition -->
+        <!-- Slide 12: Competition -->
         <div class="slide slide-content">
             <div class="logo">ALTIUS</div>
             <h2>Competition</h2>
@@ -752,10 +837,10 @@
                 <strong>The Moat:</strong> First mover in OTCS AI automation + embedded customer workflows = high switching costs
             </div>
 
-            <div class="slide-number">11</div>
+            <div class="slide-number">12</div>
         </div>
 
-        <!-- Slide 12: The Ask -->
+        <!-- Slide 13: The Ask -->
         <div class="slide slide-content" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <h2 style="color: #fff; font-size: 72px;">The Ask</h2>
 
@@ -790,10 +875,10 @@
                 <strong>Runway:</strong> 18-24 months to profitability or Series A
             </div>
 
-            <div class="slide-number">12</div>
+            <div class="slide-number">13</div>
         </div>
 
-        <!-- Slide 13: Closing -->
+        <!-- Slide 14: Closing -->
         <div class="slide slide-title" style="background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);">
             <h1 style="font-size: 80px;">Intelligence at Scale</h1>
             <div class="tagline" style="font-size: 32px;">For Enterprise Content</div>
@@ -813,7 +898,7 @@
                 [Company Website]
             </div>
 
-            <div class="slide-number">13</div>
+            <div class="slide-number">14</div>
         </div>
 
     </div>
