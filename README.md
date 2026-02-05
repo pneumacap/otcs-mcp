@@ -4,8 +4,7 @@
 
 Altius brings conversational AI, autonomous agents, and intelligent automation to OpenText Content Server through three integrated components: an MCP server with 41 agentic tools, a conversational web interface, and an autonomous document processing agent.
 
-![Platform](https://img.shields.io/badge/Platform-Altius-blue) ![Tools](https://img.shields.io/badge/OTCS_Tools-41-green) ![AI](https://img.shields.io/badge/AI-Claude_Sonnet_4.5-purple) ![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen)
-
+![Platform](https://img.shields.io/badge/Platform-Altius-blue) ![Tools](https://img.shields.io/badge/OTCS_Tools-41-green)
 ---
 
 ## 🚀 Platform Components
