@@ -13,7 +13,10 @@
     "test:workspaces": "tsx tests/test-workspaces.ts",
     "test:rm": "tsx tests/test-rm.ts",
     "agent": "TS_NODE_PROJECT=agent/tsconfig.json tsx -r tsconfig-paths/register agent/poller.ts",
-    "agent:dev": "TS_NODE_PROJECT=agent/tsconfig.json tsx -r tsconfig-paths/register --watch agent/poller.ts"
+    "agent:dev": "TS_NODE_PROJECT=agent/tsconfig.json tsx -r tsconfig-paths/register --watch agent/poller.ts",
+    "migrate": "tsx scripts/migrate.ts",
+    "migration": "TS_NODE_PROJECT=migration/tsconfig.json tsx migration/runner.ts",
+    "migration:dry": "TS_NODE_PROJECT=migration/tsconfig.json tsx migration/runner.ts --dry-run"
   },
   "keywords": [
     "mcp",

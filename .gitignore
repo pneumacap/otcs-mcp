@@ -33,5 +33,9 @@ tests/Sample TIFs/
 tests/test-extraction.ts
 tests/test-real-tifs.ts
 
+# Migration
+migration/logs/
+migration/migration-config.json
+
 # Docs
 docs/REFACTORING-PLAN.md
