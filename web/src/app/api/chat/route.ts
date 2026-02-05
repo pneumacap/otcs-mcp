@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         const cost =
           Math.max(0, usageTotals.input - usageTotals.cache_read - usageTotals.cache_write) * (3 / 1_000_000) +
           usageTotals.output * (15 / 1_000_000) +
-          usageTotals.cache_read * (0.3 / 1_000_000) +
+          usageTotals.cache_read * (0.30 / 1_000_000) +
           usageTotals.cache_write * (3.75 / 1_000_000);
         console.log(
           `[USAGE] input=${usageTotals.input} output=${usageTotals.output} cache_read=${usageTotals.cache_read} cache_write=${usageTotals.cache_write} rounds=${rounds} cost=$${cost.toFixed(4)}`

@@ -3,7 +3,7 @@
   "pollIntervalMs": 30000,
   "maxAgentRounds": 15,
   "model": "claude-sonnet-4-5-20250929",
-  "watchFolders": [181144],
+  "watchFolders": [181144, 180922],
   "tools": [
     "otcs_search",
     "otcs_download_content",
@@ -12,7 +12,12 @@
     "otcs_node_action",
     "otcs_rm_holds",
     "otcs_share",
-    "otcs_categories"
+    "otcs_categories",
+    "otcs_start_workflow",
+    "otcs_workflow_task",
+    "otcs_workflow_form",
+    "otcs_get_assignments",
+    "otcs_workflow_tasks"
   ],
   "systemPrompt": "You are an autonomous document processing agent for OpenText Content Server.",
   "rules": [
@@ -54,6 +59,27 @@
           "message": "Documents related to {{caseName}} ({{caseNumber}})"
         }
       ]
+    },
+    {
+      "name": "Contract approval workflow",
+      "match": {},
+      "instructions": "You are the first task assignee in the Altius Contract Approval Map workflow. STEP 1: Use otcs_start_workflow tool to start workflow ID 181308 with this contract document as doc_id. STEP 2: Use otcs_get_assignments to find your pending task, then use the returned subprocess_id and task_id for all subsequent workflow calls. STEP 3: Download and analyze the contract to extract these attributes: contractType, parties, counterparty, contractValue, startDate, endDate, renewalTerms, paymentTerms, keyObligations, liabilityTerms, terminationClauses. STEP 4: Perform comprehensive risk assessment analyzing: (a) Financial risk - value, payment terms, exposure; (b) Legal/Compliance risk - liability, indemnification, regulations; (c) Operational risk - obligations, SLAs, termination; (d) Counterparty risk - reliability indicators. STEP 5: Determine riskLevel (Low/Medium/High/Critical) and generate riskSummary (2-3 sentences). STEP 6: Set workflow attributes with extracted data (contractType, counterparty, contractValue, riskLevel, riskSummary, etc.). STEP 7: Determine disposition (approve/approve_with_conditions/request_additional_review/reject) based on risk level. STEP 8: Use otcs_workflow_task tool to complete this task with your disposition and comment summarizing: Contract: [Type] | Counterparty: [Name] | Value: [Amount] | Risk: [Level] | Summary: [Assessment].",
+      "extractFields": {
+        "contractType": "type or category of contract (e.g., NDA, Service Agreement, License Agreement, Purchase Agreement, Employment Contract, Vendor Agreement)",
+        "parties": "JSON array of all parties involved in the contract",
+        "counterparty": "primary external party or vendor name",
+        "contractValue": "total contract value or financial commitment including currency",
+        "startDate": "contract effective/start date in YYYY-MM-DD format",
+        "endDate": "contract expiration/end date in YYYY-MM-DD format",
+        "renewalTerms": "auto-renewal clauses, renewal conditions, notice periods",
+        "paymentTerms": "payment schedule, milestone dates, payment conditions",
+        "keyObligations": "JSON array of critical obligations and performance requirements",
+        "liabilityTerms": "liability caps, indemnification clauses, warranty disclaimers",
+        "terminationClauses": "early termination rights, notice periods, penalties",
+        "riskLevel": "overall risk assessment (Low/Medium/High/Critical)",
+        "riskSummary": "concise 2-3 sentence summary of identified risks and key concerns",
+        "disposition": "recommended action (Approve/Approve with conditions/Request review/Reject)"
+      }
     }
   ]
 }

@@ -13,7 +13,7 @@ export interface TokenUsage {
 const PRICING = {
   input: 3 / 1_000_000,          // $3/MTok
   output: 15 / 1_000_000,        // $15/MTok
-  cache_read: 0.3 / 1_000_000,   // $0.30/MTok
+  cache_read: 0.30 / 1_000_000,  // $0.30/MTok
   cache_write: 3.75 / 1_000_000, // $3.75/MTok
 };
 
