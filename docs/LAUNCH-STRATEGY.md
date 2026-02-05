@@ -28,9 +28,10 @@ The platform has **three distinct revenue streams** and **multiple customer segm
 
 | Segment | Size | Altius Share Potential |
 |---------|------|----------------------|
-| OpenText Content Server customers | 10,000+ enterprises | 500-1,000 (5-10%) |
-| ECM/Document Management market | $30B globally | $100-300M niche |
-| Knowledge worker automation | $150B+ | Vertical-specific plays |
+| **Stranded ECM Investment** | $200-300B (70% of $300-400B cumulative spend) | **Primary opportunity: Rescue existing investment** |
+| OpenText Content Server customers | 1,000-1,500 enterprises, $3-7.5B lifetime investment | 100-300 customers (10-20%) |
+| Annual ECM market | $60B globally (2024) | Maintenance & expansion revenue |
+| Knowledge worker automation | $150B+ | Vertical-specific expansion |
 
 ### Target Customer Profile
 

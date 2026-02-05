@@ -10,13 +10,13 @@
 *Intelligence at Scale for OpenText Content Server*
 
 **The Problem We Solve:**
-Organizations waste millions processing documents manually while their $30B ECM investments sit idle.
+Enterprises have $200-300B locked in underutilized ECM systems. 70% of implementations failed to deliver ROI.
 
 **The Solution:**
-AI automation that transforms passive document repositories into intelligent, autonomous systems.
+AI automation that unlocks existing investment — no migration required.
 
 **The Market:**
-10,000+ OpenText enterprises, $30B ECM market, $150B+ knowledge worker automation opportunity.
+1,000-1,500 OpenText enterprises with $3-7.5B in sunk costs, $200-300B stranded ECM investment globally.
 
 ---
 
@@ -36,8 +36,11 @@ AI automation that transforms passive document repositories into intelligent, au
 - ⚠️ **Compliance risks** — Manual processes miss retention requirements
 - 📈 **Can't scale** — Volume increases require proportional headcount
 
-**Industries Hit Hardest:**
-Healthcare • Financial Services • Legal • Government • Manufacturing
+**The Crisis:**
+- 70% of digital transformation projects fail to achieve goals
+- = $200-300B in stranded ECM investment over past 15 years
+- Migration costs $100M+ and takes years
+- Organizations need ROI from existing systems NOW
 
 ---
 
@@ -60,7 +63,7 @@ Healthcare • Financial Services • Legal • Government • Manufacturing
 - Content Server deployments 10-15 years old
 - No path to modernization without full migration ($$$ + years)
 
-**The Gap:** Enterprises need practical AI automation *on top of* existing ECM investments.
+**The Gap:** $200-300B stranded in ECM systems. Migration costs $100M+ and takes years. Enterprises need AI automation that unlocks existing investment without migration.
 
 ---
 
@@ -83,7 +86,7 @@ Healthcare • Financial Services • Legal • Government • Manufacturing
 - Works with Claude Desktop, Cursor, any AI agent
 - Model Context Protocol (MCP) standard
 
-**Key Differentiator:** Purpose-built for OpenText Content Server — the only solution that's OTCS-native.
+**Key Differentiator:** Unlocks stranded ECM investment without migration. Purpose-built for OpenText Content Server — the only OTCS-native AI automation solution.
 
 ---
 
@@ -203,29 +206,35 @@ Error rate: 0.5-2%
 
 ## Slide 8: The Market
 
-### $30B TAM, Underserved Niche
+### $200-300B Stranded ECM Investment
 
-**Total Addressable Market:**
+**The Real Market Opportunity:**
 
-| Segment | Market Size | Altius Opportunity |
-|---------|-------------|-------------------|
-| **OpenText Content Server** | 10,000+ enterprises, 5M+ users | **Primary target** |
-| Enterprise Content Management | $30B globally | $100-300M niche |
-| Knowledge Worker Automation | $150B+ | Vertical-specific expansion |
+| Investment Type | Size | Altius Opportunity |
+|----------------|------|-------------------|
+| **Stranded ECM Investment** | $200-300B (70% of $300-400B cumulative spend over 15 years) | **Unlock with AI, no migration** |
+| Annual ECM Market | $60B (2024) | Maintenance & expansion revenue |
+| **OpenText Installed Base** | 1,000-1,500 enterprises, $3-7.5B lifetime investment | **Primary target segment** |
+
+**The Crisis:**
+- 70% of digital transformation projects fail to achieve their goals
+- Organizations have invested $300-400B in ECM over past 15 years
+- That's $200-300B of stranded, underutilized investment
+- Migration costs $100M+ and takes years
+- **Altius unlocks existing investment in weeks, not years**
 
 **Ideal Customer Profile:**
-- **Size:** 1,000-50,000 employees
+- **ECM Investment:** $6-40M over 10 years
+- **Utilization:** 30-40% of capabilities actually used
+- **Pain Point:** Can't afford migration, need ROI now, compliance required
 - **Industries:** Healthcare, Financial Services, Legal, Government, Manufacturing
-- **Pain:** High-volume document processing with compliance requirements
-- **Budget:** $50k-500k annual spend on automation
-- **Trigger:** Drowning in documents, failed RPA projects, compliance audit findings
+- **Trigger:** Failed digital transformation, compliance pressure, cost reduction mandates
 
-**Market Dynamics:**
-- OpenText has 10,000+ Content Server customers (installed 2000-2015)
-- Average deployment: 5,000-50,000 users
-- Typical contract value: $500k-5M (Content Server licenses + maintenance)
-- **Customer pain:** Huge sunk cost, no modernization path without full migration
-- **Altius value prop:** Extend investment with modern AI, no migration needed
+**What Enterprises Actually Spent (per customer over 10 years):**
+- Initial implementation: $2M-20M (licenses, services, integration, training)
+- Ongoing maintenance: $400K-2M/year
+- **Total: $6M-40M** investment per enterprise
+- **If 70% underutilized = $4M-28M stranded per customer**
 
 ---
 
@@ -591,22 +600,22 @@ Reference Calls → More Customers
 ### Intelligence at Scale for Enterprise Content
 
 **The Problem:**
-Enterprises waste millions on manual document processing while their ECM investments sit idle.
+$200-300B stranded in underutilized ECM systems. 70% of implementations failed to deliver ROI.
 
 **The Solution:**
-Altius transforms OpenText Content Server into an intelligent, autonomous automation platform.
+AI automation that unlocks existing investment — no migration required.
 
 **The Market:**
-$30B ECM market, 10,000+ OpenText customers, zero direct competitors.
+1,000-1,500 OpenText enterprises with $3-7.5B in sunk costs. $200-300B stranded ECM investment globally. Zero direct competitors.
 
 **The Traction:**
-Production-ready platform, proven ROI (1,400-7,000%), clear path to $13M ARR.
+Production-ready platform, proven ROI (1,400-7,000%), rescue not replace.
 
 **The Team:**
 [Your team description]
 
 **The Ask:**
-$3M to capture the OTCS AI automation category before competitors emerge.
+$3M to rescue stranded ECM investment before competitors emerge.
 
 ---
 

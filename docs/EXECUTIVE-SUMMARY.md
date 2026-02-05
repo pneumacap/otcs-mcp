@@ -6,11 +6,11 @@
 
 ## The Opportunity
 
-**Market:** 10,000+ OpenText Content Server enterprises waste millions on manual document processing while their $30B ECM investments sit idle. AI automation is now mainstream, but no solution exists purpose-built for OTCS.
+**Market:** Enterprises have invested $300-400B in ECM over the past 15 years. 70% of implementations failed to achieve their goals. That's **$200-300B in stranded, underutilized investment**. Migration costs $100M+ and takes years. No OTCS-native AI solution exists.
 
-**Solution:** Altius transforms passive document repositories into intelligent, autonomous automation platforms through three integrated products: conversational interface, autonomous agents, and developer tools.
+**Solution:** Altius unlocks existing ECM investment with AI automation — **no migration required**. Three integrated products: conversational interface, autonomous agents, and developer tools. Works on top of existing OpenText Content Server deployments.
 
-**Traction:** Production-ready platform with 41 OTCS tools. Proven ROI: 1,400-7,000% typical returns. Legal discovery: 3-5 days → 2 minutes (99.5% cost reduction). Contract processing: 2-4 weeks → 1 hour (90% time savings).
+**Traction:** Production-ready platform with 41 OTCS tools. Proven ROI: 1,400-7,000% typical returns. Legal discovery: 3-5 days → 2 minutes (99.5% cost reduction). Contract processing: 2-4 weeks → 1 hour (90% time savings). **Rescue not replace.**
 
 ---
 
@@ -22,27 +22,32 @@
 | **Autonomous Agents** | Monitor folders, classify documents, extract data, execute workflows automatically | ~$0.01-0.03 per document. Processes thousands daily with minimal human intervention |
 | **Developer Tools (MCP)** | 41 pre-built integrations for AI agents via Model Context Protocol standard | Works with Claude Desktop, Cursor, any MCP-compatible agent |
 
-**Key Differentiator:** Purpose-built for OpenText Content Server — the only OTCS-native AI automation solution.
+**Key Differentiator:** Unlocks $200-300B in stranded ECM investment without migration. Purpose-built for OpenText Content Server — the only OTCS-native AI automation solution. Rescue not replace.
 
 ---
 
 ## Market Opportunity
 
-**Total Addressable Market:**
-- **Primary:** 10,000+ OpenText Content Server enterprises, 5M+ users
-- **Secondary:** $30B Enterprise Content Management market
-- **Expansion:** $150B+ knowledge worker automation
+**The Stranded Investment Crisis:**
+- **$300-400B** invested in ECM globally over past 15 years
+- **70% failure rate** for digital transformation projects
+- **$200-300B stranded** in underutilized systems
+- **Migration costs:** $100M+ per enterprise, takes years
+- **OpenText installed base:** 1,000-1,500 enterprises with $3-7.5B lifetime investment
 
 **Ideal Customer Profile:**
-- Company size: 1,000-50,000 employees
-- Industries: Healthcare, Financial Services, Legal, Government, Manufacturing
-- Pain: High-volume document processing with compliance requirements
-- Budget: $50k-500k annual automation spend
+- **ECM Investment:** $6-40M over 10 years
+- **Current Utilization:** 30-40% of capabilities actually used
+- **Stranded Value:** $4-28M per customer in underutilized investment
+- **Pain Points:** Can't afford migration, need ROI now, compliance required
+- **Industries:** Healthcare, Financial Services, Legal, Government, Manufacturing
 
 **Why Now:**
-1. AI is mainstream (post-ChatGPT, enterprises demand practical applications)
-2. RPA failed (30-50% project failure rate, $3B+ wasted)
-3. ECM needs ROI (10-15 year old deployments, no modernization path)
+1. **ECM crisis:** 70% of projects failed, $200-300B stranded investment
+2. **RPA failed:** 30-50% project failure rate, enterprises seek alternatives
+3. **Migration impossible:** $100M+ cost, years of disruption, unacceptable risk
+4. **AI is mainstream:** Post-ChatGPT, enterprises demand practical applications
+5. **Altius uniqueness:** Only solution that unlocks ECM investment without migration
 
 ---
 
@@ -176,14 +181,14 @@
 
 ## Why This Will Win
 
-### 1. Huge Underserved Market
-10,000+ OpenText enterprises with no AI automation solution. $30B spent on ECM with minimal ROI. No path to modernization without Altius.
+### 1. Rescuing Stranded Investment
+$200-300B locked in underutilized ECM systems. Migration costs $100M+ and takes years. Altius unlocks existing investment in weeks — no migration, no disruption, immediate ROI.
 
 ### 2. Technology Moat
 First mover in OTCS AI automation. 41 production-ready tools = 18 months head start. Customer workflows = high switching costs.
 
 ### 3. Perfect Timing
-AI adoption is mainstream. RPA has failed. OpenText ecosystem partnerships available. No direct competitors (12-18 month window).
+70% of ECM projects failed — creating urgency. Migration is too expensive and risky. AI is mainstream but no OTCS solution exists. 12-18 month window before competitors notice.
 
 ### 4. Proven Business Model
 SaaS with land-and-expand dynamics. High-margin services revenue. Clear path to profitability.
