@@ -1,0 +1,27 @@
+{
+  "name": "@otcs/core",
+  "version": "1.0.0",
+  "description": "Shared OTCS client, types, tool definitions, and tool handler",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client/otcs-client.ts",
+    "./types": "./src/types.ts",
+    "./tools": "./src/tools/index.ts",
+    "./tools/definitions": "./src/tools/definitions.ts",
+    "./tools/handler": "./src/tools/handler.ts",
+    "./tools/text-extract": "./src/tools/text-extract.ts",
+    "./tools/utils": "./src/tools/utils.ts",
+    "./tools/formats": "./src/tools/formats.ts",
+    "./llm/cost": "./src/llm/cost.ts"
+  },
+  "dependencies": {
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}
