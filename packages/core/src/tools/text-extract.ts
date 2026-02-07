@@ -10,12 +10,12 @@ import * as path from "path";
 import * as os from "os";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { createRequire } from "module";
 
 const execFileAsync = promisify(execFile);
+const require = createRequire(import.meta.url);
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse/lib/pdf-parse.js");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const mammoth = require("mammoth");
 
 const MAX_TEXT_LENGTH = 100_000; // ~100k chars to keep context manageable
