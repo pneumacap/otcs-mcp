@@ -15,7 +15,7 @@ import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { OTCSClient } from "../src/client/otcs-client.js";
+import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
 import { loadConfig, type AgentConfig, type Rule } from "./config.js";
 import { runAgentLoop } from "./agent-loop.js";
 import {
@@ -26,25 +26,13 @@ import {
   executeActions,
   type WorkflowRule,
 } from "./workflows.js";
+import { computeCost } from "../packages/core/src/llm/cost.js";
 import { log, logError, logEntry, type LogEntry, type UsageStats } from "./logger.js";
-import { initBridge } from "./bridge.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const LAST_POLL_FILE = resolve(__dirname, "logs", ".last-poll");
-
-// ── Pricing (Anthropic) ──
-
-function computeCost(input: number, output: number, cacheRead: number, cacheWrite: number): number {
-  const nonCachedInput = Math.max(0, input - cacheRead - cacheWrite);
-  return (
-    nonCachedInput * (3 / 1_000_000) +
-    output * (15 / 1_000_000) +
-    cacheRead * (0.3 / 1_000_000) +
-    cacheWrite * (3.75 / 1_000_000)
-  );
-}
 
 // ── State ──
 
@@ -326,9 +314,6 @@ async function pollFolder(
 
 async function main(): Promise<void> {
   log("Starting autonomous agent...");
-
-  // Initialize bridge (dynamic imports for CJS/ESM interop)
-  await initBridge();
 
   const config = loadConfig();
 

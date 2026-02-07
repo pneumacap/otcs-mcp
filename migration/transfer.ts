@@ -5,7 +5,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { OTCSClient } from "../src/client/otcs-client.js";
+import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
 import { MigrationJob, expandPath, ConflictStrategy } from "./config.js";
 import {
   MigrationManifest,

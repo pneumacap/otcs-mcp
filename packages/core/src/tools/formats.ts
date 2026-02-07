@@ -15,7 +15,7 @@ export interface MCPTool {
   name: string;
   description: string;
   inputSchema: {
-    type: string;
+    type: "object";
     properties: Record<string, unknown>;
     required?: string[];
   };
@@ -25,7 +25,11 @@ export function toMCPTools(schemas?: ToolSchema[]): MCPTool[] {
   return (schemas ?? TOOL_SCHEMAS).map((t) => ({
     name: t.name,
     description: t.description,
-    inputSchema: t.schema,
+    inputSchema: {
+      type: "object" as const,
+      properties: t.schema.properties,
+      ...(t.schema.required ? { required: t.schema.required } : {}),
+    },
   }));
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { OTCSClient } from "@otcs/client";
+import { OTCSClient } from "@otcs/core/client";
 import { runAgenticLoop } from "@/lib/ai-orchestrator";
 
 // Single shared client instance (MVP)

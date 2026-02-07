@@ -20,8 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@otcs/client": ["../src/client/otcs-client.ts"],
-      "@otcs/types": ["../src/types.ts"]
+      "@otcs/core": ["../packages/core/src/index.ts"],
+      "@otcs/core/*": ["../packages/core/src/*"]
     }
   },
   "include": [
@@ -31,7 +31,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "../src/**/*.ts"
+    "../packages/core/src/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

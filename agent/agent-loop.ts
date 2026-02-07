@@ -8,44 +8,11 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { OTCSClient } from "../src/client/otcs-client.js";
-import { getTools, handleToolCall, getSuggestion } from "./bridge.js";
+import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
+import { toAnthropicTools } from "../packages/core/src/tools/formats.js";
+import { handleToolCall } from "../packages/core/src/tools/handler.js";
+import { getSuggestion, compactToolResult } from "../packages/core/src/tools/utils.js";
 import { log } from "./logger.js";
-
-// ── compactToolResult (copied from ai-orchestrator.ts since not exported) ──
-
-const BROWSE_KEEP = new Set(["id", "name", "type", "type_name", "container_size"]);
-const SEARCH_KEEP = new Set(["id", "name", "type", "type_name", "description", "parent_id", "summary", "highlight_summary"]);
-
-function pickKeys(obj: Record<string, unknown>, keys: Set<string>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const k of keys) {
-    if (k in obj) out[k] = obj[k];
-  }
-  return out;
-}
-
-function compactToolResult(toolName: string, result: unknown): string {
-  if (toolName === "otcs_browse" && result && typeof result === "object") {
-    const r = result as Record<string, unknown>;
-    if (Array.isArray(r.items)) {
-      return JSON.stringify({
-        ...r,
-        items: r.items.map((item: Record<string, unknown>) => pickKeys(item, BROWSE_KEEP)),
-      });
-    }
-  }
-  if (toolName === "otcs_search" && result && typeof result === "object") {
-    const r = result as Record<string, unknown>;
-    if (Array.isArray(r.results)) {
-      return JSON.stringify({
-        total_count: r.total_count,
-        results: r.results.slice(0, 50).map((item: Record<string, unknown>) => pickKeys(item, SEARCH_KEEP)),
-      });
-    }
-  }
-  return JSON.stringify(result);
-}
 
 // ── Types ──
 
@@ -82,7 +49,7 @@ export async function runAgentLoop(
   toolFilter?: string[],
 ): Promise<AgentResult> {
   const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-  let tools = getTools();
+  let tools = toAnthropicTools();
   if (toolFilter && toolFilter.length > 0) {
     const allowed = new Set(toolFilter);
     tools = tools.filter((t) => allowed.has(t.name));

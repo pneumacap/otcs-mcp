@@ -26,6 +26,7 @@
   ],
   "author": "",
   "license": "MIT",
+  "workspaces": ["packages/core"],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.0",
     "@modelcontextprotocol/sdk": "^1.0.0",

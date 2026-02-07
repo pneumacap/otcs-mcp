@@ -10,10 +10,10 @@
     "outDir": "../dist-agent",
     "baseUrl": "..",
     "paths": {
-      "@otcs/client": ["./src/client/otcs-client.ts"],
-      "@otcs/types": ["./src/types.ts"]
+      "@otcs/core": ["./packages/core/src/index.ts"],
+      "@otcs/core/*": ["./packages/core/src/*"]
     }
   },
-  "include": ["./**/*.ts", "../src/**/*.ts", "../web/src/lib/otcs-bridge.ts", "../web/src/lib/tool-definitions.ts"],
+  "include": ["./**/*.ts", "../packages/core/src/**/*.ts"],
   "exclude": ["node_modules"]
 }

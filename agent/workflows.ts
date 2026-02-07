@@ -8,8 +8,8 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { OTCSClient } from "../src/client/otcs-client.js";
-import { handleToolCall } from "./bridge.js";
+import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
+import { handleToolCall } from "../packages/core/src/tools/handler.js";
 import { log } from "./logger.js";
 
 // ── Types ──

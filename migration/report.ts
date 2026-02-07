@@ -7,7 +7,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import Anthropic from "@anthropic-ai/sdk";
-import { OTCSClient } from "../src/client/otcs-client.js";
+import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
 import { MigrationJob, MigrationConfig } from "./config.js";
 import { MigrationManifest } from "./discovery.js";
 import { TransferSummary, TransferResult } from "./transfer.js";
