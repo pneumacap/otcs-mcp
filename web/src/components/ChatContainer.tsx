@@ -1,9 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import MessageBubble, { Message, MessagePart, ToolCall } from "./MessageBubble";
-import ChatInput from "./ChatInput";
-import UsageBadge, { TokenUsage } from "./UsageBadge";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import Link from 'next/link';
+import MessageBubble, { Message, MessagePart, ToolCall } from './MessageBubble';
+import ChatInput from './ChatInput';
+import UsageBadge, { TokenUsage } from './UsageBadge';
 
 const EMPTY_USAGE: TokenUsage = {
   input_tokens: 0,
@@ -13,11 +15,15 @@ const EMPTY_USAGE: TokenUsage = {
 };
 
 export default function ChatContainer() {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [usage, setUsage] = useState<TokenUsage>(EMPTY_USAGE);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const userName = session?.user?.name || 'User';
+  const userEmail = session?.user?.email || '';
+  const userInitial = userName.charAt(0).toUpperCase();
 
   // Close menu on outside click
   useEffect(() => {
@@ -26,13 +32,13 @@ export default function ChatContainer() {
         setUserMenuOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
@@ -43,14 +49,14 @@ export default function ChatContainer() {
     async (text: string) => {
       const userMsg: Message = {
         id: crypto.randomUUID(),
-        role: "user",
+        role: 'user',
         content: text,
       };
 
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
-        role: "assistant",
-        content: "",
+        role: 'assistant',
+        content: '',
         parts: [],
       };
 
@@ -63,9 +69,9 @@ export default function ChatContainer() {
       }));
 
       try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: apiMessages }),
         });
 
@@ -74,8 +80,8 @@ export default function ChatContainer() {
           setMessages((prev) => {
             const updated = [...prev];
             const last = { ...updated[updated.length - 1] };
-            last.content = `Error: ${err.error || "Request failed"}`;
-            last.parts = [{ type: "text", text: last.content }];
+            last.content = `Error: ${err.error || 'Request failed'}`;
+            last.parts = [{ type: 'text', text: last.content }];
             updated[updated.length - 1] = last;
             return updated;
           });
@@ -87,7 +93,7 @@ export default function ChatContainer() {
         if (!reader) return;
 
         const decoder = new TextDecoder();
-        let buffer = "";
+        let buffer = '';
 
         while (true) {
           const { done, value } = await reader.read();
@@ -95,11 +101,11 @@ export default function ChatContainer() {
 
           buffer += decoder.decode(value, { stream: true });
 
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
+            if (!line.startsWith('data: ')) continue;
             const data = line.slice(6).trim();
             if (!data) continue;
 
@@ -117,40 +123,40 @@ export default function ChatContainer() {
               updated[updated.length - 1] = last;
 
               switch (event.type) {
-                case "text_delta": {
+                case 'text_delta': {
                   // Append to the last text part, or create a new one
                   const lastPart = parts[parts.length - 1];
-                  if (lastPart && lastPart.type === "text") {
+                  if (lastPart && lastPart.type === 'text') {
                     parts[parts.length - 1] = {
                       ...lastPart,
                       text: lastPart.text + event.text,
                     };
                   } else {
-                    parts.push({ type: "text", text: event.text });
+                    parts.push({ type: 'text', text: event.text });
                   }
                   // Also update flat content for API round-trips
                   last.content += event.text;
                   break;
                 }
 
-                case "tool_call_start": {
+                case 'tool_call_start': {
                   const tc: ToolCall = {
                     id: event.id,
                     name: event.name,
                     args: event.args,
                     isLoading: true,
                   };
-                  parts.push({ type: "tool_call", toolCall: tc });
+                  parts.push({ type: 'tool_call', toolCall: tc });
                   break;
                 }
 
-                case "tool_result": {
+                case 'tool_result': {
                   // Find and update the matching tool call part
                   for (let i = 0; i < parts.length; i++) {
                     const p = parts[i];
-                    if (p.type === "tool_call" && p.toolCall.id === event.id) {
+                    if (p.type === 'tool_call' && p.toolCall.id === event.id) {
                       parts[i] = {
-                        type: "tool_call",
+                        type: 'tool_call',
                         toolCall: {
                           ...p.toolCall,
                           result: event.result,
@@ -164,7 +170,7 @@ export default function ChatContainer() {
                   break;
                 }
 
-                case "usage": {
+                case 'usage': {
                   const u = event.usage;
                   setUsage((prev) => ({
                     input_tokens: prev.input_tokens + (u.input_tokens || 0),
@@ -177,14 +183,14 @@ export default function ChatContainer() {
                   break;
                 }
 
-                case "error":
+                case 'error':
                   parts.push({
-                    type: "text",
+                    type: 'text',
                     text: `**Error:** ${event.message}`,
                   });
                   break;
 
-                case "done":
+                case 'done':
                   break;
               }
 
@@ -198,7 +204,7 @@ export default function ChatContainer() {
           const updated = [...prev];
           const last = { ...updated[updated.length - 1] };
           last.content = `Connection error: ${err.message}`;
-          last.parts = [{ type: "text", text: last.content }];
+          last.parts = [{ type: 'text', text: last.content }];
           updated[updated.length - 1] = last;
           return updated;
         });
@@ -206,13 +212,12 @@ export default function ChatContainer() {
 
       setIsStreaming(false);
     },
-    [messages]
+    [messages],
   );
 
   // Check if the last assistant message has any visible parts
   const lastMsg = messages[messages.length - 1];
-  const lastMsgHasParts =
-    lastMsg?.parts && lastMsg.parts.length > 0;
+  const lastMsgHasParts = lastMsg?.parts && lastMsg.parts.length > 0;
 
   return (
     <div className="flex h-screen flex-col bg-white dark:bg-gray-950">
@@ -222,12 +227,8 @@ export default function ChatContainer() {
           OT
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Altius
-          </h1>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500">
-            OpenText Content Server
-          </p>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-white">Altius</h1>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">OpenText Content Server</p>
         </div>
         <div className="ml-auto flex items-center gap-3">
           <UsageBadge usage={usage} />
@@ -237,35 +238,94 @@ export default function ChatContainer() {
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">Admin</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">{userName}</span>
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-              A
+              {userInitial}
             </div>
-            <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-3.5 w-3.5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {userMenuOpen && (
             <div className="absolute right-0 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900 z-50">
               <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Admin</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">admin@company.com</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{userEmail}</p>
               </div>
-              <button className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <Link href="/settings/profile" onClick={() => setUserMenuOpen(false)} className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
                 Profile
-              </button>
-              <button className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </Link>
+              <Link href="/settings/connections" onClick={() => setUserMenuOpen(false)} className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
                 Settings
-              </button>
-              <button className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
-                Help
-              </button>
+              </Link>
+              <Link href="/billing" onClick={() => setUserMenuOpen(false)} className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
+                  />
+                </svg>
+                Billing
+              </Link>
               <div className="border-t border-gray-100 dark:border-gray-800 mt-1 pt-1">
-                <button className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3l3-3m0 0l-3-3m3 3H9" /></svg>
+                <button onClick={() => signOut({ callbackUrl: '/sign-in' })} className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3l3-3m0 0l-3-3m3 3H9"
+                    />
+                  </svg>
                   Sign out
                 </button>
               </div>
@@ -286,9 +346,10 @@ export default function ChatContainer() {
               <h2 className="home-stagger home-stagger-1 mb-1 text-xl font-semibold text-gray-900 dark:text-white">
                 {(() => {
                   const h = new Date().getHours();
-                  if (h < 12) return "Good morning, Admin";
-                  if (h < 17) return "Good afternoon, Admin";
-                  return "Good evening, Admin";
+                  const first = userName.split(' ')[0];
+                  if (h < 12) return `Good morning, ${first}`;
+                  if (h < 17) return `Good afternoon, ${first}`;
+                  return `Good evening, ${first}`;
                 })()}
               </h2>
               <p className="home-stagger home-stagger-2 mb-9 max-w-md text-center text-sm leading-relaxed text-gray-400 dark:text-gray-500">
@@ -299,64 +360,128 @@ export default function ChatContainer() {
               <div className="home-stagger home-stagger-3 grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* Search card */}
                 <button
-                  onClick={() => handleSend("Search for contracts")}
+                  onClick={() => handleSend('Search for contracts')}
                   disabled={isStreaming}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-gradient-to-br from-white to-blue-50/40 p-4 text-left transition-all hover:border-blue-200 hover:shadow-md hover:shadow-blue-100/50 disabled:opacity-50 dark:border-gray-800 dark:from-gray-900 dark:to-blue-950/20 dark:hover:border-blue-800 dark:hover:shadow-blue-900/20"
                 >
                   <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-[#1a6aff] transition-colors group-hover:bg-[#1a6aff] group-hover:text-white dark:bg-blue-950 dark:text-blue-400 dark:group-hover:bg-[#1a6aff] dark:group-hover:text-white">
-                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <svg
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
                   </div>
-                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">Search documents</div>
-                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">Find contracts, proposals, and more across your repository</div>
+                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">
+                    Search documents
+                  </div>
+                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">
+                    Find contracts, proposals, and more across your repository
+                  </div>
                 </button>
 
                 {/* Workflows card */}
                 <button
-                  onClick={() => handleSend("Show my pending workflow tasks")}
+                  onClick={() => handleSend('Show my pending workflow tasks')}
                   disabled={isStreaming}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-gradient-to-br from-white to-amber-50/40 p-4 text-left transition-all hover:border-amber-200 hover:shadow-md hover:shadow-amber-100/50 disabled:opacity-50 dark:border-gray-800 dark:from-gray-900 dark:to-amber-950/20 dark:hover:border-amber-800 dark:hover:shadow-amber-900/20"
                 >
                   <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-500 group-hover:text-white dark:bg-amber-950 dark:text-amber-400 dark:group-hover:bg-amber-500 dark:group-hover:text-white">
-                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    <svg
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
                   </div>
-                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">My workflow tasks</div>
-                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">See pending approvals and assigned workflow items</div>
+                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">
+                    My workflow tasks
+                  </div>
+                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">
+                    See pending approvals and assigned workflow items
+                  </div>
                 </button>
 
                 {/* Browse card */}
                 <button
-                  onClick={() => handleSend("Browse the Enterprise Workspace")}
+                  onClick={() => handleSend('Browse the Enterprise Workspace')}
                   disabled={isStreaming}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-gradient-to-br from-white to-emerald-50/40 p-4 text-left transition-all hover:border-emerald-200 hover:shadow-md hover:shadow-emerald-100/50 disabled:opacity-50 dark:border-gray-800 dark:from-gray-900 dark:to-emerald-950/20 dark:hover:border-emerald-800 dark:hover:shadow-emerald-900/20"
                 >
                   <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950 dark:text-emerald-400 dark:group-hover:bg-emerald-600 dark:group-hover:text-white">
-                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                    <svg
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                      />
+                    </svg>
                   </div>
-                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">Browse folders</div>
-                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">Explore the Enterprise Workspace and folder hierarchy</div>
+                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">
+                    Browse folders
+                  </div>
+                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">
+                    Explore the Enterprise Workspace and folder hierarchy
+                  </div>
                 </button>
 
                 {/* Workspaces card */}
                 <button
-                  onClick={() => handleSend("Search for workspaces")}
+                  onClick={() => handleSend('Search for workspaces')}
                   disabled={isStreaming}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-gradient-to-br from-white to-violet-50/40 p-4 text-left transition-all hover:border-violet-200 hover:shadow-md hover:shadow-violet-100/50 disabled:opacity-50 dark:border-gray-800 dark:from-gray-900 dark:to-violet-950/20 dark:hover:border-violet-800 dark:hover:shadow-violet-900/20"
                 >
                   <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white dark:bg-violet-950 dark:text-violet-400 dark:group-hover:bg-violet-600 dark:group-hover:text-white">
-                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    <svg
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
                   </div>
-                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">Workspaces</div>
-                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">Find and explore business workspaces</div>
+                  <div className="text-[13px] font-medium text-gray-800 dark:text-gray-200">
+                    Workspaces
+                  </div>
+                  <div className="mt-0.5 text-[12px] leading-relaxed text-gray-400 dark:text-gray-500">
+                    Find and explore business workspaces
+                  </div>
                 </button>
               </div>
 
               {/* Quick action chips */}
               <div className="home-stagger home-stagger-5 mt-5 flex flex-wrap justify-center gap-2">
                 {[
-                  "List workspace types",
-                  "List active workflows",
-                  "Check my session status",
-                  "Search for proposals",
+                  'List workspace types',
+                  'List active workflows',
+                  'Check my session status',
+                  'Search for proposals',
                 ].map((prompt) => (
                   <button
                     key={prompt}
@@ -374,7 +499,7 @@ export default function ChatContainer() {
           {messages.map((msg) => {
             // Don't render empty assistant placeholder
             if (
-              msg.role === "assistant" &&
+              msg.role === 'assistant' &&
               !msg.content &&
               (!msg.parts || msg.parts.length === 0)
             ) {
@@ -405,9 +530,7 @@ export default function ChatContainer() {
 
       {/* Footer */}
       <div className="border-t border-gray-100 bg-white/80 px-4 py-2 text-center backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
-        <p className="text-[11px] text-gray-400 dark:text-gray-600">
-          Powered by Claude Sonnet 4.5
-        </p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-600">Powered by Claude Sonnet 4.5</p>
       </div>
     </div>
   );

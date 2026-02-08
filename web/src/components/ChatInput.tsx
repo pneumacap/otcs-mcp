@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from 'react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -8,21 +8,21 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
-    setInput("");
+    setInput('');
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = 'auto';
     }
   }, [input, disabled, onSend]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -31,8 +31,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const ta = e.target;
-    ta.style.height = "auto";
-    ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
   };
 
   return (

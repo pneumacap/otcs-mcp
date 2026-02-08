@@ -55,7 +55,7 @@ export async function runAgentLoop(
     tools = tools.filter((t) => allowed.has(t.name));
   }
   const allToolCalls: ToolCallRecord[] = [];
-  let currentMessages = [...messages];
+  const currentMessages = [...messages];
   let finalText = "";
   let totalInput = 0;
   let totalOutput = 0;

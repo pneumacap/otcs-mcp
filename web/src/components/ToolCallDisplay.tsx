@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 interface ToolCallDisplayProps {
   name: string;
@@ -19,20 +19,20 @@ export default function ToolCallDisplay({
 }: ToolCallDisplayProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const displayName = name.replace("otcs_", "").replace(/_/g, " ");
+  const displayName = name.replace('otcs_', '').replace(/_/g, ' ');
 
   // Build a compact summary of args
   const argSummary = Object.entries(args)
     .slice(0, 3)
-    .map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`)
-    .join(", ");
+    .map(([k, v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`)
+    .join(', ');
 
   return (
     <div
       className={`my-1 rounded-lg border text-xs ${
         isError
-          ? "border-red-200/60 bg-red-50/50 dark:border-red-800/40 dark:bg-red-950/30"
-          : "border-gray-200/80 bg-gray-50/50 dark:border-gray-700/60 dark:bg-gray-800/40"
+          ? 'border-red-200/60 bg-red-50/50 dark:border-red-800/40 dark:bg-red-950/30'
+          : 'border-gray-200/80 bg-gray-50/50 dark:border-gray-700/60 dark:bg-gray-800/40'
       }`}
     >
       <button
@@ -43,23 +43,21 @@ export default function ToolCallDisplay({
           <span className="inline-block h-3 w-3 animate-spin rounded-full border-[1.5px] border-blue-500 border-t-transparent" />
         ) : isError ? (
           <svg className="h-3.5 w-3.5 text-red-500" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0V5zm.75 6.25a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 4a.75.75 0 011.5 0v3a.75.75 0 01-1.5 0V5zm.75 6.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
           </svg>
         ) : (
           <svg className="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.22 5.97l-3.5 3.5a.75.75 0 01-1.06 0l-1.5-1.5a.75.75 0 111.06-1.06l.97.97 2.97-2.97a.75.75 0 111.06 1.06z"/>
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.22 5.97l-3.5 3.5a.75.75 0 01-1.06 0l-1.5-1.5a.75.75 0 111.06-1.06l.97.97 2.97-2.97a.75.75 0 111.06 1.06z" />
           </svg>
         )}
         <span className="font-medium capitalize text-gray-600 dark:text-gray-400">
           {displayName}
         </span>
         {!expanded && argSummary && (
-          <span className="truncate text-gray-400 dark:text-gray-500">
-            {argSummary}
-          </span>
+          <span className="truncate text-gray-400 dark:text-gray-500">{argSummary}</span>
         )}
         <svg
-          className={`ml-auto h-3 w-3 shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`ml-auto h-3 w-3 shrink-0 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
           viewBox="0 0 12 12"
           fill="none"
           stroke="currentColor"
