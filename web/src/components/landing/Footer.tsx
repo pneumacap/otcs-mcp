@@ -1,29 +1,29 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 const columns = [
   {
-    title: "Product",
+    title: 'Product',
     links: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "Chat Demo", href: "/chat" },
+      { label: 'Features', href: '#features' },
+      { label: 'Pricing', href: '#pricing' },
+      { label: 'Chat Demo', href: '/chat' },
     ],
   },
   {
-    title: "Company",
+    title: 'Company',
     links: [
-      { label: "About", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Contact", href: "#" },
+      { label: 'About', href: '#' },
+      { label: 'Blog', href: '#' },
+      { label: 'Careers', href: '#' },
+      { label: 'Contact', href: '#' },
     ],
   },
   {
-    title: "Legal",
+    title: 'Legal',
     links: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-      { label: "Security", href: "#" },
+      { label: 'Privacy Policy', href: '#' },
+      { label: 'Terms of Service', href: '#' },
+      { label: 'Security', href: '#' },
     ],
   },
 ];
@@ -48,9 +48,7 @@ export default function Footer() {
         {/* Link columns */}
         {columns.map((col) => (
           <div key={col.title}>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {col.title}
-            </h4>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{col.title}</h4>
             <ul className="mt-3 space-y-2">
               {col.links.map((link) => (
                 <li key={link.label}>

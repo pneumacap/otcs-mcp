@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import ReactMarkdown, { Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import ToolCallDisplay from "./ToolCallDisplay";
-import ChartBlock, { ChartConfig } from "./ChartBlock";
+import ReactMarkdown, { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import ToolCallDisplay from './ToolCallDisplay';
+import ChartBlock, { ChartConfig } from './ChartBlock';
 
 export interface ToolCall {
   id: string;
@@ -15,12 +15,12 @@ export interface ToolCall {
 }
 
 export type MessagePart =
-  | { type: "text"; text: string }
-  | { type: "tool_call"; toolCall: ToolCall };
+  | { type: 'text'; text: string }
+  | { type: 'tool_call'; toolCall: ToolCall };
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string; // user messages use this directly
   parts?: MessagePart[]; // assistant messages use ordered parts
 }
@@ -30,7 +30,7 @@ const mdComponents: Components = {
     return <>{children}</>;
   },
   code({ className, children }) {
-    if (className === "language-chart") {
+    if (className === 'language-chart') {
       const raw = String(children).trim();
       try {
         const config: ChartConfig = JSON.parse(raw);
@@ -54,7 +54,7 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
-  const isUser = message.role === "user";
+  const isUser = message.role === 'user';
 
   if (isUser) {
     return (
@@ -76,7 +76,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {parts.map((part, i) => {
-          if (part.type === "tool_call") {
+          if (part.type === 'tool_call') {
             return (
               <ToolCallDisplay
                 key={part.toolCall.id}
@@ -93,7 +93,9 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           if (!part.text.trim()) return null;
           return (
             <div key={`text-${i}`} className="assistant-prose">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{part.text}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                {part.text}
+              </ReactMarkdown>
             </div>
           );
         })}

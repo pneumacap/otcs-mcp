@@ -1,194 +1,87 @@
-# Altius — AI Automation Platform for OpenText Content Server
+# Altius
 
-**Transform your document repository into an intelligent automation platform**
+**AI-powered platform for OpenText Content Server**
 
-Altius brings conversational AI, autonomous agents, and intelligent automation to OpenText Content Server through three integrated components: an MCP server with 41 agentic tools, a conversational web interface, and an autonomous document processing agent.
-
-![Platform](https://img.shields.io/badge/Platform-Altius-blue) ![Tools](https://img.shields.io/badge/OTCS_Tools-41-green)
----
-
-## 🚀 Platform Components
-
-<table>
-<tr>
-<td width="33%">
-
-### 📡 MCP Server
-**41 OTCS tools for AI agents**
-
-Connect Claude Desktop, Cursor, or any MCP client to your OTCS instance. Browse folders, search documents, manage workflows, enforce compliance — all through natural language.
-
-[View Documentation →](#mcp-server-core)
-
-</td>
-<td width="33%">
-
-### 💬 Web Interface
-**Conversational UI for OTCS**
-
-Chat-based interface for document management, workflow automation, and data visualization. Built on Next.js 16, React 19, and streaming AI responses.
-
-[View Documentation →](#web-interface)
-
-</td>
-<td width="33%">
-
-### 🤖 Autonomous Agent
-**Document processing automation**
-
-Monitors folders, classifies documents, extracts data, and executes complex workflows automatically. Processes thousands of documents with minimal cost.
-
-[View Documentation →](#autonomous-agent)
-
-</td>
-</tr>
-</table>
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Tests](https://img.shields.io/badge/Tests-21%20passing-brightgreen) ![Build](https://img.shields.io/badge/Build-passing-brightgreen) ![Node](https://img.shields.io/badge/Node-22%2B-orange)
 
 ---
 
-## 🎯 Why Altius?
+## What is Altius?
 
-### For Organizations
-- **Reduce cycle times** by 60-80% for document-intensive processes
-- **Cut operational costs** through intelligent automation
-- **Ensure compliance** with built-in Records Management integration
-- **Scale effortlessly** — handle 10x volume without adding headcount
-
-### For Developers
-- **41 production-ready tools** for OTCS integration
-- **Model Context Protocol** support for any AI agent
-- **Modern tech stack** (TypeScript, Next.js 16, React 19)
-- **Extensible architecture** — add custom tools and workflows
-
-### For End Users
-- **Natural language interface** — no training required
-- **Conversational workflows** — complete tasks by chatting
-- **Intelligent insights** — charts, summaries, and recommendations
-- **Always available** — autonomous agents work 24/7
+Altius is a production-grade AI automation platform that transforms OpenText Content Server into an intelligent document management system. It gives every knowledge worker a digital assistant capable of navigating folders, executing workflows, enforcing compliance, and processing thousands of documents autonomously. Deploy as an MCP server for Claude Desktop and Cursor, a SaaS web UI with authentication and billing, or an autonomous agent for unattended document processing.
 
 ---
 
-## 📋 Complete Tool Coverage
+## Architecture Overview
 
-Altius provides **41 consolidated tools** across all OTCS operations:
+```
+altius/
+├── packages/core/     @otcs/core — 42 tools, shared OTCS client, 9,500 LOC
+├── web/               Next.js 16 SaaS — auth, billing, chat, per-org connections
+├── src/               MCP server — stdio transport for Claude Desktop & Cursor
+├── agent/             Autonomous agent — polling, classification, rule-based workflows
+└── migration/         Content migration toolkit — cross-system transfer & verification
+```
 
-| Category | Count | Tools |
-|----------|-------|-------|
-| **Authentication** | 3 | `otcs_authenticate`, `otcs_session_status`, `otcs_logout` |
+**Core Package:** All four consumers import from `@otcs/core`, which provides a unified OTCS client, type definitions, tool schemas, and a protocol-neutral tool handler. This ensures consistency across MCP server, web UI, autonomous agent, and migration toolkit.
+
+---
+
+## Core Capabilities
+
+The platform provides 42 production-ready tools across 8 operational domains:
+
+| Domain | Count | Tools |
+|--------|-------|-------|
 | **Navigation & Search** | 3 | `otcs_get_node`, `otcs_browse`, `otcs_search` |
-| **Folders** | 2 | `otcs_create_folder`, `otcs_node_action` |
 | **Documents** | 5 | `otcs_upload`, `otcs_download_content`, `otcs_upload_folder`, `otcs_upload_batch`, `otcs_upload_with_metadata` |
-| **Versions** | 1 | `otcs_versions` |
-| **Workspaces** | 4 | `otcs_workspace_types`, `otcs_create_workspace`, `otcs_get_workspace`, `otcs_search_workspaces` |
-| **Workspace Relations** | 2 | `otcs_workspace_relations`, `otcs_workspace_roles` |
-| **Workflows** | 11 | `otcs_get_assignments`, `otcs_workflow_status`, `otcs_workflow_definition`, `otcs_workflow_tasks`, `otcs_workflow_activities`, `otcs_start_workflow`, `otcs_workflow_form`, `otcs_workflow_task`, `otcs_draft_workflow`, `otcs_workflow_info`, `otcs_manage_workflow` |
-| **Categories** | 2 | `otcs_categories`, `otcs_workspace_metadata` |
-| **Members** | 2 | `otcs_members`, `otcs_group_membership` |
-| **Permissions** | 1 | `otcs_permissions` |
-| **Sharing** | 1 | `otcs_share` |
+| **Folders** | 3 | `otcs_create_folder`, `otcs_node_action`, `otcs_delete_nodes` |
+| **Workspaces** | 7 | `otcs_workspace_types`, `otcs_create_workspace`, `otcs_create_workspaces`, `otcs_get_workspace`, `otcs_search_workspaces`, `otcs_workspace_relations`, `otcs_workspace_roles` |
+| **Workflows** | 10 | `otcs_get_assignments`, `otcs_workflow_status`, `otcs_workflow_definition`, `otcs_workflow_tasks`, `otcs_workflow_activities`, `otcs_start_workflow`, `otcs_workflow_form`, `otcs_workflow_task`, `otcs_draft_workflow`, `otcs_manage_workflow` |
+| **Categories & Metadata** | 3 | `otcs_categories`, `otcs_workspace_metadata`, `otcs_versions` |
+| **Members & Permissions** | 4 | `otcs_members`, `otcs_group_membership`, `otcs_permissions`, `otcs_share` |
 | **Records Management** | 4 | `otcs_rm_classification`, `otcs_rm_holds`, `otcs_rm_xref`, `otcs_rm_rsi` |
+| **Tree Operations** | 3 | `otcs_browse_tree`, `otcs_create_folder_structure`, `otcs_workflow_info` |
 
-### Tool Profiles
-
-Optimize performance by selecting a subset of tools:
-
-| Profile | Tools | Use Case |
-|---------|-------|----------|
-| `core` | 22 | Basic document management + sharing |
-| `workflow` | 30 | Document management + full workflow automation |
-| `admin` | 33 | Document management + permissions/admin + RM |
-| `rm` | 22 | Document management + Records Management |
-| `full` | 41 | All tools (default) |
-
-Configure via `OTCS_TOOL_PROFILE` environment variable.
+**Protocol-Neutral Design:** Tool schemas are stored as pure JSON Schema objects and converted to MCP or Anthropic format on demand. This allows the same tool definitions to serve Claude Desktop (MCP), the web UI (Anthropic SDK), and the autonomous agent.
 
 ---
 
-## 🏗️ Architecture
+## Quick Start
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Altius Platform                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐ │
-│  │   MCP Server     │  │   Web Interface  │  │ Auto Agent   │ │
-│  │                  │  │                  │  │              │ │
-│  │  Claude Desktop  │  │  Browser Chat    │  │  Folder      │ │
-│  │  Cursor IDE      │  │  Streaming AI    │  │  Monitor     │ │
-│  │  Any MCP Client  │  │  Data Viz        │  │  Auto Process│ │
-│  └────────┬─────────┘  └────────┬─────────┘  └──────┬───────┘ │
-│           │                     │                    │          │
-│           └─────────────────────┼────────────────────┘          │
-│                                 │                                │
-│                    ┌────────────▼────────────┐                  │
-│                    │   OTCS Bridge Layer     │                  │
-│                    │   (41 Tool Impls)       │                  │
-│                    └────────────┬────────────┘                  │
-│                                 │                                │
-└─────────────────────────────────┼────────────────────────────────┘
-                                  │
-                    ┌─────────────▼─────────────┐
-                    │  OpenText Content Server  │
-                    │      REST APIs            │
-                    │  • Content Server API     │
-                    │  • Business Workspaces    │
-                    │  • Records Management     │
-                    └───────────────────────────┘
-```
+### MCP Server (Claude Desktop / Cursor)
 
----
-
-## MCP Server (Core)
-
-### Installation
+**1. Install dependencies and build**
 
 ```bash
+git clone https://github.com/yourusername/altius.git
+cd altius
 npm install
 npm run build
 ```
 
-### Quick Start
+**2. Configure Claude Desktop**
 
-Create `.env`:
-
-```bash
-OTCS_BASE_URL=https://your-server/otcs/cs.exe/api
-OTCS_USERNAME=your-username
-OTCS_PASSWORD=your-password
-OTCS_TOOL_PROFILE=full
-NODE_TLS_REJECT_UNAUTHORIZED=0
-```
-
-Run standalone:
-
-```bash
-./start-mcp.sh
-```
-
-### Configuration for Claude Desktop
-
-Add to `claude_desktop_config.json`:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "otcs": {
       "command": "node",
-      "args": ["/path/to/otcs-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/altius/dist/index.js"],
       "env": {
-        "OTCS_BASE_URL": "https://your-server/otcs/cs.exe/api",
-        "OTCS_USERNAME": "admin",
-        "OTCS_PASSWORD": "password",
-        "OTCS_TOOL_PROFILE": "workflow",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+        "OTCS_BASE_URL": "https://your-server.com/otcs/cs.exe/api",
+        "OTCS_USERNAME": "your-username",
+        "OTCS_PASSWORD": "your-password",
+        "OTCS_TOOL_PROFILE": "full"
       }
     }
   }
 }
 ```
 
-### Configuration for Cursor IDE
+**3. Configure Cursor**
 
 Settings → Tools & MCP → New MCP Server:
 
@@ -197,82 +90,102 @@ Settings → Tools & MCP → New MCP Server:
   "mcpServers": {
     "otcs": {
       "command": "node",
-      "args": ["/path/to/otcs-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/altius/dist/index.js"],
       "env": {
-        "OTCS_BASE_URL": "https://your-server/otcs/cs.exe/api",
+        "OTCS_BASE_URL": "https://your-server.com/otcs/cs.exe/api",
         "OTCS_USERNAME": "your-username",
-        "OTCS_PASSWORD": "your-password",
-        "OTCS_TOOL_PROFILE": "core",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+        "OTCS_PASSWORD": "your-password"
       }
     }
   }
 }
 ```
 
-### Example Operations
+**Environment Variables:**
 
-```
-User: Show me what's in the Enterprise Workspace
-Claude: [Uses otcs_browse(folder_id=2000)]
-
-User: Find all contracts containing "termination clause"
-Claude: [Uses otcs_search(query="termination clause", filter_type="documents")]
-
-User: Create a workspace for the Acme Corp project
-Claude: [Uses otcs_create_workspace(template_id=17284, name="Acme Corp")]
-
-User: Show my pending workflow tasks
-Claude: [Uses otcs_get_assignments()]
-
-User: Apply a legal hold to these documents
-Claude: [Uses otcs_rm_holds(action="create_hold") then applies to documents]
-```
-
-[Full MCP Documentation](./docs/ARCHITECTURE_PLAN.md)
+- `OTCS_BASE_URL` — Base URL for OTCS REST API (required)
+- `OTCS_USERNAME` — OTCS username (required)
+- `OTCS_PASSWORD` — OTCS password (required)
+- `OTCS_DOMAIN` — Windows domain (optional)
+- `OTCS_TOOL_PROFILE` — Tool subset: `core`, `workflow`, `admin`, `rm`, `full` (default: `full`)
+- `OTCS_TLS_SKIP_VERIFY` — Set to `true` for self-signed certificates (default: `false`)
 
 ---
 
-## Web Interface
+### Web UI (SaaS)
 
-### Features
+**Prerequisites:**
 
-- **Natural language OTCS management** — ask questions in plain English
-- **Streaming responses** — text, tool calls, and results render progressively
-- **Agentic automation** — Claude chains up to 10 tool calls automatically
-- **Document reading** — extracts text from PDFs, Word docs, CSV, JSON, XML, HTML
-- **Interactive charts** — bar, line, area, and pie charts via Recharts
-- **Dark mode** — full light/dark theme support
-- **Token optimization** — prompt caching reduces API costs by 90%
+- Node.js 22+
+- PostgreSQL 16+
 
-### Tech Stack
-
-| | |
-|---|---|
-| **Framework** | Next.js 16, React 19, TypeScript 5 |
-| **AI** | Claude Sonnet 4.5 (`@anthropic-ai/sdk`) |
-| **Styling** | Tailwind CSS 4 |
-| **Markdown** | `react-markdown` + `remark-gfm` |
-| **Charts** | Recharts |
-| **Document Parsing** | `pdf-parse`, `mammoth` |
-
-### Setup
+**1. Install dependencies**
 
 ```bash
 cd web
 npm install
 ```
 
-Create `web/.env.local`:
+**2. Configure environment**
+
+Copy `.env.example` to `.env.local`:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
-OTCS_BASE_URL=https://your-server/otcs/cs.exe
-OTCS_USERNAME=admin
-OTCS_PASSWORD=password
+cp .env.example .env.local
 ```
 
-Run:
+Edit `.env.local`:
+
+```bash
+# OTCS Connection
+OTCS_BASE_URL=https://your-server.com/otcs/cs.exe/api
+OTCS_USERNAME=admin
+OTCS_PASSWORD=your-password
+
+# Anthropic API
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://altius:altius@localhost:5432/altius
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
+
+# Stripe (optional for billing)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_PRICE_ID=price_...
+STRIPE_ENTERPRISE_PRICE_ID=price_...
+
+# OAuth Providers (optional)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+MICROSOFT_CLIENT_ID=...
+MICROSOFT_CLIENT_SECRET=...
+
+# Security
+ENCRYPTION_KEY=<generate with: openssl rand -hex 32>
+OTCS_TLS_SKIP_VERIFY=false
+```
+
+**3. Start PostgreSQL (via Docker Compose)**
+
+From the root directory:
+
+```bash
+docker compose up -d
+```
+
+**4. Initialize database**
+
+```bash
+cd web
+npx drizzle-kit push
+```
+
+**5. Start development server**
 
 ```bash
 npm run dev
@@ -280,27 +193,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-[Full Web Documentation](./web/README.md)
-
 ---
 
-## Autonomous Agent
+### Autonomous Agent
 
-### Overview
-
-The Autonomous Agent monitors OTCS folders and automatically:
-1. Detects new documents
-2. Extracts and classifies content
-3. Applies business rules
-4. Executes workflows, holds, searches, sharing
-
-### Cost Efficiency
-
-- **Simple processing:** ~$0.01-0.03 per document
-- **Complex agentic mode:** ~$0.06-0.21 per document
-- **Volume example:** 1,000 docs/day = $10-30/day
-
-### Configuration
+**1. Configure agent**
 
 Edit `agent/agent-config.json`:
 
@@ -313,7 +210,9 @@ Edit `agent/agent-config.json`:
   "rules": [
     {
       "name": "Contract approval workflow",
-      "match": {},
+      "match": {
+        "namePattern": ".*\\.pdf$"
+      },
       "extractFields": {
         "contractType": "type or category of contract",
         "counterparty": "vendor name",
@@ -328,247 +227,210 @@ Edit `agent/agent-config.json`:
 }
 ```
 
-### Running
+**2. Set environment variables**
+
+Create `.env` in the root directory (copy from `.env.example`):
 
 ```bash
-# Development mode (auto-reload)
-npm run agent:dev
+OTCS_BASE_URL=https://your-server.com/otcs/cs.exe/api
+OTCS_USERNAME=agent-user
+OTCS_PASSWORD=agent-password
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
-# Production
+**3. Run agent**
+
+```bash
 npm run agent
 ```
 
-### Use Cases
-
-**Legal Discovery**
-- Auto-search for responsive documents
-- Apply litigation holds
-- Share with external counsel
-- **Impact:** 3-5 day process → 2 minutes
-
-**Contract Analysis**
-- Extract key terms and obligations
-- Assess risk levels
-- Route for approval
-- **Impact:** Pre-analyzes every contract before human review
-
-**Invoice Processing**
-- Extract vendor, amount, PO number
-- Route to approval workflows
-- **Impact:** Eliminates manual classification
-
-[Full Agent Documentation](./agent/README.md)
-
----
-
-## 🎯 Digital Worker Twins
-
-Altius enables **digital worker twins** — autonomous agents that replicate the document-handling behaviors of specific job roles. Each twin operates at one of three automation levels:
-
-| Level | Description | Examples |
-|-------|-------------|----------|
-| **Full Automation** | Complete task execution with exception escalation | Document filing, compliance tracking, permit monitoring |
-| **Assisted Automation** | Preparation and research while humans make final decisions | Underwriting support, quality assessment, case management |
-| **Advisory Automation** | Insights and recommendations for strategic decisions | Portfolio analysis, risk trending, performance dashboards |
-
-### Mapped Roles
-
-Altius can automate or augment **56 distinct knowledge worker roles** across:
-
-- **Back-office:** AP/AR, HR, contracts, compliance, legal, customer service
-- **Healthcare:** Medical records, patient intake, insurance verification, clinical documentation
-- **Financial services:** Loan origination, underwriting, claims processing, KYC/AML
-- **Real estate:** Property management, lease administration, title/escrow
-- **Government:** Permitting, FOIA, case management, grant administration
-- **Legal:** Discovery, document review, matter management, compliance
-- **Manufacturing:** QA/QC, regulatory submissions, supplier management
-- **Retail:** Merchandising, vendor management, compliance
-
-[Read the full Digital Workers Report](./docs/ALTIUS-DIGITAL-WORKERS-REPORT.md)
-
----
-
-## 📊 Business Impact
-
-### Measured Results
-
-| Metric | Before Altius | With Altius | Improvement |
-|--------|--------------|-------------|-------------|
-| **Cycle Time** | 15-30 days | 4-8 days | **70% faster** |
-| **Error Rate** | 5-15% | 0.5-2% | **90% reduction** |
-| **Cost per Transaction** | $15-25 | $5-8 | **60-70% savings** |
-| **Document Processing** | Manual review | Automated classification | **95% time saved** |
-| **Compliance Coverage** | 60-80% | 99%+ | **25% improvement** |
-
-### ROI Model
-
-**Medium-sized enterprise (1,000 docs/day):**
-- **Labor savings:** 2-3 FTE × $60k = $120-180k/year
-- **AI costs:** $10-30/day × 250 days = $2.5-7.5k/year
-- **Net savings:** $112-177k/year
-- **ROI:** 1,400-7,000%
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **OpenText Content Server** (version 16.0+) with REST API enabled
-- **Node.js** 20 or later
-- **Anthropic API key** ([get one here](https://console.anthropic.com))
-
-### Quick Start (All Components)
+For development with auto-reload:
 
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/altius.git
-cd altius
-
-# Install dependencies
-npm install
-cd web && npm install && cd ..
-
-# Configure environment
-cp .env.example .env
-nano .env  # Add OTCS credentials and Anthropic API key
-
-# Build MCP server
-npm run build
-
-# Run all components
-npm run agent          # Terminal 1: Autonomous agent
-cd web && npm run dev  # Terminal 2: Web interface
-./start-mcp.sh         # Terminal 3: MCP server (for Claude Desktop/Cursor)
-```
-
-### Individual Component Setup
-
-Each component can run independently:
-
-- **MCP Server only:** Follow [MCP Server Configuration](#mcp-server-core)
-- **Web UI only:** Follow [Web Interface Setup](#web-interface)
-- **Agent only:** Follow [Autonomous Agent Setup](#autonomous-agent)
-
----
-
-## 📖 Documentation
-
-### API Documentation
-- [Architecture & Roadmap](./docs/ARCHITECTURE_PLAN.md)
-- [Content Server REST API Spec](./docs/content-server-rest-api-2.0.2.yaml)
-- [Business Workspaces API Spec](./docs/opentext-business-workspaces-rest-api-v1-and-v2.yaml)
-- [Records Management API Spec](./docs/opentext-records-management-26.1.json)
-
-### Implementation Guides
-- [Category Management Guide](./docs/CATEGORY-MANAGEMENT-API.md)
-- [OTCS Reference IDs](./docs/OTCS-REFERENCE-IDS.md)
-- [Implementation Plan](./docs/IMPLEMENTATION-PLAN.md)
-- [Future Features](./docs/FUTURE-FEATURES.md)
-
-### Business Documentation
-- [Digital Workers Report](./docs/ALTIUS-DIGITAL-WORKERS-REPORT.md) — 56 roles across 10 industries
-- [OTCS MCP Strategy](./docs/OTCS-MCP-STRATEGY.pdf)
-- [Workflow Maps Report](./docs/WORKFLOW-MAPS-REPORT.pdf)
-
----
-
-## 🧪 Testing
-
-```bash
-# MCP Server tests
-npm test                    # Main API connectivity
-npm run test:workflows      # Workflow operations
-npm run test:workspaces     # Workspace operations
-npm run test:rm             # Records Management
-
-# Web UI
-cd web
-npm run lint
-
-# Agent
-# Upload test documents to watched folders and monitor logs
 npm run agent:dev
 ```
 
-**Test Results:** 40/40 RM tests passed, 0 failed, 5 skipped
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| **Language** | TypeScript 5 ESM |
+| **Web Framework** | Next.js 16, React 19 |
+| **Database** | PostgreSQL 16, Drizzle ORM |
+| **Authentication** | NextAuth v5 (Google, Microsoft, Credentials) |
+| **Billing** | Stripe |
+| **AI** | Anthropic Claude (Sonnet 4.5) |
+| **MCP** | Model Context Protocol SDK 1.0 |
+| **Testing** | Vitest 3.2, 21 tests passing |
+| **Styling** | Tailwind CSS 4 |
+| **Charts** | Recharts |
+| **Document Parsing** | pdf-parse, mammoth, tesseract.js |
+| **Deployment** | Docker, Caddy reverse proxy |
 
 ---
 
-## 🔐 Security
+## Security
 
-- **Credential management:** Store secrets in `.env`, never commit to version control
-- **TLS:** Supports self-signed certificates via `NODE_TLS_REJECT_UNAUTHORIZED=0`
-- **Authentication:** Session-based OTCS authentication with auto-renewal
-- **Permissions:** Respects OTCS ACLs — users can only access authorized content
-- **Audit trails:** All operations logged to OTCS audit system
-
----
-
-## 🗺️ Roadmap
-
-### Phase 9: RM Disposition (Planned)
-- `otcs_rm_disposition` — Disposition search and processing
-
-### Phase 10: Enhanced Features (Planned)
-- `otcs_favorites` — Manage favorites and tabs
-- `otcs_reminders` — Node reminders
-- `otcs_notifications` — Notification interests
-- `otcs_recycle_bin` — Restore/purge deleted items
-
-**Projected Total:** 46 consolidated tools
-
-### Platform Enhancements
-- [ ] Multi-tenant agent configuration
-- [ ] Real-time agent monitoring dashboard
-- [ ] Webhook-based document triggers
-- [ ] Integration marketplace (Salesforce, ServiceNow, etc.)
-- [ ] Advanced analytics and reporting
-- [ ] White-label deployment options
+- **Encryption:** AES-256-GCM for stored OTCS passwords (per-organization keys)
+- **TLS:** Per-client TLS configuration with opt-in `tlsSkipVerify` for self-signed certificates (no global bypass)
+- **Rate Limiting:** Sliding window rate limiting on all API routes
+- **CORS:** Same-origin policy enforced
+- **Security Headers:** HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy
+- **Password Hashing:** bcrypt for user passwords
+- **Sessions:** JWT-based sessions with secure httpOnly cookies
+- **Validation:** Zod schemas for all user inputs and environment variables
+- **Audit:** All OTCS operations logged to server audit system
 
 ---
 
-## 🤝 Contributing
+## Deployment
 
-We welcome contributions! Areas of interest:
+**Docker Compose (Development + Production)**
 
-- **New OTCS tools** — Implement missing Content Server features
-- **Agent workflows** — Share rule definitions for common use cases
-- **UI enhancements** — Improve chat interface, add visualization types
-- **Documentation** — Tutorials, guides, and example implementations
-- **Performance** — Optimization for high-volume scenarios
+The repository includes a production-ready `docker-compose.yml`:
+
+```bash
+docker compose up -d
+```
+
+Services:
+- PostgreSQL 16 (persistent volume)
+- Caddy reverse proxy (auto-HTTPS)
+- Altius web UI (Next.js)
+
+**Environment-Specific Configuration:**
+
+- Development: `.env.local`
+- Production: `.env.production`
+
+**One-Command VPS Deploy:**
+
+```bash
+./scripts/deploy.sh
+```
+
+This script:
+1. Builds Docker images
+2. Pushes to registry
+3. SSH to VPS
+4. Pulls images and restarts services
+5. Runs database migrations
+
+**CI/CD (GitHub Actions):**
+
+The `.github/workflows/` directory contains workflows for:
+- Linting and type-checking (ESLint, TypeScript)
+- Running tests (Vitest)
+- Building all packages
+- Building and pushing Docker images
+- Deploying to staging and production
 
 ---
 
-## 📄 License
+## Project Status
 
-MIT License — see [LICENSE](./LICENSE) file for details.
-
----
-
-## 🏢 About Altius
-
-Altius is an AI automation platform purpose-built for OpenText Content Server. We transform passive document repositories into active, intelligent automation platforms that eliminate manual work, ensure compliance, and scale effortlessly.
-
-**Built for:**
-- Enterprises with document-intensive operations
-- Organizations requiring strict compliance and audit trails
-- Teams drowning in manual document processing
-- Developers building AI-powered document workflows
-
-**Built with:**
-- Claude Sonnet 4.5 (Anthropic)
-- OpenText Content Server REST APIs
-- Model Context Protocol (MCP)
-- Next.js 16, React 19, TypeScript 5
+| Component | Status |
+|-----------|--------|
+| Monorepo refactor (`@otcs/core`) | ✅ Complete |
+| Type system (9 domain files, 139 exports) | ✅ Complete |
+| Authentication (3 providers) | ✅ Complete |
+| Database (11 tables, Drizzle ORM) | ✅ Complete |
+| Billing (Stripe integration) | ✅ Complete |
+| Security hardening (AES-256-GCM, TLS, validation) | ✅ Complete |
+| Infrastructure (Docker, Caddy, CI/CD) | ✅ Complete |
+| Tests (21 passing: cost, utils, formats) | ✅ Complete |
+| Tool definitions (42 tools) | ✅ Complete |
+| MCP server (Claude Desktop, Cursor) | ✅ Complete |
+| Web UI (Next.js 16, streaming chat) | ✅ Complete |
+| Autonomous agent (polling, classification) | ✅ Complete |
+| Migration toolkit | ✅ Complete |
 
 ---
 
-## 📬 Contact & Support
+## Development
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/altius/issues)
-- **Documentation:** [Full docs](./docs/)
-- **Email:** support@altius.ai
+**Install dependencies:**
+
+```bash
+npm install
+cd web && npm install
+```
+
+**Build packages:**
+
+```bash
+npm run build          # Type-check all packages
+npm run build:all      # Build MCP server + web UI
+```
+
+**Run tests:**
+
+```bash
+npm test               # Run unit tests (Vitest)
+npm run test:watch     # Watch mode
+npm run test:coverage  # Coverage report
+```
+
+**Linting and formatting:**
+
+```bash
+npm run lint           # ESLint
+npm run lint:fix       # Auto-fix
+npm run format         # Prettier
+npm run format:check   # Check formatting
+```
+
+**Run services:**
+
+```bash
+npm run dev            # MCP server (stdio mode)
+npm run agent          # Autonomous agent
+npm run agent:dev      # Agent with auto-reload
+cd web && npm run dev  # Web UI (http://localhost:3000)
+```
+
+**Database operations:**
+
+```bash
+cd web
+npm run db:generate    # Generate migrations
+npm run db:migrate     # Run migrations
+npm run db:studio      # Drizzle Studio (GUI)
+```
+
+**Clean build artifacts:**
+
+```bash
+npm run clean
+```
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2026 Altius
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ---
 

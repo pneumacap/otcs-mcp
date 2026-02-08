@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function CtaSection() {
   return (
@@ -9,9 +9,7 @@ export default function CtaSection() {
         <div className="gold-line absolute top-0 left-0 w-full" />
 
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold text-white">
-            Ready to simplify Content Server?
-          </h2>
+          <h2 className="text-3xl font-bold text-white">Ready to simplify Content Server?</h2>
           <p className="mx-auto mt-3 max-w-xl text-blue-200">
             Start managing documents, workflows, and permissions through conversation.
           </p>

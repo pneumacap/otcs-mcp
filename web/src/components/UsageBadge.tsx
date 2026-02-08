@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 export interface TokenUsage {
   input_tokens: number;
@@ -11,9 +11,9 @@ export interface TokenUsage {
 
 // Anthropic Sonnet 4.5 pricing per token
 const PRICING = {
-  input: 3 / 1_000_000,          // $3/MTok
-  output: 15 / 1_000_000,        // $15/MTok
-  cache_read: 0.30 / 1_000_000,  // $0.30/MTok
+  input: 3 / 1_000_000, // $3/MTok
+  output: 15 / 1_000_000, // $15/MTok
+  cache_read: 0.3 / 1_000_000, // $0.30/MTok
   cache_write: 3.75 / 1_000_000, // $3.75/MTok
 };
 
@@ -25,9 +25,7 @@ function formatTokens(n: number): string {
 
 function computeCost(usage: TokenUsage): number {
   const nonCachedInput =
-    usage.input_tokens -
-    usage.cache_read_input_tokens -
-    usage.cache_creation_input_tokens;
+    usage.input_tokens - usage.cache_read_input_tokens - usage.cache_creation_input_tokens;
   return (
     Math.max(0, nonCachedInput) * PRICING.input +
     usage.output_tokens * PRICING.output +
@@ -55,7 +53,13 @@ export default function UsageBadge({ usage }: { usage: TokenUsage }) {
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-500 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-750"
       >
-        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg
+          className="h-3 w-3"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         <span>{formatTokens(total)} tokens</span>
@@ -81,11 +85,15 @@ export default function UsageBadge({ usage }: { usage: TokenUsage }) {
               </div>
               <div className="flex justify-between text-gray-500 dark:text-gray-400">
                 <span>Cache write</span>
-                <span className="font-mono">{usage.cache_creation_input_tokens.toLocaleString()}</span>
+                <span className="font-mono">
+                  {usage.cache_creation_input_tokens.toLocaleString()}
+                </span>
               </div>
               <div className="mt-1 flex justify-between text-gray-500 dark:text-gray-400">
                 <span>Cache hit ratio</span>
-                <span className={`font-mono ${cacheHit > 50 ? "text-green-600 dark:text-green-400" : cacheHit > 0 ? "text-amber-600 dark:text-amber-400" : "text-gray-400"}`}>
+                <span
+                  className={`font-mono ${cacheHit > 50 ? 'text-green-600 dark:text-green-400' : cacheHit > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400'}`}
+                >
                   {cacheHit.toFixed(1)}%
                 </span>
               </div>

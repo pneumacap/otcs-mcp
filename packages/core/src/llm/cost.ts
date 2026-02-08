@@ -7,7 +7,7 @@ export function computeCost(
   inputTokens: number,
   outputTokens: number,
   cacheReadTokens: number,
-  cacheWriteTokens: number
+  cacheWriteTokens: number,
 ): number {
   const nonCachedInput = Math.max(0, inputTokens - cacheReadTokens - cacheWriteTokens);
   return (

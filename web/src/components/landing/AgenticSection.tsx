@@ -1,20 +1,20 @@
 export default function AgenticSection() {
   const steps = [
     {
-      tool: "Search Documents",
-      label: "Find all unsigned loan deeds from Q4",
+      tool: 'Search Documents',
+      label: 'Find all unsigned loan deeds from Q4',
     },
     {
-      tool: "Download Content",
-      label: "Extract text from scanned TIFF via OCR",
+      tool: 'Download Content',
+      label: 'Extract text from scanned TIFF via OCR',
     },
     {
-      tool: "Get Workflow Info",
-      label: "Check approval history and comments",
+      tool: 'Get Workflow Info',
+      label: 'Check approval history and comments',
     },
     {
-      tool: "Start Workflow",
-      label: "Route to compliance for final review",
+      tool: 'Start Workflow',
+      label: 'Route to compliance for final review',
     },
   ];
 
@@ -29,17 +29,16 @@ export default function AgenticSection() {
               Industry First
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Agentic AI that{" "}
+              Agentic AI that{' '}
               <span className="bg-gradient-to-r from-[#1a6aff] to-[#00008b] bg-clip-text text-transparent">
                 actually operates
-              </span>{" "}
+              </span>{' '}
               your OpenText Content Server
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-              Other platforms bolt a chatbot onto search. We built an AI agent
-              that reasons, plans, and executes multi-step content processes
-              autonomously — chaining tool calls across your entire Content
-              Server without human hand-holding.
+              Other platforms bolt a chatbot onto search. We built an AI agent that reasons, plans,
+              and executes multi-step content processes autonomously — chaining tool calls across
+              your entire Content Server without human hand-holding.
             </p>
             <div className="mt-6 space-y-3">
               <Differentiator text="Autonomous multi-step execution — not just Q&A" />
@@ -79,17 +78,11 @@ export default function AgenticSection() {
                         stroke="currentColor"
                         strokeWidth={3}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                       {step.tool}
                     </div>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      {step.label}
-                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{step.label}</p>
                   </div>
                 </div>
               ))}

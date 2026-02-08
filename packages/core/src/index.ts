@@ -9,10 +9,10 @@
  */
 
 // Client
-export { OTCSClient } from "./client/otcs-client.js";
+export { OTCSClient } from './client/otcs-client';
 
 // Types (re-export everything)
-export * from "./types.js";
+export * from './types';
 
 // Tools
 export {
@@ -28,7 +28,7 @@ export {
   toAnthropicTools,
   type MCPTool,
   type AnthropicTool,
-} from "./tools/index.js";
+} from './tools/index';
 
 // LLM utilities
-export { computeCost } from "./llm/cost.js";
+export { computeCost } from './llm/cost';

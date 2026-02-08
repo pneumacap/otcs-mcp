@@ -18,7 +18,8 @@
   "dependencies": {
     "mammoth": "^1.11.0",
     "pdf-parse": "^1.1.1",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "undici": "^7.21.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

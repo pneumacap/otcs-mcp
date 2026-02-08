@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,7 +10,10 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 border-b border-gray-200/60 bg-white/90 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/90">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white"
+        >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1a6aff] to-[#00008b] text-xs font-bold text-white">
             OT
           </span>
@@ -19,13 +22,22 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden items-center gap-6 md:flex">
-          <a href="#features" className="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+          <a
+            href="#features"
+            className="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          >
             Features
           </a>
-          <a href="#pricing" className="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+          <a
+            href="#pricing"
+            className="text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          >
             Pricing
           </a>
-          <Link href="/sign-in" className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+          <Link
+            href="/sign-in"
+            className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+          >
             Sign in
           </Link>
           <Link
@@ -42,12 +54,16 @@ export default function Navbar() {
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            {mobileOpen ? (
-              <path d="M18 6L6 18M6 6l12 12" />
-            ) : (
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            )}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            {mobileOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
           </svg>
         </button>
       </div>
@@ -56,10 +72,18 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="border-t border-gray-200 bg-white px-6 py-4 md:hidden dark:border-gray-800 dark:bg-gray-950">
           <div className="flex flex-col gap-3">
-            <a href="#features" onClick={() => setMobileOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">
+            <a
+              href="#features"
+              onClick={() => setMobileOpen(false)}
+              className="text-sm text-gray-600 dark:text-gray-400"
+            >
               Features
             </a>
-            <a href="#pricing" onClick={() => setMobileOpen(false)} className="text-sm text-gray-600 dark:text-gray-400">
+            <a
+              href="#pricing"
+              onClick={() => setMobileOpen(false)}
+              className="text-sm text-gray-600 dark:text-gray-400"
+            >
               Pricing
             </a>
             <Link href="/sign-in" className="text-sm font-medium text-gray-700 dark:text-gray-300">
