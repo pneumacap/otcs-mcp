@@ -36,7 +36,8 @@
   "author": "",
   "license": "MIT",
   "workspaces": [
-    "packages/core"
+    "packages/core",
+    "web"
   ],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.0",
