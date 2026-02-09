@@ -179,12 +179,18 @@ export async function POST(request: NextRequest) {
 
       // Log + persist usage
       if (rounds > 0) {
+        // Pricing per MTok by model
+        const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';
+        const isHaiku = model.includes('haiku');
+        const pricing = isHaiku
+          ? { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 }
+          : { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // Sonnet default
         const cost =
           Math.max(0, usageTotals.input - usageTotals.cache_read - usageTotals.cache_write) *
-            (3 / 1_000_000) +
-          usageTotals.output * (15 / 1_000_000) +
-          usageTotals.cache_read * (0.3 / 1_000_000) +
-          usageTotals.cache_write * (3.75 / 1_000_000);
+            (pricing.input / 1_000_000) +
+          usageTotals.output * (pricing.output / 1_000_000) +
+          usageTotals.cache_read * (pricing.cacheRead / 1_000_000) +
+          usageTotals.cache_write * (pricing.cacheWrite / 1_000_000);
         console.log(
           `[USAGE] user=${userId} org=${membership.orgId} input=${usageTotals.input} output=${usageTotals.output} cache_read=${usageTotals.cache_read} cache_write=${usageTotals.cache_write} rounds=${rounds} cost=$${cost.toFixed(4)}`,
         );

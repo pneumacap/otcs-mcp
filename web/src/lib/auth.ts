@@ -48,32 +48,79 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       id: 'otds',
       name: 'OpenText',
       credentials: {
-        otdsUrl: { label: 'OTDS URL', type: 'url' },
+        otdsUrl: { label: 'OTDS URL', type: 'url', placeholder: 'https://otds.example.com/otdsws/v1' },
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const otdsUrl = (credentials?.otdsUrl as string)?.replace(/\/+$/, '');
+        let otdsUrl = (credentials?.otdsUrl as string)?.replace(/\/+$/, '');
         const username = credentials?.username as string | undefined;
         const password = credentials?.password as string | undefined;
         if (!otdsUrl || !username || !password) return null;
 
+        // Normalize URL: extract base host for OTDS
+        const urlMatch = otdsUrl.match(/^(https?:\/\/[^\/]+)/);
+        const otdsBase = urlMatch ? urlMatch[1] : otdsUrl;
+
+        console.log(`[OTDS Auth] Attempting auth to ${otdsBase} for user ${username}`);
+
         try {
-          // Authenticate against OTDS REST API
-          const authRes = await fetch(`${otdsUrl}/authentication/credentials`, {
+          // Try OAuth 2.0 password grant flow first (modern OTDS)
+          const tokenEndpoint = `${otdsBase}/otdsws/oauth2/token`;
+          console.log(`[OTDS Auth] POST ${tokenEndpoint}`);
+
+          const formData = new URLSearchParams();
+          formData.append('grant_type', 'password');
+          formData.append('username', username);
+          formData.append('password', password);
+
+          let authRes = await fetch(tokenEndpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_login: username,
-              password,
-            }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData,
           });
 
-          if (!authRes.ok) return null;
+          let ticket: string | undefined;
 
-          const authData = await authRes.json();
-          const ticket = authData?.ticket;
-          if (!ticket) return null;
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            ticket = authData?.access_token || authData?.ticket;
+            console.log(`[OTDS Auth] OAuth token obtained`);
+          } else {
+            // Fallback: try legacy /otdsws/v1/authentication/credentials with JSON
+            console.log(`[OTDS Auth] OAuth failed (${authRes.status}), trying legacy endpoint`);
+            const legacyEndpoint = `${otdsBase}/otdsws/v1/authentication/credentials`;
+
+            authRes = await fetch(legacyEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userName: username, password }),
+            });
+
+            if (!authRes.ok) {
+              // Try alternate field name
+              console.log(`[OTDS Auth] Legacy failed (${authRes.status}), trying alternate fields`);
+              authRes = await fetch(legacyEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: username, password }),
+              });
+            }
+
+            if (!authRes.ok) {
+              const errorText = await authRes.text().catch(() => 'unknown');
+              console.log(`[OTDS Auth] All attempts failed: ${authRes.status} - ${errorText}`);
+              return null;
+            }
+
+            const authData = await authRes.json();
+            ticket = authData?.ticket || authData?.token;
+          }
+
+          if (!ticket) {
+            console.log(`[OTDS Auth] No ticket/token in response`);
+            return null;
+          }
 
           // Get user profile from OTDS
           let name = username;
@@ -118,8 +165,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             });
           }
 
+          console.log(`[OTDS Auth] Success for user ${user.email}`);
           return { id: user.id, name: user.name, email: user.email, image: user.image };
-        } catch {
+        } catch (err: any) {
+          console.error(`[OTDS Auth] Error:`, err.message || err);
           return null;
         }
       },

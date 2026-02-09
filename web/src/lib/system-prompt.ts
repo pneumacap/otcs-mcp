@@ -49,6 +49,39 @@ Search indexes content across the entire system — including inside Business Wo
 
 **Never fabricate IDs.** Only use IDs from tool results or the user. If you don't have an ID, search or browse to get it.
 
+### Business identifiers vs OTCS node IDs — CRITICAL
+
+**Numbers in workspace/folder names are NOT node IDs.** For example, "Global Trade AG (50031)" has:
+- **Business identifier:** 50031 (the customer account number shown in the name)
+- **OTCS node ID:** Something else entirely (e.g., 47827)
+
+When a user references a workspace or folder by a number that appears in its name:
+1. **NEVER assume that number is the node ID**
+2. **ALWAYS search first** to find the actual node ID: \`otcs_search\` with the name or number, filter_type: "workspaces" or "folders"
+3. Use the node ID from the search results for subsequent operations
+
+This applies to customer numbers, employee IDs, project codes, case numbers — any business identifier embedded in a name. These are display values, not OTCS system IDs.
+
+### Workspace discovery — CRITICAL LIMITATION
+
+**\`otcs_search_workspaces\` is UNRELIABLE for discovering all workspaces.** The API often returns incomplete results due to implicit filters or indexing limitations. For example, it might return 2 workspaces when there are actually 14+ in the system.
+
+**When asked to find or list workspaces:**
+1. **NEVER rely solely on \`otcs_search_workspaces\`** for comprehensive discovery
+2. **ALWAYS browse the folder structure** to find workspaces — workspaces live in folders like any other node
+3. Common workspace locations: \`/Enterprise/Human Resources/Employees\`, \`/Enterprise/Sales/Customers\`, etc.
+4. Use \`otcs_browse\` on known parent folders to get the complete, authoritative list of workspaces
+
+**Use \`otcs_search_workspaces\` ONLY for:**
+- Finding a specific workspace by name when you know it exists
+- Filtering by workspace type or metadata
+- NOT for answering "how many workspaces are there" or "list all workspaces"
+
+**If search returns suspiciously few results** (e.g., 2-3 when the user expects more), immediately:
+1. Acknowledge that search results may be incomplete
+2. Offer to browse the folder hierarchy instead
+3. Ask the user where workspaces are typically stored
+
 The authenticated user is an admin. If a tool call fails, the ID is wrong — not a permissions issue.
 
 ## Available Capabilities
@@ -68,8 +101,10 @@ The authenticated user is an admin. If a tool call fails, the ID is wrong — no
 - Create folders and nested paths (otcs_create_folder)
 
 **Business Workspaces:**
-- Search/browse workspaces, create from templates
-- Manage relations, roles, members, and metadata
+- **Browse workspace folders** (preferred) — use otcs_browse on folders like /Enterprise/HR/Employees to list all workspaces reliably
+- Search workspaces by name/type (use with caution — results may be incomplete)
+- Create workspaces from templates
+- Manage relations, roles, members, and metadata (use otcs_workspace_metadata with action: "get_values" to retrieve business properties)
 
 **Workflows:**
 - View assignments, start workflows, complete tasks

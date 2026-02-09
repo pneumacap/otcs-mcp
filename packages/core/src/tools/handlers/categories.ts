@@ -94,6 +94,30 @@ export const categoryHandlers: Record<string, HandlerFn> = {
       values?: Record<string, unknown>;
     };
 
+    if (action === 'get_values' || action === 'get') {
+      // Get the actual current values of workspace business properties
+      const categoriesResult = await client.getCategories(workspace_id, true);
+
+      // Transform into a more user-friendly format
+      const businessProperties: Record<string, any> = {};
+      for (const cat of categoriesResult.categories) {
+        const catValues: Record<string, any> = {};
+        for (const attr of cat.attributes) {
+          // Use attribute name as key, store value
+          catValues[attr.name] = attr.value;
+        }
+        businessProperties[cat.name] = catValues;
+      }
+
+      return {
+        workspace_id,
+        categories: categoriesResult.categories,
+        business_properties: businessProperties,
+        category_count: categoriesResult.categories.length,
+        message: `Retrieved ${categoriesResult.categories.length} business property category(ies)`,
+      };
+    }
+
     if (action === 'get_form') {
       const form = await client.getWorkspaceMetadataForm(workspace_id);
       const totalAttributes = form.categories.reduce(

@@ -604,13 +604,18 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
   },
   {
     name: 'otcs_workspace_metadata',
-    description: 'Manage workspace business properties. Actions: get_form, update.',
+    description:
+      'Get or update workspace business properties (Customer Data, etc.). Actions: get_values (retrieve current values), get_form (schema only), update.',
     schema: {
       type: 'object',
       properties: {
-        action: { type: 'string', enum: ['get_form', 'update'], description: 'Action' },
+        action: {
+          type: 'string',
+          enum: ['get_values', 'get_form', 'update'],
+          description: 'Action: get_values returns current property values, get_form returns schema, update sets values',
+        },
         workspace_id: { type: 'number', description: 'Workspace ID' },
-        values: { type: 'object', description: 'Values to update' },
+        values: { type: 'object', description: 'Values to update (for update action)' },
       },
       required: ['action', 'workspace_id'],
     },
