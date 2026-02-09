@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altius — Platform Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            position: relative;
+            scroll-snap-align: start;
+            overflow: visible;
+        }
+
+        .slide-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ── Title slide ── */
+        .slide-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide-title h1 {
+            font-size: 96px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .slide-title .tagline {
+            font-size: 34px;
+            font-weight: 300;
+            margin-bottom: 60px;
+            opacity: 0.9;
+            text-align: center;
+        }
+
+        .slide-title .hook {
+            font-size: 26px;
+            font-weight: 400;
+            line-height: 1.7;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .slide-title .hook strong { color: #ffd700; }
+
+        /* ── Content slides ── */
+        .slide-content {
+            background: #0f0f0f;
+            align-items: flex-start;
+            padding: 60px 100px;
+            overflow-y: auto;
+            max-width: 100vw;
+        }
+
+        .slide-content h2 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .slide-content .slide-subtitle {
+            font-size: 22px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .slide-content h3 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 30px 0 20px 0;
+            color: #a78bfa;
+        }
+
+        .slide-content p, .slide-content li {
+            font-size: 20px;
+            line-height: 1.7;
+            margin-bottom: 14px;
+        }
+
+        .slide-content ul { list-style: none; padding-left: 0; }
+        .slide-content li { padding-left: 36px; position: relative; }
+        .slide-content li:before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* ── Logo / slide number ── */
+        .logo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-size: 18px;
+            opacity: 0.5;
+        }
+
+        /* ── Highlight box ── */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-left: 4px solid #667eea;
+            padding: 25px 30px;
+            margin: 30px 0;
+            font-size: 22px;
+            line-height: 1.7;
+            border-radius: 8px;
+            width: 100%;
+        }
+        .highlight-box strong { color: #ffd700; }
+
+        /* ── Stats grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 28px;
+            border-radius: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 56px;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+            font-size: 18px;
+        }
+        table th {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+        }
+        table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        table tr:hover { background: rgba(255,255,255,0.05); }
+
+        /* ══════════════════════════════════
+           CUSTOM: TWO-PATH COMPARISON
+        ══════════════════════════════════ */
+
+        .paths-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr;
+            gap: 0;
+            width: 100%;
+            margin-top: 40px;
+            align-items: start;
+        }
+
+        .path-column { position: relative; }
+
+        /* Divider */
+        .path-divider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+        }
+        .path-divider::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 50%;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent);
+        }
+        .path-divider .vs {
+            background: #0f0f0f;
+            color: rgba(255,255,255,0.3);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 14px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Column headers */
+        .path-header {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid;
+        }
+        .path-header.opentext { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .path-header.altius { color: #10b981; border-color: rgba(16,185,129,0.3); }
+
+        /* Stack blocks (OpenText side) */
+        .stack-block {
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.18);
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .stack-block .block-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .stack-block .block-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+        .stack-block .block-tag {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(239,68,68,0.15);
+            color: rgba(239,68,68,0.8);
+        }
+        .stack-connector {
+            width: 2px;
+            height: 16px;
+            background: rgba(239,68,68,0.2);
+            margin: 0 auto;
+            position: relative;
+        }
+        .stack-connector::after {
+            content: '+';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 13px;
+            color: rgba(239,68,68,0.5);
+            font-weight: 700;
+            background: #0f0f0f;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        /* Unified block (Altius side) */
+        .unified-block {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(102,126,234,0.08));
+            border: 2px solid rgba(16,185,129,0.25);
+            border-radius: 16px;
+            padding: 32px 28px;
+        }
+        .unified-block .ub-logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+        .unified-block .ub-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 16px;
+        }
+        .unified-block .ub-feature:last-child { border-bottom: none; }
+        .unified-block .ub-check {
+            color: #10b981;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Outcome rows */
+        .path-outcome {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .outcome-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+        .outcome-row .outcome-label {
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+        }
+        .outcome-row .outcome-value { font-weight: 700; }
+        .outcome-row.bad {
+            background: rgba(239,68,68,0.06);
+        }
+        .outcome-row.bad .outcome-value { color: #ef4444; }
+        .outcome-row.good {
+            background: rgba(16,185,129,0.06);
+        }
+        .outcome-row.good .outcome-value { color: #10b981; }
+
+        /* ══════════════════════════════════
+           CUSTOM: QUADRANT CHART
+        ══════════════════════════════════ */
+
+        .quadrant-wrapper {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 1.4;
+            position: relative;
+            margin: 40px auto 0;
+        }
+
+        .q-axis-x, .q-axis-y {
+            position: absolute;
+            background: rgba(255,255,255,0.12);
+        }
+        .q-axis-x { width: 100%; height: 1px; top: 50%; left: 0; }
+        .q-axis-y { width: 1px; height: 100%; top: 0; left: 50%; }
+
+        .q-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+        }
+        .q-label.top { top: -28px; left: 50%; transform: translateX(-50%); }
+        .q-label.bottom { bottom: -28px; left: 50%; transform: translateX(-50%); }
+        .q-label.left { left: -12px; top: 50%; transform: translateY(-50%) rotate(-90deg); white-space: nowrap; }
+        .q-label.right { right: -12px; top: 50%; transform: translateY(-50%) rotate(90deg); white-space: nowrap; }
+
+        .q-item {
+            position: absolute;
+            border-radius: 16px;
+            padding: 20px 24px;
+            text-align: center;
+            width: 260px;
+            transform: translate(-50%, -50%);
+        }
+        .q-item .q-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .q-item .q-detail {
+            font-size: 13px;
+            line-height: 1.5;
+            opacity: 0.7;
+        }
+
+        .q-item.altius {
+            background: rgba(16,185,129,0.12);
+            border: 2px solid rgba(16,185,129,0.4);
+            top: 72%; left: 25%;
+        }
+        .q-item.altius .q-name { color: #10b981; }
+
+        .q-item.opentext {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.25);
+            top: 28%; left: 25%;
+        }
+        .q-item.opentext .q-name { color: #ef4444; }
+
+        .q-item.custom {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            top: 28%; left: 75%;
+        }
+        .q-item.custom .q-name { color: #f59e0b; }
+
+        .q-item.generic {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            top: 72%; left: 75%;
+        }
+        .q-item.generic .q-name { color: rgba(255,255,255,0.5); }
+
+        /* ══════════════════════════════════
+           CUSTOM: RATIONALE CARDS
+        ══════════════════════════════════ */
+
+        .rationale-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .rationale-card {
+            border-radius: 16px;
+            padding: 32px 28px;
+        }
+        .rationale-card.opentext {
+            background: rgba(239,68,68,0.05);
+            border: 1px solid rgba(239,68,68,0.15);
+        }
+        .rationale-card.altius {
+            background: rgba(16,185,129,0.05);
+            border: 1px solid rgba(16,185,129,0.15);
+        }
+
+        .rationale-card h4 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .rationale-card.opentext h4 { color: #ef4444; }
+        .rationale-card.altius h4 { color: #10b981; }
+
+        .rationale-card .r-point {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .rationale-card .r-icon { flex-shrink: 0; font-size: 16px; margin-top: 2px; }
+        .rationale-card.opentext .r-icon { color: rgba(239,68,68,0.6); }
+        .rationale-card.altius .r-icon { color: rgba(16,185,129,0.6); }
+
+        .rationale-card .r-divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 18px 0;
+        }
+
+        .rationale-card .r-tradeoff-header {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 12px;
+        }
+
+        .rationale-card .r-tradeoff {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            line-height: 1.6;
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+        .rationale-card .r-tradeoff::before {
+            content: '\2022';
+            position: absolute;
+            left: 0;
+        }
+
+        /* ══════════════════════════════════
+           CUSTOM: DECISION TABLE
+        ══════════════════════════════════ */
+
+        .decision-table {
+            width: 100%;
+            margin-top: 30px;
+        }
+        .decision-table th {
+            font-size: 16px;
+            padding: 18px 20px;
+        }
+        .decision-table th.ot { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .decision-table th.al { background: rgba(16,185,129,0.15); color: #10b981; }
+        .decision-table td {
+            font-size: 16px;
+            padding: 14px 20px;
+            vertical-align: top;
+        }
+        .decision-table td.ot-cell { color: rgba(255,255,255,0.6); }
+        .decision-table td.al-cell { color: rgba(255,255,255,0.9); font-weight: 500; }
+
+        /* ── Closing slide ── */
+        .closing-stat {
+            display: flex;
+            gap: 60px;
+            margin: 50px 0;
+        }
+        .closing-stat .cs-item { text-align: center; }
+        .closing-stat .cs-num {
+            font-size: 64px;
+            font-weight: 900;
+            color: #10b981;
+        }
+        .closing-stat .cs-label {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+
+        .closing-quote {
+            max-width: 900px;
+            text-align: center;
+            font-size: 26px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.8);
+            font-style: italic;
+            margin-top: 20px;
+        }
+        .closing-quote strong { color: #ffd700; font-style: normal; }
+
+        /* ── Nav dots ── */
+        .nav-dots {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: #667eea;
+            box-shadow: 0 0 8px rgba(102,126,234,0.5);
+            transform: scale(1.3);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .slide { padding: 40px 24px; }
+            .slide-content { padding: 40px 24px; }
+            .paths-wrapper { grid-template-columns: 1fr; gap: 40px; }
+            .path-divider { display: none; }
+            .rationale-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .closing-stat { flex-direction: column; gap: 30px; }
+            .nav-dots { display: none; }
+        }
+
+        @media print {
+            .slide { page-break-after: always; }
+            .nav-dots { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="slide-container">
+
+    <!-- ═══════════════════════════════════
+         SLIDE 1 — Title
+    ═══════════════════════════════════ -->
+    <div class="slide slide-title">
+        <h1>One Platform,<br>Not Four</h1>
+        <div class="tagline">Getting to Agentic AI for Content Server</div>
+        <div class="hook">
+            OpenText's path to agentic AI requires <strong>4 separate platforms, 12-18 months, and $500K-2M+.</strong><br><br>
+            Altius delivers <strong>comparable capabilities in one platform, deployed in weeks, at 1/10th the cost.</strong>
+        </div>
+        <div class="slide-number">1</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 2 — The Two Paths (Hero Visual)
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content" style="align-items: center;">
+        <div class="logo">ALTIUS</div>
+        <h2 style="text-align: center; width: 100%;">Two Paths to Agentic AI</h2>
+        <div class="slide-subtitle" style="text-align: center; width: 100%;">The complexity gap between multi-platform and integrated approaches</div>
+
+        <div class="paths-wrapper">
+
+            <!-- OpenText Column -->
+            <div class="path-column">
+                <div class="path-header opentext">OpenText Path</div>
+
+                <div class="stack-block">
+                    <div class="block-name">Aviator</div>
+                    <div class="block-desc">Conversational AI layer</div>
+                    <span class="block-tag">SKU 1</span>
+                </div>
+                <div class="stack-connector"></div>
+                <div class="stack-block">
+                    <div class="block-name">Aviator Studio</div>
+                    <div class="block-desc">Workflow automation</div>
+                    <span class="block-tag">SKU 2</span>
+                </div>
+                <div class="stack-connector"></div>
+                <div class="stack-block">
+                    <div class="block-name">Knowledge Discovery</div>
+                    <div class="block-desc">Data extraction &amp; classification</div>
+                    <span class="block-tag">SKU 3</span>
+                </div>
+                <div class="stack-connector"></div>
+                <div class="stack-block" style="border-style: dashed; opacity: 0.7;">
+                    <div class="block-name">AI Data Platform</div>
+                    <div class="block-desc">AI orchestration layer</div>
+                    <span class="block-tag" style="background: rgba(245,158,11,0.2); color: #f59e0b;">Ships EOY 2026</span>
+                </div>
+
+                <div class="path-outcome">
+                    <div class="outcome-row bad">
+                        <span class="outcome-label">Timeline</span>
+                        <span class="outcome-value">12-18 months</span>
+                    </div>
+                    <div class="outcome-row bad">
+                        <span class="outcome-label">Cost</span>
+                        <span class="outcome-value">$500K - $2M+</span>
+                    </div>
+                    <div class="outcome-row bad">
+                        <span class="outcome-label">Integration</span>
+                        <span class="outcome-value">High complexity</span>
+                    </div>
+                    <div class="outcome-row bad">
+                        <span class="outcome-label">Risk</span>
+                        <span class="outcome-value">Roadmap-dependent</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="path-divider"><span class="vs">VS</span></div>
+
+            <!-- Altius Column -->
+            <div class="path-column">
+                <div class="path-header altius">Altius Path</div>
+
+                <div class="unified-block">
+                    <div class="ub-logo">Altius</div>
+                    <div class="ub-feature"><span class="ub-check">&#10003;</span> Conversational AI</div>
+                    <div class="ub-feature"><span class="ub-check">&#10003;</span> Agentic automation</div>
+                    <div class="ub-feature"><span class="ub-check">&#10003;</span> Data extraction</div>
+                    <div class="ub-feature"><span class="ub-check">&#10003;</span> Classification rules</div>
+                    <div class="ub-feature"><span class="ub-check">&#10003;</span> AI orchestration</div>
+                </div>
+
+                <div class="path-outcome">
+                    <div class="outcome-row good">
+                        <span class="outcome-label">Timeline</span>
+                        <span class="outcome-value">Days to weeks</span>
+                    </div>
+                    <div class="outcome-row good">
+                        <span class="outcome-label">Cost</span>
+                        <span class="outcome-value">$12K - $108K/yr</span>
+                    </div>
+                    <div class="outcome-row good">
+                        <span class="outcome-label">Integration</span>
+                        <span class="outcome-value">None needed</span>
+                    </div>
+                    <div class="outcome-row good">
+                        <span class="outcome-label">Risk</span>
+                        <span class="outcome-value">Shipping today</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="slide-number">2</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 3 — By The Numbers
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content" style="align-items: center;">
+        <div class="logo">ALTIUS</div>
+        <h2 style="text-align: center; width: 100%;">By The Numbers</h2>
+        <div class="slide-subtitle" style="text-align: center; width: 100%;">Same agentic capabilities, radically different economics</div>
+
+        <div class="stats-grid" style="margin-top: 50px;">
+            <div class="stat-card" style="text-align: center; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
+                <div class="number" style="color: #10b981;">10x</div>
+                <div class="label">Faster deployment</div>
+                <div style="margin-top: 12px; font-size: 14px; color: rgba(255,255,255,0.4);">Weeks vs. 12-18 months</div>
+            </div>
+            <div class="stat-card" style="text-align: center; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
+                <div class="number" style="color: #10b981;">1/10th</div>
+                <div class="label">The cost</div>
+                <div style="margin-top: 12px; font-size: 14px; color: rgba(255,255,255,0.4);">$12-108K vs. $500K-2M+</div>
+            </div>
+            <div class="stat-card" style="text-align: center; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
+                <div class="number" style="color: #10b981;">1</div>
+                <div class="label">Platform, not four</div>
+                <div style="margin-top: 12px; font-size: 14px; color: rgba(255,255,255,0.4);">Single vendor, single login</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; margin-top: 40px;">
+            <div style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15); border-radius: 14px; padding: 28px;">
+                <div style="font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(239,68,68,0.7); margin-bottom: 16px;">OpenText AI Stack</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span style="background: rgba(239,68,68,0.1); padding: 6px 14px; border-radius: 6px; font-size: 14px; color: rgba(255,255,255,0.6);">Aviator</span>
+                    <span style="font-size: 14px; color: rgba(255,255,255,0.2); padding: 6px 0;">+</span>
+                    <span style="background: rgba(239,68,68,0.1); padding: 6px 14px; border-radius: 6px; font-size: 14px; color: rgba(255,255,255,0.6);">Aviator Studio</span>
+                    <span style="font-size: 14px; color: rgba(255,255,255,0.2); padding: 6px 0;">+</span>
+                    <span style="background: rgba(239,68,68,0.1); padding: 6px 14px; border-radius: 6px; font-size: 14px; color: rgba(255,255,255,0.6);">Knowledge Discovery</span>
+                    <span style="font-size: 14px; color: rgba(255,255,255,0.2); padding: 6px 0;">+</span>
+                    <span style="background: rgba(245,158,11,0.1); padding: 6px 14px; border-radius: 6px; font-size: 14px; color: rgba(245,158,11,0.7); border: 1px dashed rgba(245,158,11,0.3);">AI Data Platform (unreleased)</span>
+                </div>
+                <div style="margin-top: 16px; font-size: 15px; color: rgba(255,255,255,0.35);">4 separate licenses &bull; 4 upgrade cycles &bull; Multi-vendor integration</div>
+            </div>
+            <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15); border-radius: 14px; padding: 28px;">
+                <div style="font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(16,185,129,0.7); margin-bottom: 16px;">Altius Platform</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span style="background: rgba(16,185,129,0.12); padding: 6px 14px; border-radius: 6px; font-size: 14px; color: rgba(16,185,129,0.9); border: 1px solid rgba(16,185,129,0.25);">All-in-one</span>
+                </div>
+                <div style="margin-top: 16px; font-size: 15px; color: rgba(255,255,255,0.35);">1 license &bull; 1 upgrade cycle &bull; Zero integration needed</div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 40px; text-align: center;">
+            <strong>Start automating workflows next week</strong> instead of waiting 18 months.
+        </div>
+
+        <div class="slide-number">3</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 4 — Strategic Rationale
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content">
+        <div class="logo">ALTIUS</div>
+        <h2>Two Strategies, One Winner</h2>
+        <div class="slide-subtitle">Why OpenText went multi-platform, and why Altius went integrated</div>
+
+        <div class="rationale-grid">
+
+            <!-- OpenText side -->
+            <div class="rationale-card opentext">
+                <h4>OpenText: Multi-Platform Strategy</h4>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Best-of-breed:</strong> Each platform optimized for specific use cases</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Enterprise-grade:</strong> Separate teams, specialized support</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Upsell path:</strong> Start with Aviator, expand over time</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Segmentation:</strong> Different products for different buyers</span></div>
+
+                <div class="r-divider"></div>
+                <div class="r-tradeoff-header">Trade-offs</div>
+                <div class="r-tradeoff">12-18 month time-to-value</div>
+                <div class="r-tradeoff">$500K-2M+ total cost of ownership</div>
+                <div class="r-tradeoff">4 platforms to integrate and maintain</div>
+                <div class="r-tradeoff">AI Data Platform ships EOY 2026</div>
+            </div>
+
+            <!-- Altius side -->
+            <div class="rationale-card altius">
+                <h4>Altius: Integrated Platform Strategy</h4>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Time to value:</strong> Customers need AI today, not in 18 months</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Simplicity:</strong> One platform, one login, one bill</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Cost efficiency:</strong> $12-108K/yr vs. $500K-2M+</span></div>
+                <div class="r-point"><span class="r-icon">&#9670;</span><span><strong>Agility:</strong> Faster iteration, tighter feedback loops</span></div>
+
+                <div class="r-divider"></div>
+                <div class="r-tradeoff-header">Trade-offs</div>
+                <div class="r-tradeoff">Not as deep in any single area (yet)</div>
+                <div class="r-tradeoff">Smaller team supporting full stack</div>
+                <div class="r-tradeoff">Less established brand than OpenText</div>
+                <div style="height: 22px;"></div>
+            </div>
+
+        </div>
+
+        <div class="highlight-box" style="margin-top: 30px;">
+            OpenText's approach isn't wrong &mdash; it's classic enterprise strategy. <strong>But for most OTCS customers, 80% of the capability at 10% of the cost is the obvious choice.</strong>
+        </div>
+
+        <div class="slide-number">4</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 5 — When Each Makes Sense
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content">
+        <div class="logo">ALTIUS</div>
+        <h2>When Each Approach Makes Sense</h2>
+        <div class="slide-subtitle">Most OTCS customers fall into the Altius column</div>
+
+        <table class="decision-table" style="margin-top: 30px; font-size: 17px;">
+            <thead>
+                <tr>
+                    <th class="ot" style="width: 50%;">Choose OpenText AI Stack If&hellip;</th>
+                    <th class="al" style="width: 50%;">Choose Altius If&hellip;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ot-cell">Already on latest OTCS (23.4+)</td>
+                    <td class="al-cell">Running OTCS 16.x &ndash; 23.x</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Using Business Workspaces extensively</td>
+                    <td class="al-cell">Using classic / virtual folders</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Budget &gt; $1M for multi-year AI project</td>
+                    <td class="al-cell">Budget &lt; $150K for first-year AI</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Timeline: can wait 12-18 months</td>
+                    <td class="al-cell">Timeline: need value in weeks</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Want best-of-breed enterprise suite</td>
+                    <td class="al-cell">Want integrated SaaS platform</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Have a dedicated AI platform team</td>
+                    <td class="al-cell">Want a turn-key solution</td>
+                </tr>
+                <tr>
+                    <td class="ot-cell">Multi-vendor relationships are fine</td>
+                    <td class="al-cell">Prefer single-vendor simplicity</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 40px; display: flex; gap: 20px; width: 100%;">
+            <div style="flex: 1; background: rgba(239,68,68,0.06); border-radius: 12px; padding: 20px 24px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(239,68,68,0.7); font-weight: 600; margin-bottom: 8px;">OpenText Fit</div>
+                <div style="font-size: 28px; font-weight: 900; color: #ef4444;">~10-15%</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px;">of OTCS customers</div>
+            </div>
+            <div style="flex: 1; background: rgba(16,185,129,0.06); border: 2px solid rgba(16,185,129,0.2); border-radius: 12px; padding: 20px 24px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(16,185,129,0.7); font-weight: 600; margin-bottom: 8px;">Altius Fit</div>
+                <div style="font-size: 28px; font-weight: 900; color: #10b981;">~85-90%</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px;">of OTCS customers</div>
+            </div>
+        </div>
+
+        <div class="slide-number">5</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 6 — Competitive 2x2 Quadrant
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content" style="align-items: center;">
+        <div class="logo">ALTIUS</div>
+        <h2 style="text-align: center; width: 100;">Competitive Landscape</h2>
+        <div class="slide-subtitle" style="text-align: center; width: 100%;">Integration complexity vs. total cost of ownership</div>
+
+        <div class="quadrant-wrapper">
+            <!-- Axes -->
+            <div class="q-axis-x"></div>
+            <div class="q-axis-y"></div>
+
+            <!-- Labels -->
+            <div class="q-label top">High Integration Complexity</div>
+            <div class="q-label bottom">Low Integration Complexity</div>
+            <div class="q-label left">Lower Cost</div>
+            <div class="q-label right">Higher Cost</div>
+
+            <!-- Items -->
+            <div class="q-item opentext">
+                <div class="q-name">OpenText AI Stack</div>
+                <div class="q-detail">4 platforms &bull; $500K-2M+<br>12-18 months</div>
+            </div>
+
+            <div class="q-item custom">
+                <div class="q-name">Custom Development</div>
+                <div class="q-detail">Bespoke build &bull; $200K-500K+<br>6-12 months</div>
+            </div>
+
+            <div class="q-item altius" style="border-width: 3px; box-shadow: 0 0 30px rgba(16,185,129,0.15);">
+                <div class="q-name">Altius</div>
+                <div class="q-detail">1 platform &bull; $12-108K/yr<br>Days to weeks</div>
+            </div>
+
+            <div class="q-item generic">
+                <div class="q-name">Generic AI</div>
+                <div class="q-detail">ChatGPT / Copilot<br>No OTCS integration</div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 40px; text-align: center;">
+            <strong>Low complexity + reasonable cost</strong> = the obvious choice for most OTCS customers.
+        </div>
+
+        <div class="slide-number">6</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 7 — Sales Flow
+    ═══════════════════════════════════ -->
+    <div class="slide slide-content" style="align-items: center;">
+        <div class="logo">ALTIUS</div>
+        <h2 style="text-align: center; width: 100%;">Recommended Sales Flow</h2>
+        <div class="slide-subtitle" style="text-align: center; width: 100%;">How to position this in customer conversations</div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; margin-top: 40px;">
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">1</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">The Problem</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">Manual OTCS tasks consume 40-60% of team's time</div>
+            </div>
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">2</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">The Solution</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">Agentic AI automates workflows &mdash; not just chat</div>
+            </div>
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">3</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Live Demo</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">Watch an agent process 50 invoices in 5 minutes</div>
+            </div>
+            <div style="background: rgba(16,185,129,0.08); border: 2px solid rgba(16,185,129,0.25); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #10b981; margin-bottom: 10px;">4</div>
+                <div style="font-size: 15px; font-weight: 600; color: #10b981; margin-bottom: 6px;">Comparison</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">One platform vs. four &mdash; this deck</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; margin-top: 16px;">
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">5</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">ROI</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">How much could you save with Altius?</div>
+            </div>
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">6</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Timeline</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">Start next week, see ROI in 30 days</div>
+            </div>
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">7</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Pricing</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">$12K-108K/year &mdash; not $500K-2M</div>
+            </div>
+            <div style="background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.2); border-radius: 14px; padding: 24px 20px; text-align: center;">
+                <div style="font-size: 36px; font-weight: 900; color: #667eea; margin-bottom: 10px;">8</div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Next Steps</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.5;">90-day pilot, white-glove onboarding</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; width: 100%;">
+            <h3 style="font-size: 20px; color: #a78bfa; margin-bottom: 16px;">Objection Handling</h3>
+            <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 24px; font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.65); font-style: italic;">
+                "Yes, OpenText will eventually integrate their AI platforms. That's 18-24 months away and costs $500K-2M. <strong style="color: #fff; font-style: normal;">Every month you wait is another month of manual processing.</strong> Start with Altius today, and if OpenText's integrated suite becomes a better fit in 2027, migrate then. You'll have saved 18 months of productivity."
+            </div>
+        </div>
+
+        <div class="slide-number">7</div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SLIDE 8 — Closing
+    ═══════════════════════════════════ -->
+    <div class="slide slide-title" style="background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);">
+
+        <div class="closing-stat">
+            <div class="cs-item">
+                <div class="cs-num">10x</div>
+                <div class="cs-label">Faster Deployment</div>
+            </div>
+            <div class="cs-item">
+                <div class="cs-num" style="color: #667eea;">1</div>
+                <div class="cs-label">Platform, Not Four</div>
+            </div>
+            <div class="cs-item">
+                <div class="cs-num">1/10th</div>
+                <div class="cs-label">The Cost</div>
+            </div>
+        </div>
+
+        <div class="closing-quote">
+            One platform. One deployment.<br>
+            <strong>Agentic AI for Content Server &mdash; without the enterprise complexity.</strong>
+        </div>
+
+        <div style="margin-top: 70px; padding: 40px 50px; background: rgba(255,255,255,0.05); border-radius: 16px; text-align: center; max-width: 700px;">
+            <div style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">Ready to see it in action?</div>
+            <div style="font-size: 17px; color: rgba(255,255,255,0.5); line-height: 1.8;">
+                90-day pilot &bull; White-glove onboarding &bull; No commitment<br>
+                Start automating next week.
+            </div>
+        </div>
+
+        <div class="slide-number">8</div>
+    </div>
+
+</div>
+
+<!-- Navigation dots -->
+<div class="nav-dots" id="navDots"></div>
+
+<script>
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('navDots');
+
+    // Create nav dots
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        dot.addEventListener('click', () => {
+            slides[i].scrollIntoView({ behavior: 'smooth' });
+        });
+        dotsContainer.appendChild(dot);
+    });
+
+    // Track current slide
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const idx = Array.from(slides).indexOf(entry.target);
+                document.querySelectorAll('.nav-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === idx);
+                });
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(s => observer.observe(s));
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        const container = document.querySelector('.slide-container');
+        const currentSlide = Math.round(container.scrollTop / window.innerHeight);
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            if (currentSlide < slides.length - 1) {
+                slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (currentSlide > 0) {
+                slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            slides[0].scrollIntoView({ behavior: 'smooth' });
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    console.log('Platform Comparison Deck');
+    console.log('Navigation: Arrow keys / Space / Home / End');
+    console.log('Or click the dots on the right edge.');
+</script>
+</body>
+</html>

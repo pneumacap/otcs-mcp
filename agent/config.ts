@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export interface Action {
-  type: "search" | "smart_search" | "ensure_hold" | "apply_hold" | "share" | "move" | "categorize";
+  type: "search" | "smart_search" | "ensure_hold" | "apply_hold" | "share" | "move" | "categorize" | "update_description" | "create_folder";
   [key: string]: unknown;
 }
 
@@ -38,6 +38,7 @@ export interface AgentConfig {
   otcsUsername: string;
   otcsPassword: string;
   anthropicModel: string;
+  tlsSkipVerify: boolean;
   tools?: string[]; // If set, only include these tools (by name)
 }
 
@@ -72,6 +73,8 @@ export function loadConfig(): AgentConfig {
     ? process.env.AGENT_WATCH_FOLDERS.split(",").map((s) => parseInt(s.trim(), 10))
     : raw.watchFolders ?? [2000];
 
+  const tlsSkipVerify = process.env.OTCS_TLS_SKIP_VERIFY === "true";
+
   return {
     enabled,
     pollIntervalMs,
@@ -84,6 +87,7 @@ export function loadConfig(): AgentConfig {
     otcsUsername,
     otcsPassword,
     anthropicModel: raw.model || process.env.AGENT_MODEL || "claude-sonnet-4-5-20250929",
+    tlsSkipVerify,
     tools: raw.tools as string[] | undefined,
   };
 }

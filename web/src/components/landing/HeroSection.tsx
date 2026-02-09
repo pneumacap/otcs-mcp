@@ -15,9 +15,9 @@ export default function HeroSection() {
           </span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-          Automate complex content operations that once took hours into single conversations.
-          Upload, organize, analyze, and act on documents at scale — powered by agentic AI that
-          understands your business.
+          The first AI platform for Content Server that includes autonomous agents — not just chat.
+          Monitor folders 24/7, classify documents automatically, and execute workflows without
+          human intervention. Works with classic folders, virtual folders, any OTCS structure.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link

@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altius — Plans & Pricing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            position: relative;
+            scroll-snap-align: start;
+            overflow: visible;
+        }
+
+        .slide-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Title slide */
+        .slide-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide-title h1 {
+            font-size: 110px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            letter-spacing: -0.02em;
+        }
+
+        .slide-title .tagline {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 60px;
+            opacity: 0.9;
+        }
+
+        .slide-title .hook {
+            font-size: 26px;
+            font-weight: 400;
+            line-height: 1.7;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .slide-title .hook strong {
+            color: #ffd700;
+        }
+
+        /* Content slides */
+        .slide-content {
+            background: #0f0f0f;
+            align-items: flex-start;
+            padding: 60px 100px;
+            overflow-y: auto;
+            max-width: 100vw;
+        }
+
+        .slide-content h2 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #667eea;
+        }
+
+        .slide-content h3 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 30px 0 20px 0;
+            color: #a78bfa;
+        }
+
+        .slide-content p, .slide-content li {
+            font-size: 22px;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .slide-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .slide-content li {
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .slide-content li:before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .stats-grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .stat-card {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card .number {
+            font-size: 56px;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        /* Before/After comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .comparison-side {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        .comparison-side h4 {
+            font-size: 28px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .comparison-side.before h4 { color: #ef4444; }
+        .comparison-side.after h4 { color: #10b981; }
+
+        .comparison-side ul { font-size: 20px; }
+
+        .comparison-side .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .comparison-side.before .result { color: #ef4444; }
+        .comparison-side.after .result { color: #10b981; }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        table th {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Highlight boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-left: 4px solid #667eea;
+            padding: 25px 30px;
+            margin: 30px 0;
+            font-size: 22px;
+            line-height: 1.7;
+            border-radius: 8px;
+        }
+
+        .highlight-box strong {
+            color: #ffd700;
+        }
+
+        /* Impact numbers */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .impact-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .impact-item {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .impact-item .metric {
+            font-size: 48px;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+
+        .impact-item .description {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        /* Pricing cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .pricing-card.featured::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            padding: 6px 20px;
+            border-radius: 20px;
+        }
+
+        .pricing-card .tier-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .tier-audience {
+            font-size: 14px;
+            opacity: 0.6;
+            margin-bottom: 20px;
+            min-height: 36px;
+        }
+
+        .pricing-card .price {
+            font-size: 48px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .pricing-card .price-period {
+            font-size: 16px;
+            opacity: 0.5;
+            margin-bottom: 24px;
+        }
+
+        .pricing-card .annual-note {
+            font-size: 14px;
+            color: #10b981;
+            margin-bottom: 24px;
+        }
+
+        .pricing-card .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        .pricing-card .feature-list li {
+            font-size: 15px;
+            padding: 8px 0 8px 24px;
+            position: relative;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pricing-card .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-card .feature-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .pricing-card .feature-list li.disabled {
+            opacity: 0.35;
+        }
+
+        .pricing-card .feature-list li.disabled::before {
+            content: "\2014";
+            color: #666;
+        }
+
+        /* Slide number */
+        .slide-number {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-size: 18px;
+            opacity: 0.5;
+        }
+
+        /* Logo */
+        .logo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Analytics demo */
+        .analytics-examples {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .analytics-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 14px;
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .analytics-card:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .analytics-card .prompt {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 15px;
+            color: #a78bfa;
+            font-style: italic;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .analytics-card .result-label {
+            font-size: 13px;
+            opacity: 0.5;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .analytics-card .result-preview {
+            display: flex;
+            gap: 4px;
+            align-items: flex-end;
+            height: 60px;
+            padding-top: 8px;
+        }
+
+        .analytics-card .bar {
+            flex: 1;
+            border-radius: 4px 4px 0 0;
+            min-width: 12px;
+        }
+
+        .analytics-card .pie-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        /* Enterprise callout */
+        .enterprise-callout {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.03));
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .enterprise-callout h3 {
+            color: #ffd700 !important;
+            margin-top: 0 !important;
+        }
+
+        /* Services grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .service-card .service-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .service-card .service-price {
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .service-card .service-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        /* ROI scenario cards */
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .roi-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .roi-card .scenario-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 6px;
+        }
+
+        .roi-card .scenario-desc {
+            font-size: 15px;
+            opacity: 0.6;
+            margin-bottom: 18px;
+        }
+
+        .roi-card .roi-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .roi-card .roi-line:last-child {
+            border-bottom: none;
+        }
+
+        .roi-card .roi-line .roi-label {
+            opacity: 0.7;
+        }
+
+        .roi-card .roi-line .roi-value {
+            font-weight: 700;
+        }
+
+        .roi-card .roi-line.total {
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+            margin-top: 8px;
+            padding-top: 16px;
+        }
+
+        .roi-card .roi-line.total .roi-value {
+            color: #10b981;
+            font-size: 24px;
+        }
+
+        /* Navigation hint */
+        .nav-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0.4;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        /* Print */
+        @media print {
+            .slide { page-break-after: always; }
+            .nav-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title">
+            <h1>ALTIUS</h1>
+            <div class="tagline">Plans & Pricing</div>
+            <div class="hook">
+                AI-powered intelligence for OpenText Content Server.<br>
+                <strong>Search, automate, analyze, and visualize</strong> — all through natural language.<br><br>
+                Your OTCS investment, finally delivering on its promise.
+            </div>
+            <div class="slide-number">1</div>
+        </div>
+
+        <!-- Slide 2: The Cost of the Status Quo -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>The Cost of the Status Quo</h2>
+            <h3>What manual Content Server operations cost your organization</h3>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">40-60%</div>
+                    <div class="label">of staff time spent on document handling, filing, searching, and routing</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">15-30d</div>
+                    <div class="label">average cycle time for document-intensive processes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">5-15%</div>
+                    <div class="label">error rate on manual classification, metadata entry, and routing</div>
+                </div>
+            </div>
+
+            <div class="comparison" style="margin-top: 50px;">
+                <div class="comparison-side before">
+                    <h4>Without Altius</h4>
+                    <ul>
+                        <li>20+ clicks to find a document</li>
+                        <li>Manual data entry for every upload</li>
+                        <li>Email chains to route approvals</li>
+                        <li>Weeks of training for new staff</li>
+                        <li>Compliance gaps found during audits</li>
+                    </ul>
+                    <div class="result">$150K-600K/year in operational overhead</div>
+                </div>
+                <div class="comparison-side after">
+                    <h4>With Altius</h4>
+                    <ul>
+                        <li>Natural language search, instant results</li>
+                        <li>AI extracts and classifies automatically</li>
+                        <li>Workflows triggered in one sentence</li>
+                        <li>Zero training required</li>
+                        <li>Continuous compliance monitoring</li>
+                    </ul>
+                    <div class="result">70-80% reduction in manual work</div>
+                </div>
+            </div>
+
+            <div class="slide-number">2</div>
+        </div>
+
+        <!-- Slide 3: What Altius Does -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>What You Get</h2>
+            <h3>Three capabilities in one platform</h3>
+
+            <div class="stats-grid" style="margin-top: 30px;">
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                    <div style="font-size: 24px; color: #667eea; font-weight: 700; margin-bottom: 16px;">Conversational Interface</div>
+                    <div style="font-size: 18px; opacity: 0.8; line-height: 1.6;">
+                        Ask questions in plain English. Search, browse, upload, manage workflows, check permissions — all by typing what you need. No training required.
+                    </div>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🤖</div>
+                    <div style="font-size: 24px; color: #667eea; font-weight: 700; margin-bottom: 16px;">Autonomous Agents</div>
+                    <div style="font-size: 18px; opacity: 0.8; line-height: 1.6;">
+                        Agents monitor folders 24/7, classify documents, extract metadata, route workflows, and enforce compliance. $0.01-0.03 per document.
+                    </div>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                    <div style="font-size: 24px; color: #667eea; font-weight: 700; margin-bottom: 16px;">Instant Analytics</div>
+                    <div style="font-size: 18px; opacity: 0.8; line-height: 1.6;">
+                        Ask a question, get a chart. On-demand visual dashboards from live Content Server data. No Tableau. No analysts. No waiting.
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 50px;">
+                <strong>44 purpose-built tools</strong> for OpenText Content Server — search, navigation, documents, versions, workflows, workspaces, records management, permissions, categories, sharing, and more. The only OTCS-native AI platform.
+            </div>
+
+            <div class="slide-number">3</div>
+        </div>
+
+        <!-- Slide 4: Instant Visual Analytics — The Killer Feature -->
+        <div class="slide slide-content" style="background: #0a0a0a;">
+            <div class="logo">ALTIUS</div>
+            <h2 style="color: #ffd700;">Instant Visual Analytics</h2>
+            <h3 style="margin-top: 0;">Ask a question. Get a chart. In seconds.</h3>
+
+            <div class="analytics-examples">
+                <div class="analytics-card">
+                    <div class="prompt">"Show contracts expiring each month this year"</div>
+                    <div class="result-label">Bar chart generated</div>
+                    <div class="result-preview">
+                        <div class="bar" style="height: 30%; background: #667eea;"></div>
+                        <div class="bar" style="height: 55%; background: #667eea;"></div>
+                        <div class="bar" style="height: 80%; background: #ef4444;"></div>
+                        <div class="bar" style="height: 45%; background: #667eea;"></div>
+                        <div class="bar" style="height: 35%; background: #667eea;"></div>
+                        <div class="bar" style="height: 65%; background: #667eea;"></div>
+                        <div class="bar" style="height: 25%; background: #667eea;"></div>
+                        <div class="bar" style="height: 40%; background: #667eea;"></div>
+                        <div class="bar" style="height: 50%; background: #667eea;"></div>
+                        <div class="bar" style="height: 20%; background: #667eea;"></div>
+                        <div class="bar" style="height: 35%; background: #667eea;"></div>
+                        <div class="bar" style="height: 15%; background: #667eea;"></div>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <div class="prompt">"Break down document types in the Legal folder"</div>
+                    <div class="result-label">Pie chart generated</div>
+                    <div class="pie-preview" style="background: conic-gradient(#667eea 0% 45%, #a78bfa 45% 68%, #10b981 68% 82%, #ffd700 82% 92%, #ef4444 92% 100%);"></div>
+                </div>
+                <div class="analytics-card">
+                    <div class="prompt">"Invoice totals by vendor for Q4"</div>
+                    <div class="result-label">Bar chart generated</div>
+                    <div class="result-preview">
+                        <div class="bar" style="height: 90%; background: #10b981;"></div>
+                        <div class="bar" style="height: 65%; background: #10b981;"></div>
+                        <div class="bar" style="height: 50%; background: #10b981;"></div>
+                        <div class="bar" style="height: 40%; background: #10b981;"></div>
+                        <div class="bar" style="height: 75%; background: #10b981;"></div>
+                        <div class="bar" style="height: 30%; background: #10b981;"></div>
+                        <div class="bar" style="height: 55%; background: #10b981;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison" style="margin-top: 40px;">
+                <div class="comparison-side before">
+                    <h4>Traditional OTCS Reporting</h4>
+                    <ul>
+                        <li>Submit ticket to IT / BI team</li>
+                        <li>Wait 1-3 weeks for report</li>
+                        <li>Tableau license: $70-150/user/mo</li>
+                        <li>Custom OTCS connector: $100-300K</li>
+                        <li>Reporting analyst: $80-150K/year</li>
+                    </ul>
+                    <div class="result">$200K-500K/year for content analytics</div>
+                </div>
+                <div class="comparison-side after">
+                    <h4>Altius Analytics</h4>
+                    <ul>
+                        <li>Ask a question, get an answer</li>
+                        <li>Charts in seconds, not weeks</li>
+                        <li>Included in every plan</li>
+                        <li>Live data — never stale</li>
+                        <li>AI interprets results for you</li>
+                    </ul>
+                    <div class="result">Included in your Altius subscription</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <strong>Not just charts — intelligence.</strong> Altius doesn't just plot data. It reads documents, extracts key terms, cross-references across folders, and tells you what matters: "12 high-value contracts expire this quarter. 3 have auto-renewal clauses triggering in 14 days."
+            </div>
+
+            <div class="slide-number">4</div>
+        </div>
+
+        <!-- Slide 5: Plans Overview -->
+        <div class="slide slide-content" style="padding: 50px 60px;">
+            <div class="logo">ALTIUS</div>
+            <h2>Choose Your Plan</h2>
+
+            <div class="pricing-grid">
+                <!-- Starter -->
+                <div class="pricing-card">
+                    <div class="tier-name">Starter</div>
+                    <div class="tier-audience">Small teams & departments</div>
+                    <div class="price">$499</div>
+                    <div class="price-period">per month</div>
+                    <div class="annual-note">$399/mo billed annually (save 20%)</div>
+                    <ul class="feature-list">
+                        <li>Up to 10 users</li>
+                        <li>1,000 AI messages/mo</li>
+                        <li>1 OTCS connection</li>
+                        <li>Core tools (22 of 44)</li>
+                        <li>Built-in charts & analytics</li>
+                        <li>Email support (48hr)</li>
+                        <li>30-day data retention</li>
+                        <li class="disabled">Autonomous agents</li>
+                        <li class="disabled">Workflow automation</li>
+                        <li class="disabled">Records management</li>
+                    </ul>
+                </div>
+
+                <!-- Professional -->
+                <div class="pricing-card featured">
+                    <div class="tier-name">Professional</div>
+                    <div class="tier-audience">Departments & business units</div>
+                    <div class="price">$1,499</div>
+                    <div class="price-period">per month</div>
+                    <div class="annual-note">$1,199/mo billed annually (save 20%)</div>
+                    <ul class="feature-list">
+                        <li>Up to 50 users</li>
+                        <li>5,000 AI messages/mo</li>
+                        <li>5 OTCS connections</li>
+                        <li>All 44 tools</li>
+                        <li>Advanced analytics & dashboards</li>
+                        <li>1 autonomous agent</li>
+                        <li>Workflow automation</li>
+                        <li>Records management</li>
+                        <li>Priority support (24hr)</li>
+                        <li>90-day data retention</li>
+                    </ul>
+                </div>
+
+                <!-- Business -->
+                <div class="pricing-card">
+                    <div class="tier-name">Business</div>
+                    <div class="tier-audience">Multi-department organizations</div>
+                    <div class="price">$2,999</div>
+                    <div class="price-period">per month</div>
+                    <div class="annual-note">$2,399/mo billed annually (save 20%)</div>
+                    <ul class="feature-list">
+                        <li>Up to 200 users</li>
+                        <li>15,000 AI messages/mo</li>
+                        <li>25 OTCS connections</li>
+                        <li>All 44 tools + custom profiles</li>
+                        <li>Unlimited analytics</li>
+                        <li>Unlimited agents & folders</li>
+                        <li>Custom tool configurations</li>
+                        <li>Dedicated Slack channel</li>
+                        <li>1-year data retention</li>
+                        <li>Onboarding included (8 hrs)</li>
+                    </ul>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="pricing-card" style="border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.04);">
+                    <div class="tier-name" style="color: #ffd700;">Enterprise</div>
+                    <div class="tier-audience">Organization-wide & regulated industries</div>
+                    <div class="price" style="font-size: 36px; padding-top: 8px;">Custom</div>
+                    <div class="price-period">starting at $5,999/mo</div>
+                    <div class="annual-note">Annual contract required</div>
+                    <ul class="feature-list">
+                        <li>Unlimited users</li>
+                        <li>Unlimited AI messages</li>
+                        <li>Unlimited connections</li>
+                        <li>All tools + custom development</li>
+                        <li>SSO / SAML integration</li>
+                        <li>99.9% SLA</li>
+                        <li>Dedicated Customer Success Mgr</li>
+                        <li>Audit log export</li>
+                        <li>Implementation included</li>
+                        <li>On-premise option available</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p style="font-size: 16px; opacity: 0.5; margin-top: 24px; text-align: center; width: 100%;">
+                All plans include AES-256 encryption, per-connection TLS, full audit logging, and role-based access control.
+            </p>
+
+            <div class="slide-number">5</div>
+        </div>
+
+        <!-- Slide 6: Feature Comparison Table -->
+        <div class="slide slide-content" style="padding: 50px 80px;">
+            <div class="logo">ALTIUS</div>
+            <h2>Feature Comparison</h2>
+
+            <table style="font-size: 16px; margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Capability</th>
+                        <th style="text-align: center;">Starter<br><span style="font-weight: 400; font-size: 14px;">$499/mo</span></th>
+                        <th style="text-align: center; background: rgba(102, 126, 234, 0.3);">Professional<br><span style="font-weight: 400; font-size: 14px;">$1,499/mo</span></th>
+                        <th style="text-align: center;">Business<br><span style="font-weight: 400; font-size: 14px;">$2,999/mo</span></th>
+                        <th style="text-align: center; background: rgba(255, 215, 0, 0.1); color: #ffd700;">Enterprise<br><span style="font-weight: 400; font-size: 14px;">Custom</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Users</strong></td>
+                        <td style="text-align: center;">10</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">50</td>
+                        <td style="text-align: center;">200</td>
+                        <td style="text-align: center; color: #ffd700;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AI Messages</strong></td>
+                        <td style="text-align: center;">1,000/mo</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">5,000/mo</td>
+                        <td style="text-align: center;">15,000/mo</td>
+                        <td style="text-align: center; color: #ffd700;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OTCS Connections</strong></td>
+                        <td style="text-align: center;">1</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">5</td>
+                        <td style="text-align: center;">25</td>
+                        <td style="text-align: center; color: #ffd700;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tools</strong></td>
+                        <td style="text-align: center;">22 core</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">All 44</td>
+                        <td style="text-align: center;">44 + custom</td>
+                        <td style="text-align: center; color: #ffd700;">44 + custom dev</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Visual Analytics</strong></td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autonomous Agents</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">1 agent</td>
+                        <td style="text-align: center;">Unlimited</td>
+                        <td style="text-align: center; color: #ffd700;">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Workflow Automation</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Records Management</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SSO / SAML</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SLA</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center;">99.5%</td>
+                        <td style="text-align: center; color: #ffd700;">99.9%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Support</strong></td>
+                        <td style="text-align: center;">Email</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">Priority email</td>
+                        <td style="text-align: center;">Dedicated Slack</td>
+                        <td style="text-align: center; color: #ffd700;">Named CSM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Data Retention</strong></td>
+                        <td style="text-align: center;">30 days</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05);">90 days</td>
+                        <td style="text-align: center;">1 year</td>
+                        <td style="text-align: center; color: #ffd700;">Custom</td>
+                    </tr>
+                    <tr>
+                        <td><strong>On-Premise Option</strong></td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; background: rgba(102, 126, 234, 0.05); opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; opacity: 0.3;">&#8212;</td>
+                        <td style="text-align: center; color: #10b981;">&#10003;</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="slide-number">6</div>
+        </div>
+
+        <!-- Slide 7: Enterprise — Flexible for Large Organizations -->
+        <div class="slide slide-content" style="background: linear-gradient(180deg, #0f0f0f 0%, #1a1020 100%);">
+            <div class="logo">ALTIUS</div>
+            <h2 style="color: #ffd700;">Enterprise Pricing</h2>
+            <h3 style="color: #ffd700;">Flexible, negotiable, designed for your scale</h3>
+
+            <p style="font-size: 22px; opacity: 0.85; margin-bottom: 10px;">
+                Enterprise pricing is tailored to your organization's size, deployment model, and requirements.
+                We work with your procurement team to structure the right agreement.
+            </p>
+
+            <div class="enterprise-callout">
+                <h3>Example: 5,000-User Organization</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 20px;">
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.6; margin-bottom: 8px;">HOSTED (SaaS)</div>
+                        <div style="font-size: 42px; font-weight: 900; color: #fff;">$8,999</div>
+                        <div style="font-size: 16px; opacity: 0.6;">/month</div>
+                        <div style="margin-top: 16px; font-size: 15px; line-height: 1.6; opacity: 0.8;">
+                            Unlimited users & messages<br>
+                            SSO/SAML, 99.9% SLA<br>
+                            Dedicated CSM<br>
+                            Implementation included<br>
+                            <strong style="color: #10b981;">$1.80/user/month</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.6; margin-bottom: 8px;">ON-PREMISE LICENSE</div>
+                        <div style="font-size: 42px; font-weight: 900; color: #fff;">$150K</div>
+                        <div style="font-size: 16px; opacity: 0.6;">/year</div>
+                        <div style="margin-top: 16px; font-size: 15px; line-height: 1.6; opacity: 0.8;">
+                            Runs on your infrastructure<br>
+                            Data never leaves your network<br>
+                            20% annual maintenance<br>
+                            Dedicated support engineer<br>
+                            <strong style="color: #10b981;">$2.50/user/month</strong>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 14px; opacity: 0.6; margin-bottom: 8px;">WHAT IT REPLACES</div>
+                        <div style="font-size: 42px; font-weight: 900; color: #ef4444;">$1.2M</div>
+                        <div style="font-size: 16px; opacity: 0.6;">/year in manual labor</div>
+                        <div style="margin-top: 16px; font-size: 15px; line-height: 1.6; opacity: 0.8;">
+                            8-15 FTEs in OTCS operations<br>
+                            BI/reporting infrastructure<br>
+                            Compliance monitoring staff<br>
+                            Custom development projects<br>
+                            <strong style="color: #10b981;">8-13x ROI</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; width: 100%;">
+                <h3>Enterprise includes everything in Business, plus:</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px;">
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>SSO / SAML</strong> — Azure AD, Okta, OneLogin
+                    </div>
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>Audit log export</strong> — SIEM integration
+                    </div>
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>Custom tool development</strong> — your specific workflows
+                    </div>
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>Implementation included</strong> — 40-80 hours
+                    </div>
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>Training sessions</strong> — 2-unlimited included
+                    </div>
+                    <div style="font-size: 18px; padding: 12px 0;">
+                        <span style="color: #10b981; margin-right: 12px;">&#10003;</span>
+                        <strong>On-premise deployment</strong> — Docker, your infrastructure
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-number">7</div>
+        </div>
+
+        <!-- Slide 8: ROI Scenarios -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Return on Investment</h2>
+            <h3>Real scenarios, real savings</h3>
+
+            <div class="roi-grid">
+                <!-- Law Firm -->
+                <div class="roi-card">
+                    <div class="scenario-title">Legal Department — 50 Users</div>
+                    <div class="scenario-desc">Discovery, hold management, contract review</div>
+                    <div class="roi-line">
+                        <span class="roi-label">Recommended plan</span>
+                        <span class="roi-value">Professional — $1,499/mo</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Annual cost</span>
+                        <span class="roi-value">$17,988</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Discovery time saved</span>
+                        <span class="roi-value">600 days/year</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Labor cost replaced</span>
+                        <span class="roi-value">$300,000/year</span>
+                    </div>
+                    <div class="roi-line total">
+                        <span class="roi-label">Return on investment</span>
+                        <span class="roi-value">17x</span>
+                    </div>
+                </div>
+
+                <!-- Manufacturing -->
+                <div class="roi-card">
+                    <div class="scenario-title">Manufacturing — 200 Users</div>
+                    <div class="scenario-desc">Contract management, procurement, compliance</div>
+                    <div class="roi-line">
+                        <span class="roi-label">Recommended plan</span>
+                        <span class="roi-value">Business — $2,999/mo</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Annual cost</span>
+                        <span class="roi-value">$35,988</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Hours saved</span>
+                        <span class="roi-value">4,000 hrs/year</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Labor cost replaced</span>
+                        <span class="roi-value">$200,000/year</span>
+                    </div>
+                    <div class="roi-line total">
+                        <span class="roi-label">Return on investment</span>
+                        <span class="roi-value">6x</span>
+                    </div>
+                </div>
+
+                <!-- Government -->
+                <div class="roi-card">
+                    <div class="scenario-title">Government Agency — 500 Users</div>
+                    <div class="scenario-desc">Records management, compliance, on-premise</div>
+                    <div class="roi-line">
+                        <span class="roi-label">Recommended plan</span>
+                        <span class="roi-value">Enterprise On-Premise</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Year 1 cost</span>
+                        <span class="roi-value">$255,000</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Ongoing annual</span>
+                        <span class="roi-value">$180,000/year</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">FTEs replaced</span>
+                        <span class="roi-value">6 positions ($600K/yr)</span>
+                    </div>
+                    <div class="roi-line total">
+                        <span class="roi-label">Return on investment</span>
+                        <span class="roi-value">3.3x</span>
+                    </div>
+                </div>
+
+                <!-- Solo Admin -->
+                <div class="roi-card">
+                    <div class="scenario-title">OTCS Admin Team — 5 Users</div>
+                    <div class="scenario-desc">Daily admin, search, user management</div>
+                    <div class="roi-line">
+                        <span class="roi-label">Recommended plan</span>
+                        <span class="roi-value">Starter — $499/mo</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Annual cost</span>
+                        <span class="roi-value">$5,988</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Hours saved</span>
+                        <span class="roi-value">15 hrs/week</span>
+                    </div>
+                    <div class="roi-line">
+                        <span class="roi-label">Labor cost replaced</span>
+                        <span class="roi-value">$39,000/year</span>
+                    </div>
+                    <div class="roi-line total">
+                        <span class="roi-label">Return on investment</span>
+                        <span class="roi-value">7x</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-number">8</div>
+        </div>
+
+        <!-- Slide 9: Professional Services -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Professional Services</h2>
+            <h3>Accelerate your deployment with expert support</h3>
+
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-name">Implementation</div>
+                    <div class="service-price">$10,000 — $50,000</div>
+                    <div class="service-desc">
+                        End-to-end setup: OTCS connections, identity integration, tool profiles,
+                        agent configuration, user training, and go-live support. Replace 3-6 weeks
+                        of internal setup with a 3-day expert deployment.
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-name">Custom Agent Development</div>
+                    <div class="service-price">$5,000 — $25,000</div>
+                    <div class="service-desc">
+                        We build autonomous agents for your specific workflows. Document classification,
+                        contract routing, compliance enforcement, invoice processing — tailored to your
+                        folder structures, metadata schemas, and business rules.
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-name">Content Migration</div>
+                    <div class="service-price">$15,000 — $75,000</div>
+                    <div class="service-desc">
+                        Transfer content between OTCS instances or from legacy ECM systems.
+                        Documents, versions, metadata, permissions, and folder structures —
+                        with chain-of-custody verification. Weeks instead of months.
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="service-name">Managed Service</div>
+                    <div class="service-price">$2,000 — $5,000/month</div>
+                    <div class="service-desc">
+                        We operate your Altius deployment: 24/7 monitoring, proactive maintenance,
+                        agent tuning, monthly reporting, and quarterly business reviews.
+                        Set it and forget it.
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; width: 100%;">
+                <div class="service-card" style="border-color: rgba(102, 126, 234, 0.3);">
+                    <div class="service-name">Training Sessions</div>
+                    <div class="service-price">$2,500 per half-day session &nbsp;|&nbsp; 4-session package: $8,000</div>
+                    <div class="service-desc">
+                        Structured training for your teams — from getting started to power user techniques,
+                        agent administration, and compliance workflows. Remote or on-site ($3,500/session).
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-number">9</div>
+        </div>
+
+        <!-- Slide 10: Why Altius vs Alternatives -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Why Altius?</h2>
+            <h3>Compared to the alternatives</h3>
+
+            <table style="font-size: 17px; margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th style="width: 18%;"></th>
+                        <th style="background: rgba(102, 126, 234, 0.4); color: #fff; text-align: center;">Altius</th>
+                        <th style="text-align: center;">Build Custom</th>
+                        <th style="text-align: center;">RPA Vendors</th>
+                        <th style="text-align: center;">Generic AI<br>(ChatGPT/Copilot)</th>
+                        <th style="text-align: center;">OpenText<br>Aviator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OTCS Integration</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">Native — 44 tools</td>
+                        <td style="text-align: center;">6-12 months to build</td>
+                        <td style="text-align: center; color: #ef4444;">Custom scripting</td>
+                        <td style="text-align: center; color: #ef4444;">None</td>
+                        <td style="text-align: center;">Native (limited)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Visual Analytics</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">Built-in, instant</td>
+                        <td style="text-align: center;">Requires Tableau</td>
+                        <td style="text-align: center; color: #ef4444;">No</td>
+                        <td style="text-align: center; color: #ef4444;">No OTCS data</td>
+                        <td style="text-align: center; color: #ef4444;">No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Time to Value</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); font-weight: 700;">Days</td>
+                        <td style="text-align: center;">6-18 months</td>
+                        <td style="text-align: center;">3-6 months</td>
+                        <td style="text-align: center;">Immediate (no OTCS)</td>
+                        <td style="text-align: center;">Months</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Cost (Year 1)</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); font-weight: 700;">$6K-108K</td>
+                        <td style="text-align: center;">$200K-2M</td>
+                        <td style="text-align: center;">$150K-500K</td>
+                        <td style="text-align: center;">$7K-36K (no value)</td>
+                        <td style="text-align: center;">Bundled $$$</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autonomous Agents</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">Built-in</td>
+                        <td style="text-align: center;">Build from scratch</td>
+                        <td style="text-align: center;">Brittle bots</td>
+                        <td style="text-align: center; color: #ef4444;">No</td>
+                        <td style="text-align: center; color: #ef4444;">No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Failure Rate</strong></td>
+                        <td style="text-align: center; background: rgba(16, 185, 129, 0.15); font-weight: 700;">Production-ready</td>
+                        <td style="text-align: center;">High risk</td>
+                        <td style="text-align: center; color: #ef4444;">30-50% fail</td>
+                        <td style="text-align: center;">N/A</td>
+                        <td style="text-align: center;">Unproven</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <strong>The bottom line:</strong> Altius is the only platform that combines native OTCS integration,
+                conversational AI, autonomous agents, and instant visual analytics — ready to deploy in days,
+                not months.
+            </div>
+
+            <div class="slide-number">10</div>
+        </div>
+
+        <!-- Slide 11: How It Works — Before & After -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>See the Difference</h2>
+            <h3>Real workflow: Contract arrives for processing</h3>
+
+            <div class="comparison" style="margin-top: 20px;">
+                <div class="comparison-side before">
+                    <h4>Without Altius</h4>
+                    <ul>
+                        <li>Open OTCS, navigate 5+ folder levels</li>
+                        <li>Manually read contract (30-60 min)</li>
+                        <li>Type metadata into 8+ fields</li>
+                        <li>Email manager for approval</li>
+                        <li>Manager logs in, finds task, reviews</li>
+                        <li>Email back with approval</li>
+                        <li>File in correct location</li>
+                        <li>Update tracking spreadsheet</li>
+                    </ul>
+                    <div class="result">
+                        2-4 hours per contract<br>
+                        $80-160 per contract<br>
+                        5-15% error rate
+                    </div>
+                </div>
+                <div class="comparison-side after">
+                    <h4>With Altius</h4>
+                    <ul>
+                        <li>Upload to watched folder</li>
+                        <li>AI reads, extracts all fields (30 sec)</li>
+                        <li>Auto-classifies by type and risk</li>
+                        <li>Workflow started with pre-filled data</li>
+                        <li>Manager gets notification, reviews summary</li>
+                        <li>"Approve" — one word in chat</li>
+                        <li>Filed, classified, retention applied</li>
+                        <li>Full audit trail, zero manual entry</li>
+                    </ul>
+                    <div class="result">
+                        5 minutes per contract<br>
+                        $0.15 AI cost per contract<br>
+                        Near-zero error rate
+                    </div>
+                </div>
+            </div>
+
+            <div class="impact-grid impact-grid-3" style="margin-top: 50px;">
+                <div class="impact-item" style="text-align: center;">
+                    <div class="metric">95%</div>
+                    <div class="description">Faster Processing</div>
+                </div>
+                <div class="impact-item" style="text-align: center;">
+                    <div class="metric">99%</div>
+                    <div class="description">Cost Reduction</div>
+                </div>
+                <div class="impact-item" style="text-align: center;">
+                    <div class="metric">0%</div>
+                    <div class="description">Manual Data Entry</div>
+                </div>
+            </div>
+
+            <div class="slide-number">11</div>
+        </div>
+
+        <!-- Slide 12: Security & Compliance -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS</div>
+            <h2>Enterprise-Grade Security</h2>
+            <h3>Built for regulated industries from day one</h3>
+
+            <div class="stats-grid stats-grid-4" style="margin-top: 30px;">
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">🔐</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 10px;">Encryption</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">AES-256-GCM for stored credentials. TLS 1.2+ for all connections. Per-connection certificate management.</div>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">🛡️</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 10px;">Access Control</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Role-based access. Per-org isolation. SSO/SAML support. JWT sessions. CSRF protection.</div>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">📋</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 10px;">Audit Trail</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Every action logged. Every tool call recorded. Full usage tracking. Exportable audit logs.</div>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">🏠</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 10px;">On-Premise</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Self-hosted option. Data never leaves your network. Docker deployment. Your infrastructure, your control.</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <strong>Your data stays yours.</strong> Altius connects to your Content Server using your credentials,
+                encrypted at rest and in transit. Document content is processed by AI for your query and is not stored,
+                trained on, or shared. On-premise deployments keep everything inside your security perimeter.
+            </div>
+
+            <div style="margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%;">
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> Security headers (CSP, HSTS)
+                </div>
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> Rate limiting & DDoS protection
+                </div>
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> Environment variable validation
+                </div>
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> Input validation (Zod schemas)
+                </div>
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> CORS policy enforcement
+                </div>
+                <div style="font-size: 18px; padding: 16px 0; text-align: center;">
+                    <span style="color: #10b981; font-weight: 700; margin-right: 8px;">&#10003;</span> Automated CI/CD pipeline
+                </div>
+            </div>
+
+            <div class="slide-number">12</div>
+        </div>
+
+        <!-- Slide 13: Getting Started -->
+        <div class="slide slide-content" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items: center; text-align: center;">
+            <h2 style="color: #fff; font-size: 64px; margin-bottom: 30px;">Get Started</h2>
+
+            <p style="font-size: 26px; max-width: 800px; line-height: 1.7; margin-bottom: 50px; opacity: 0.95;">
+                See Altius in action with your own Content Server data.<br>
+                No commitment, no risk.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1000px; width: 100%;">
+                <div style="background: rgba(0, 0, 0, 0.25); padding: 40px 30px; border-radius: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">1</div>
+                    <div style="font-size: 22px; font-weight: 700; margin-bottom: 12px;">Schedule a Demo</div>
+                    <div style="font-size: 17px; opacity: 0.85; line-height: 1.5;">
+                        30-minute live demo with your use cases. See Altius query, analyze, and visualize your content in real time.
+                    </div>
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.25); padding: 40px 30px; border-radius: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">2</div>
+                    <div style="font-size: 22px; font-weight: 700; margin-bottom: 12px;">Pilot Program</div>
+                    <div style="font-size: 17px; opacity: 0.85; line-height: 1.5;">
+                        90-day free pilot. Full platform access. We handle setup and onboarding. Measure real ROI on your workflows.
+                    </div>
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.25); padding: 40px 30px; border-radius: 20px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">3</div>
+                    <div style="font-size: 22px; font-weight: 700; margin-bottom: 12px;">Go Live</div>
+                    <div style="font-size: 17px; opacity: 0.85; line-height: 1.5;">
+                        Choose the plan that fits. Deploy in days, not months. Start saving immediately.
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 60px; font-size: 20px; opacity: 0.8;">
+                20% discount on annual plans &nbsp;|&nbsp; Volume pricing for 100+ users &nbsp;|&nbsp; Enterprise terms negotiable
+            </div>
+
+            <div class="slide-number">13</div>
+        </div>
+
+        <!-- Slide 14: Closing -->
+        <div class="slide slide-title" style="background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);">
+            <h1 style="font-size: 72px; margin-bottom: 20px;">Intelligence at Scale</h1>
+            <div class="tagline" style="font-size: 28px; margin-bottom: 60px;">For Enterprise Content</div>
+
+            <div style="max-width: 900px; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; text-align: left; font-size: 20px; line-height: 1.8;">
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> 44 native OTCS tools
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> Instant visual analytics
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> Autonomous document agents
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> Zero training required
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> Enterprise security & compliance
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> On-premise option available
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> Deploy in days, not months
+                    </div>
+                    <div>
+                        <span style="color: #667eea; font-weight: 700; margin-right: 8px;">&#9654;</span> 7-17x typical ROI
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 60px; font-size: 32px; line-height: 1.6; text-align: center;">
+                <strong style="color: #ffd700;">Plans from $499/month</strong><br>
+                <span style="font-size: 22px; opacity: 0.7;">Enterprise and on-premise pricing available</span>
+            </div>
+
+            <div style="margin-top: 80px; font-size: 22px; opacity: 0.7; text-align: center;">
+                <strong>Let's talk.</strong><br><br>
+                <span style="font-size: 18px;">
+                    [Your Name] &nbsp;&bull;&nbsp; [your@email.com] &nbsp;&bull;&nbsp; [phone]<br>
+                    [company-website.com]
+                </span>
+            </div>
+
+            <div class="slide-number">14</div>
+        </div>
+
+    </div>
+
+    <div class="nav-hint">&#8593; &#8595; Arrow keys to navigate &nbsp;&bull;&nbsp; Space for next slide</div>
+
+    <script>
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const slides = document.querySelectorAll('.slide');
+            const container = document.querySelector('.slide-container');
+            const currentSlide = Math.round(container.scrollTop / window.innerHeight);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                if (currentSlide < slides.length - 1) {
+                    slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentSlide > 0) {
+                    slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                slides[0].scrollIntoView({ behavior: 'smooth' });
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Fade out nav hint after 5 seconds
+        setTimeout(() => {
+            document.querySelector('.nav-hint').style.opacity = '0';
+        }, 5000);
+
+        // Show nav hint on mouse move near bottom
+        document.addEventListener('mousemove', (e) => {
+            const hint = document.querySelector('.nav-hint');
+            if (e.clientY > window.innerHeight - 80) {
+                hint.style.opacity = '0.4';
+            }
+        });
+
+        // Print instructions
+        console.log('Altius Pricing Deck');
+        console.log('Navigation: Arrow keys, Space, Home, End');
+        console.log('Print: Ctrl/Cmd+P to export as PDF');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altius — API Cost Analysis & Forecasting</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            position: relative;
+            scroll-snap-align: start;
+            overflow: visible;
+        }
+
+        .slide-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Title slide */
+        .slide-title {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f1f3d 100%);
+        }
+
+        .slide-title h1 {
+            font-size: 100px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            color: #60a5fa;
+        }
+
+        .slide-title .tagline {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 50px;
+            opacity: 0.9;
+        }
+
+        .slide-title .hook {
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.7;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .slide-title .hook strong { color: #fbbf24; }
+
+        /* Content slides */
+        .slide-content {
+            background: #0f0f0f;
+            align-items: flex-start;
+            padding: 50px 80px;
+            overflow-y: auto;
+            max-width: 100vw;
+        }
+
+        .slide-content h2 {
+            font-size: 44px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #60a5fa;
+        }
+
+        .slide-content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 24px 0 16px 0;
+            color: #93c5fd;
+        }
+
+        .slide-content p, .slide-content li {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .slide-content ul { list-style: none; padding-left: 0; }
+
+        .slide-content li { padding-left: 36px; position: relative; }
+
+        .slide-content li:before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; font-size: 16px; }
+
+        table th {
+            background: rgba(96, 165, 250, 0.15);
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #60a5fa;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        table tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        table .highlight-row { background: rgba(251, 191, 36, 0.08); }
+        table .danger-row { background: rgba(239, 68, 68, 0.1); }
+        table .success-row { background: rgba(16, 185, 129, 0.08); }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .stats-grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .stats-grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+        .stat-card {
+            background: rgba(96, 165, 250, 0.08);
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .stat-card .number {
+            font-size: 48px;
+            font-weight: 900;
+            color: #60a5fa;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            font-size: 16px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        .stat-card.warn {
+            background: rgba(251, 191, 36, 0.08);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .stat-card.warn .number { color: #fbbf24; }
+
+        .stat-card.danger {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .stat-card.danger .number { color: #ef4444; }
+
+        .stat-card.success {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .stat-card.success .number { color: #10b981; }
+
+        /* Highlight boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.12), rgba(96, 165, 250, 0.04));
+            border-left: 4px solid #60a5fa;
+            padding: 20px 24px;
+            margin: 24px 0;
+            font-size: 19px;
+            line-height: 1.6;
+            border-radius: 8px;
+        }
+
+        .highlight-box strong { color: #fbbf24; }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
+            border-left-color: #ef4444;
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+            border-left-color: #10b981;
+        }
+
+        .highlight-box.warn {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04));
+            border-left-color: #fbbf24;
+        }
+
+        /* Model comparison bars */
+        .model-bar-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .model-bar-label {
+            width: 120px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .model-bar-track {
+            flex: 1;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            margin: 0 16px;
+        }
+
+        .model-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding-left: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .model-bar-value {
+            width: 80px;
+            text-align: right;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Flow diagram */
+        .flow-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px 24px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .flow-arrow {
+            font-size: 28px;
+            color: #60a5fa;
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        /* Margin meter */
+        .margin-meter {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .margin-meter-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        /* Slide number */
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 16px;
+            opacity: 0.4;
+        }
+
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .logo span {
+            font-size: 13px;
+            font-weight: 400;
+            opacity: 0.5;
+            margin-left: 12px;
+        }
+
+        /* Nav hint */
+        .nav-hint {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            opacity: 0.35;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        /* Two-col layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        @media print {
+            .slide { page-break-after: always; }
+            .nav-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title">
+            <h1>ALTIUS</h1>
+            <div class="tagline">API Cost Analysis & Forecasting</div>
+            <div class="hook">
+                Token economics across every tier, model, and deployment scenario.<br><br>
+                <strong>Altius absorbs all Anthropic API costs</strong> — this document models<br>
+                what it actually costs to serve each customer tier and where margins live.
+            </div>
+            <div style="margin-top: 50px; display: flex; gap: 40px; font-size: 18px; opacity: 0.6;">
+                <span>Claude Sonnet 4.5</span>
+                <span>Claude Opus 4.6</span>
+                <span>Claude Haiku 4.5</span>
+                <span>February 2026</span>
+            </div>
+            <div class="slide-number">1</div>
+        </div>
+
+        <!-- Slide 2: Anthropic Retail Pricing -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Anthropic API Pricing (Retail)</h2>
+            <h3>Per Million Tokens — February 2026</h3>
+
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th style="text-align: right;">Input</th>
+                        <th style="text-align: right;">Output</th>
+                        <th style="text-align: right;">Cache Write</th>
+                        <th style="text-align: right;">Cache Read</th>
+                        <th style="text-align: right;">Batch Input</th>
+                        <th style="text-align: right;">Batch Output</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight-row">
+                        <td><strong>Opus 4.6 / 4.5</strong></td>
+                        <td style="text-align: right;">$5.00</td>
+                        <td style="text-align: right;">$25.00</td>
+                        <td style="text-align: right;">$6.25</td>
+                        <td style="text-align: right;">$0.50</td>
+                        <td style="text-align: right;">$2.50</td>
+                        <td style="text-align: right;">$12.50</td>
+                    </tr>
+                    <tr style="background: rgba(96, 165, 250, 0.06);">
+                        <td><strong>Sonnet 4.5 / 4</strong></td>
+                        <td style="text-align: right;">$3.00</td>
+                        <td style="text-align: right;">$15.00</td>
+                        <td style="text-align: right;">$3.75</td>
+                        <td style="text-align: right;">$0.30</td>
+                        <td style="text-align: right;">$1.50</td>
+                        <td style="text-align: right;">$7.50</td>
+                    </tr>
+                    <tr class="success-row">
+                        <td><strong>Haiku 4.5</strong></td>
+                        <td style="text-align: right;">$1.00</td>
+                        <td style="text-align: right;">$5.00</td>
+                        <td style="text-align: right;">$1.25</td>
+                        <td style="text-align: right;">$0.10</td>
+                        <td style="text-align: right;">$0.50</td>
+                        <td style="text-align: right;">$2.50</td>
+                    </tr>
+                    <tr style="opacity: 0.4;">
+                        <td>Opus 4.1 (legacy)</td>
+                        <td style="text-align: right;">$15.00</td>
+                        <td style="text-align: right;">$75.00</td>
+                        <td style="text-align: right;">$18.75</td>
+                        <td style="text-align: right;">$1.50</td>
+                        <td style="text-align: right;">$7.50</td>
+                        <td style="text-align: right;">$37.50</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Key Multipliers</h3>
+            <div class="stats-grid stats-grid-4" style="margin-top: 12px;">
+                <div class="stat-card success">
+                    <div class="number" style="font-size: 36px;">90%</div>
+                    <div class="label">Cache read savings<br>(0.1x input price)</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="number" style="font-size: 36px;">50%</div>
+                    <div class="label">Batch API discount<br>(async processing)</div>
+                </div>
+                <div class="stat-card warn">
+                    <div class="number" style="font-size: 36px;">2x</div>
+                    <div class="label">Long context premium<br>(>200K input tokens)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="font-size: 36px;">346</div>
+                    <div class="label">Tool-use overhead<br>(tokens per request)</div>
+                </div>
+            </div>
+
+            <div class="slide-number">2</div>
+        </div>
+
+        <!-- Slide 3: Enterprise Discounts -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Enterprise Volume Discounts</h2>
+            <h3>Estimated — Anthropic does not publish enterprise rates</h3>
+
+            <table style="margin-top: 16px; font-size: 18px;">
+                <thead>
+                    <tr>
+                        <th>Annual Commitment</th>
+                        <th>Estimated Discount</th>
+                        <th>Rate Limits</th>
+                        <th>Support</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>< $50K/year</td>
+                        <td>0% (retail)</td>
+                        <td>Standard Tier 1-2</td>
+                        <td>Community</td>
+                    </tr>
+                    <tr>
+                        <td>$50-100K/year</td>
+                        <td style="color: #10b981;">10-15%</td>
+                        <td>Tier 3-4</td>
+                        <td>Dedicated support</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong>$100-250K/year</strong></td>
+                        <td style="color: #10b981;"><strong>15-20%</strong></td>
+                        <td>Custom</td>
+                        <td>Named account mgr</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong>$250K-1M/year</strong></td>
+                        <td style="color: #10b981;"><strong>20-25%</strong></td>
+                        <td>Custom</td>
+                        <td>Priority access</td>
+                    </tr>
+                    <tr class="success-row">
+                        <td><strong>$1M+/year</strong></td>
+                        <td style="color: #10b981; font-weight: 700;"><strong>25-30%</strong></td>
+                        <td>Custom</td>
+                        <td>Custom terms</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <strong>Altius API Spend Trajectory:</strong><br>
+                Year 1: ~$240K (15-20% discount) &nbsp;&rarr;&nbsp;
+                Year 2: ~$954K (25-30% discount) &nbsp;&rarr;&nbsp;
+                Year 3: ~$2.17M (30%+ discount)
+            </div>
+
+            <div class="highlight-box warn">
+                <strong>Action item:</strong> Contact Anthropic enterprise sales proactively at $100K/year run-rate (~Month 6).
+                Negotiate committed use discount before Year 2 begins. The difference between 0% and 25% discount on $1M/year = <strong>$250K saved.</strong>
+            </div>
+
+            <div class="slide-number">3</div>
+        </div>
+
+        <!-- Slide 4: How Altius Consumes Tokens -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>How Altius Consumes Tokens</h2>
+            <h3>Fixed overhead per API call</h3>
+
+            <div class="three-col" style="margin-top: 16px;">
+                <div class="stat-card">
+                    <div class="number" style="font-size: 36px;">2,054</div>
+                    <div class="label">System prompt tokens<br>Navigation, tools reference, charts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="font-size: 36px;">9,400</div>
+                    <div class="label">Tool schema tokens<br>42 OTCS tools, JSON Schema defs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="font-size: 36px;">346</div>
+                    <div class="label">Tool-use overhead<br>Anthropic internal prompt</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 24px 0; font-size: 28px; color: #60a5fa; font-weight: 700;">
+                Total fixed overhead: 11,800 tokens per API call
+            </div>
+
+            <h3>Prompt Caching Savings (Already Built)</h3>
+
+            <div class="two-col" style="margin-top: 12px;">
+                <div>
+                    <div class="stat-card danger" style="margin-bottom: 16px;">
+                        <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">FIRST REQUEST (cache miss)</div>
+                        <div class="number" style="font-size: 32px;">$0.044</div>
+                        <div class="label">11,800 tokens x $3.75/MTok cache write</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="stat-card success" style="margin-bottom: 16px;">
+                        <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">SUBSEQUENT REQUESTS (cache hit)</div>
+                        <div class="number" style="font-size: 32px;">$0.004</div>
+                        <div class="label">11,800 tokens x $0.30/MTok cache read</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box success">
+                <strong>92% reduction</strong> on fixed overhead after first request in a 5-minute window.
+                Active users hit cache on nearly every call. System prompt + tool schemas cached together via <code>cache_control: { type: 'ephemeral' }</code>.
+            </div>
+
+            <h3>Agent Optimization</h3>
+            <p style="font-size: 18px;">
+                Autonomous agents use a <strong>filtered 13-tool set</strong> (~3,100 tokens vs 9,400).
+                <strong>67% schema overhead reduction</strong> compared to the full web UI toolset.
+            </p>
+
+            <div class="slide-number">4</div>
+        </div>
+
+        <!-- Slide 5: Cost Per Message -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Cost Per Message</h2>
+            <h3>Weighted average across query types (Sonnet 4.5, cache warm)</h3>
+
+            <table style="margin-top: 12px;">
+                <thead>
+                    <tr>
+                        <th>Query Type</th>
+                        <th style="text-align: center;">% of Messages</th>
+                        <th style="text-align: center;">Tool Calls</th>
+                        <th style="text-align: center;">API Rounds</th>
+                        <th style="text-align: right;">Cost/Msg</th>
+                        <th style="text-align: right;">Weighted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Conversational (no tools)</td>
+                        <td style="text-align: center;">15%</td>
+                        <td style="text-align: center;">0</td>
+                        <td style="text-align: center;">1</td>
+                        <td style="text-align: right;">$0.008</td>
+                        <td style="text-align: right;">$0.0012</td>
+                    </tr>
+                    <tr>
+                        <td>Simple (search, browse)</td>
+                        <td style="text-align: center;">45%</td>
+                        <td style="text-align: center;">1-2</td>
+                        <td style="text-align: center;">2</td>
+                        <td style="text-align: right;">$0.024</td>
+                        <td style="text-align: right;">$0.0108</td>
+                    </tr>
+                    <tr>
+                        <td>Medium (workflow, extraction)</td>
+                        <td style="text-align: center;">25%</td>
+                        <td style="text-align: center;">3-4</td>
+                        <td style="text-align: center;">2-3</td>
+                        <td style="text-align: right;">$0.054</td>
+                        <td style="text-align: right;">$0.0135</td>
+                    </tr>
+                    <tr>
+                        <td>Complex (analytics, multi-step)</td>
+                        <td style="text-align: center;">12%</td>
+                        <td style="text-align: center;">5-8</td>
+                        <td style="text-align: center;">3-5</td>
+                        <td style="text-align: right;">$0.090</td>
+                        <td style="text-align: right;">$0.0108</td>
+                    </tr>
+                    <tr>
+                        <td>Maximum (10 tool rounds)</td>
+                        <td style="text-align: center;">3%</td>
+                        <td style="text-align: center;">10</td>
+                        <td style="text-align: center;">5-6</td>
+                        <td style="text-align: right;">$0.150</td>
+                        <td style="text-align: right;">$0.0045</td>
+                    </tr>
+                    <tr style="background: rgba(96, 165, 250, 0.1); font-weight: 700;">
+                        <td>Base weighted average</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="text-align: right; color: #60a5fa;">$0.041</td>
+                    </tr>
+                    <tr style="background: rgba(96, 165, 250, 0.15); font-weight: 700;">
+                        <td>+ conversation history growth</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="text-align: right; color: #60a5fa;">+$0.007</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 24px;">Effective Cost Per Message by Model</h3>
+
+            <!-- Visual bars -->
+            <div style="margin-top: 16px; width: 100%;">
+                <div class="model-bar-group">
+                    <div class="model-bar-label" style="color: #10b981;">Haiku 4.5</div>
+                    <div class="model-bar-track">
+                        <div class="model-bar-fill" style="width: 20%; background: linear-gradient(90deg, #10b981, #059669);">$0.016</div>
+                    </div>
+                    <div class="model-bar-value" style="color: #10b981;">$0.016</div>
+                </div>
+                <div class="model-bar-group">
+                    <div class="model-bar-label" style="color: #60a5fa;">Sonnet 4.5</div>
+                    <div class="model-bar-track">
+                        <div class="model-bar-fill" style="width: 60%; background: linear-gradient(90deg, #60a5fa, #3b82f6);">$0.048</div>
+                    </div>
+                    <div class="model-bar-value" style="color: #60a5fa;">$0.048</div>
+                </div>
+                <div class="model-bar-group">
+                    <div class="model-bar-label" style="color: #fbbf24;">Opus 4.6</div>
+                    <div class="model-bar-track">
+                        <div class="model-bar-fill" style="width: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b);">$0.080</div>
+                    </div>
+                    <div class="model-bar-value" style="color: #fbbf24;">$0.080</div>
+                </div>
+            </div>
+
+            <p style="font-size: 15px; opacity: 0.4; margin-top: 16px;">Retail pricing. Enterprise -20% reduces each by ~20%. Batch API halves these for async workloads.</p>
+
+            <div class="slide-number">5</div>
+        </div>
+
+        <!-- Slide 6: Agent Processing Costs -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Agent Processing Costs</h2>
+            <h3>Per-document cost — autonomous agent with filtered 13-tool set</h3>
+
+            <div class="three-col" style="margin-top: 16px;">
+                <div class="stat-card success">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">HAIKU 4.5</div>
+                    <div class="number" style="font-size: 40px;">$0.012</div>
+                    <div class="label">per document (retail)</div>
+                    <div style="margin-top: 12px; font-size: 14px; opacity: 0.5;">Enterprise: $0.009 &nbsp;|&nbsp; Batch: $0.006</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">SONNET 4.5</div>
+                    <div class="number" style="font-size: 40px;">$0.035</div>
+                    <div class="label">per document (retail)</div>
+                    <div style="margin-top: 12px; font-size: 14px; opacity: 0.5;">Enterprise: $0.028 &nbsp;|&nbsp; Batch: $0.018</div>
+                </div>
+                <div class="stat-card warn">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">OPUS 4.6</div>
+                    <div class="number" style="font-size: 40px;">$0.058</div>
+                    <div class="label">per document (retail)</div>
+                    <div style="margin-top: 12px; font-size: 14px; opacity: 0.5;">Enterprise: $0.047 &nbsp;|&nbsp; Batch: $0.029</div>
+                </div>
+            </div>
+
+            <h3>Monthly Agent Cost at Scale</h3>
+
+            <table style="margin-top: 12px;">
+                <thead>
+                    <tr>
+                        <th>Docs/Day</th>
+                        <th style="text-align: right;">Docs/Month</th>
+                        <th style="text-align: right; color: #10b981;">Haiku (retail)</th>
+                        <th style="text-align: right; color: #60a5fa;">Sonnet (retail)</th>
+                        <th style="text-align: right; color: #10b981;">Haiku (ent -20%)</th>
+                        <th style="text-align: right; color: #60a5fa;">Sonnet (ent -20%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>50</td>
+                        <td style="text-align: right;">1,100</td>
+                        <td style="text-align: right; color: #10b981;">$13</td>
+                        <td style="text-align: right;">$39</td>
+                        <td style="text-align: right; color: #10b981;">$10</td>
+                        <td style="text-align: right;">$31</td>
+                    </tr>
+                    <tr>
+                        <td>200</td>
+                        <td style="text-align: right;">4,400</td>
+                        <td style="text-align: right; color: #10b981;">$53</td>
+                        <td style="text-align: right;">$154</td>
+                        <td style="text-align: right; color: #10b981;">$40</td>
+                        <td style="text-align: right;">$123</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong>1,000</strong></td>
+                        <td style="text-align: right;"><strong>22,000</strong></td>
+                        <td style="text-align: right; color: #10b981;"><strong>$264</strong></td>
+                        <td style="text-align: right;"><strong>$770</strong></td>
+                        <td style="text-align: right; color: #10b981;"><strong>$198</strong></td>
+                        <td style="text-align: right;"><strong>$616</strong></td>
+                    </tr>
+                    <tr class="danger-row">
+                        <td><strong>5,000</strong></td>
+                        <td style="text-align: right;"><strong>110,000</strong></td>
+                        <td style="text-align: right; color: #10b981;"><strong>$1,320</strong></td>
+                        <td style="text-align: right; color: #ef4444;"><strong>$3,850</strong></td>
+                        <td style="text-align: right; color: #10b981;"><strong>$990</strong></td>
+                        <td style="text-align: right; color: #ef4444;"><strong>$3,080</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box success" style="margin-top: 24px;">
+                <strong>Key insight:</strong> Agent tasks (classify, route, apply holds) are rule-based pattern matching.
+                Haiku handles these at <strong>$0.012/doc vs Sonnet's $0.035/doc</strong> — a 65% savings with comparable accuracy for classification workloads.
+                <strong>Haiku for agents is non-negotiable at scale.</strong>
+            </div>
+
+            <div class="slide-number">6</div>
+        </div>
+
+        <!-- Slide 7: Tier Margin Analysis -->
+        <div class="slide slide-content" style="padding: 40px 70px;">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Tier Margin Analysis</h2>
+            <h3>Sonnet 4.5 + enterprise -20% discount + Haiku agents</h3>
+
+            <!-- Starter -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; width: 100%; margin-top: 16px;">
+                <div class="stat-card success" style="padding: 20px;">
+                    <div style="font-size: 13px; opacity: 0.5; margin-bottom: 4px;">STARTER &mdash; $499/mo</div>
+                    <div style="font-size: 14px; margin-bottom: 12px; opacity: 0.6;">1,000 msgs &bull; No agents</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">API Cost</span>
+                        <span style="font-size: 16px; font-weight: 700;">$32</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">Margin</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #10b981;">$457</span>
+                    </div>
+                    <div class="margin-meter">
+                        <div class="margin-meter-fill" style="width: 92%; background: #10b981;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 8px; font-size: 28px; font-weight: 900; color: #10b981;">92%</div>
+                </div>
+
+                <!-- Professional -->
+                <div class="stat-card success" style="padding: 20px;">
+                    <div style="font-size: 13px; opacity: 0.5; margin-bottom: 4px;">PROFESSIONAL &mdash; $1,499/mo</div>
+                    <div style="font-size: 14px; margin-bottom: 12px; opacity: 0.6;">5K msgs &bull; 1 agent (50 docs/day)</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">API Cost</span>
+                        <span style="font-size: 16px; font-weight: 700;">$200</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">Margin</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #10b981;">$1,284</span>
+                    </div>
+                    <div class="margin-meter">
+                        <div class="margin-meter-fill" style="width: 87%; background: #10b981;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 8px; font-size: 28px; font-weight: 900; color: #10b981;">87%</div>
+                </div>
+
+                <!-- Business -->
+                <div class="stat-card" style="padding: 20px; border-color: rgba(96, 165, 250, 0.3);">
+                    <div style="font-size: 13px; opacity: 0.5; margin-bottom: 4px;">BUSINESS &mdash; $2,999/mo</div>
+                    <div style="font-size: 14px; margin-bottom: 12px; opacity: 0.6;">15K msgs &bull; 5 agents (100/day ea)</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">API Cost</span>
+                        <span style="font-size: 16px; font-weight: 700;">$676</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">Margin</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #60a5fa;">$2,298</span>
+                    </div>
+                    <div class="margin-meter">
+                        <div class="margin-meter-fill" style="width: 77%; background: #60a5fa;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 8px; font-size: 28px; font-weight: 900; color: #60a5fa;">77%</div>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="stat-card" style="padding: 20px; border-color: rgba(251, 191, 36, 0.3);">
+                    <div style="font-size: 13px; opacity: 0.5; margin-bottom: 4px;">ENTERPRISE &mdash; $8,999/mo</div>
+                    <div style="font-size: 14px; margin-bottom: 12px; opacity: 0.6;">50K msgs &bull; 20 agents (200/day ea)</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">API Cost</span>
+                        <span style="font-size: 16px; font-weight: 700;">$2,692</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 14px; opacity: 0.6;">Margin</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #fbbf24;">$6,257</span>
+                    </div>
+                    <div class="margin-meter">
+                        <div class="margin-meter-fill" style="width: 70%; background: #fbbf24;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 8px; font-size: 28px; font-weight: 900; color: #fbbf24;">70%</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 24px;">Full Comparison: Retail vs Optimized</h3>
+
+            <table style="margin-top: 8px; font-size: 15px;">
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th style="text-align: right;">Subscription</th>
+                        <th style="text-align: right;">Sonnet Retail</th>
+                        <th style="text-align: right;">Margin (retail)</th>
+                        <th style="text-align: right;">Optimized*</th>
+                        <th style="text-align: right;">Margin (opt)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Starter</td>
+                        <td style="text-align: right;">$499</td>
+                        <td style="text-align: right;">$48</td>
+                        <td style="text-align: right; color: #10b981;">90%</td>
+                        <td style="text-align: right;">$32</td>
+                        <td style="text-align: right; color: #10b981; font-weight: 700;">92%</td>
+                    </tr>
+                    <tr>
+                        <td>Professional</td>
+                        <td style="text-align: right;">$1,499</td>
+                        <td style="text-align: right;">$279</td>
+                        <td style="text-align: right; color: #10b981;">81%</td>
+                        <td style="text-align: right;">$200</td>
+                        <td style="text-align: right; color: #10b981; font-weight: 700;">87%</td>
+                    </tr>
+                    <tr>
+                        <td>Business</td>
+                        <td style="text-align: right;">$2,999</td>
+                        <td style="text-align: right;">$1,105</td>
+                        <td style="text-align: right; color: #60a5fa;">63%</td>
+                        <td style="text-align: right;">$676</td>
+                        <td style="text-align: right; color: #10b981; font-weight: 700;">77%</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise</td>
+                        <td style="text-align: right;">$8,999</td>
+                        <td style="text-align: right;">$5,480</td>
+                        <td style="text-align: right; color: #fbbf24;">39%</td>
+                        <td style="text-align: right;">$2,692</td>
+                        <td style="text-align: right; color: #10b981; font-weight: 700;">70%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 13px; opacity: 0.4; margin-top: 8px;">*Optimized = Enterprise -20% discount + Haiku for agent processing</p>
+
+            <div class="slide-number">7</div>
+        </div>
+
+        <!-- Slide 8: The 5,000-User Problem -->
+        <div class="slide slide-content" style="background: linear-gradient(180deg, #0f0f0f 0%, #1a0a0a 100%);">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2 style="color: #ef4444;">The 5,000-User Problem</h2>
+            <h3 style="color: #ef4444;">Enterprise flat-rate pricing collapses at scale</h3>
+
+            <div class="two-col" style="margin-top: 16px;">
+                <div>
+                    <h3>Usage Model</h3>
+                    <table style="font-size: 15px;">
+                        <thead>
+                            <tr><th>Segment</th><th style="text-align: right;">Users</th><th style="text-align: right;">Msgs/Day</th><th style="text-align: right;">Daily Total</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Power (10%)</td><td style="text-align: right;">500</td><td style="text-align: right;">15</td><td style="text-align: right;">7,500</td></tr>
+                            <tr><td>Regular (25%)</td><td style="text-align: right;">1,250</td><td style="text-align: right;">5</td><td style="text-align: right;">6,250</td></tr>
+                            <tr><td>Light (30%)</td><td style="text-align: right;">1,500</td><td style="text-align: right;">2</td><td style="text-align: right;">3,000</td></tr>
+                            <tr><td>Occasional (35%)</td><td style="text-align: right;">1,750</td><td style="text-align: right;">0.3</td><td style="text-align: right;">525</td></tr>
+                            <tr style="font-weight: 700; background: rgba(239, 68, 68, 0.1);"><td>Total</td><td style="text-align: right;">5,000</td><td></td><td style="text-align: right; color: #ef4444;">17,275</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 16px; margin-top: 12px;">Monthly: <strong style="color: #ef4444;">380,050 messages</strong></p>
+                    <p style="font-size: 16px;">Plus 50 agents x 500 docs/day = <strong style="color: #ef4444;">550K docs/mo</strong></p>
+                </div>
+                <div>
+                    <h3>Cost at $8,999/mo Subscription</h3>
+                    <div class="stat-card danger" style="margin-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                            <span>Chat API (Sonnet, ent -20%)</span>
+                            <span style="font-weight: 700;">$14,442</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                            <span>Agent API (Sonnet, ent -20%)</span>
+                            <span style="font-weight: 700;">$15,400</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                            <span style="font-weight: 700;">Total API cost</span>
+                            <span style="font-weight: 900; color: #ef4444; font-size: 20px;">$29,842</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span style="font-weight: 700;">Subscription revenue</span>
+                            <span style="font-weight: 700;">$8,999</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; margin-top: 8px; border-top: 2px solid #ef4444;">
+                            <span style="font-weight: 900; font-size: 18px;">Monthly loss</span>
+                            <span style="font-weight: 900; font-size: 24px; color: #ef4444;">-$20,843</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box danger" style="margin-top: 24px; font-size: 22px;">
+                <strong>At flat-rate $8,999/mo, a 5,000-user deployment loses $20K+/month.</strong><br>
+                API cost alone is 3.3x the subscription price. This is structurally unprofitable without optimization.
+            </div>
+
+            <div class="slide-number">8</div>
+        </div>
+
+        <!-- Slide 9: The Fix — Model Routing -->
+        <div class="slide slide-content" style="background: linear-gradient(180deg, #0f0f0f 0%, #0a1a0f 100%);">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2 style="color: #10b981;">The Fix: Model Routing</h2>
+            <h3>Route queries to the cheapest capable model</h3>
+
+            <!-- Architecture diagram -->
+            <div style="width: 100%; margin-top: 16px;">
+                <div class="flow-box" style="border-color: rgba(96, 165, 250, 0.3);">
+                    <strong>User message arrives</strong>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-box" style="border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05);">
+                    <strong style="color: #fbbf24;">Classifier (Haiku 4.5)</strong> &mdash; ~$0.001 per classification (negligible)
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 12px;">
+                    <div>
+                        <div class="flow-arrow">&darr; 60%</div>
+                        <div class="flow-box" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.06);">
+                            <strong style="color: #10b981;">Haiku 4.5</strong><br>
+                            <span style="font-size: 14px;">Search, browse, status</span><br>
+                            <span style="font-size: 18px; font-weight: 700; color: #10b981;">$0.016/msg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flow-arrow">&darr; 35%</div>
+                        <div class="flow-box" style="border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.06);">
+                            <strong style="color: #60a5fa;">Sonnet 4.5</strong><br>
+                            <span style="font-size: 14px;">Workflow, extraction</span><br>
+                            <span style="font-size: 18px; font-weight: 700; color: #60a5fa;">$0.048/msg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flow-arrow">&darr; 5%</div>
+                        <div class="flow-box" style="border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.06);">
+                            <strong style="color: #fbbf24;">Opus 4.6</strong><br>
+                            <span style="font-size: 14px;">Analytics, multi-step</span><br>
+                            <span style="font-size: 18px; font-weight: 700; color: #fbbf24;">$0.080/msg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; margin-top: 28px;">
+                <div class="stat-card" style="text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">ALL-SONNET (current)</div>
+                    <div class="number" style="font-size: 36px;">$0.048</div>
+                    <div class="label">per message</div>
+                </div>
+                <div class="stat-card success" style="text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 6px;">WITH ROUTING</div>
+                    <div class="number" style="font-size: 36px;">$0.024</div>
+                    <div class="label">blended per message</div>
+                </div>
+            </div>
+
+            <h3 style="color: #10b981;">5,000-User Scenario — Fixed</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; margin-top: 12px;">
+                <div class="stat-card success">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 4px;">CHAT (routed)</div>
+                    <div class="number" style="font-size: 32px;">$9,121</div>
+                    <div class="label">380K msgs/mo</div>
+                </div>
+                <div class="stat-card success">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 4px;">AGENTS (Haiku)</div>
+                    <div class="number" style="font-size: 32px;">$4,950</div>
+                    <div class="label">550K docs/mo</div>
+                </div>
+                <div class="stat-card success">
+                    <div style="font-size: 14px; opacity: 0.5; margin-bottom: 4px;">TOTAL API</div>
+                    <div class="number" style="font-size: 32px;">$14,071</div>
+                    <div class="label">At $27K sub = <strong>48% margin</strong></div>
+                </div>
+            </div>
+
+            <div class="slide-number">9</div>
+        </div>
+
+        <!-- Slide 10: Opus vs Sonnet -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Opus vs Sonnet: When to Use Which</h2>
+            <h3>Opus is 1.67x Sonnet cost — worth it for high-value reasoning</h3>
+
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>Use Case</th>
+                        <th style="text-align: center;">Sonnet</th>
+                        <th style="text-align: center;">Opus</th>
+                        <th>Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Document search & browsing</td>
+                        <td style="text-align: center; color: #10b981;">Excellent</td>
+                        <td style="text-align: center; opacity: 0.5;">Overkill</td>
+                        <td><strong style="color: #60a5fa;">Sonnet</strong> (or Haiku)</td>
+                    </tr>
+                    <tr>
+                        <td>Metadata extraction</td>
+                        <td style="text-align: center; color: #10b981;">Good</td>
+                        <td style="text-align: center; color: #10b981;">Better accuracy</td>
+                        <td><strong style="color: #60a5fa;">Sonnet</strong> (cost efficiency)</td>
+                    </tr>
+                    <tr>
+                        <td>Complex workflow automation</td>
+                        <td style="text-align: center;">Good</td>
+                        <td style="text-align: center; color: #10b981;">Significantly better</td>
+                        <td><strong style="color: #fbbf24;">Opus</strong> for high-value</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-step analytics</td>
+                        <td style="text-align: center;">Good</td>
+                        <td style="text-align: center; color: #10b981;">Better reasoning</td>
+                        <td><strong style="color: #fbbf24;">Opus</strong> if margin allows</td>
+                    </tr>
+                    <tr>
+                        <td>Contract risk analysis</td>
+                        <td style="text-align: center;">Adequate</td>
+                        <td style="text-align: center; color: #10b981;">Superior</td>
+                        <td><strong style="color: #fbbf24;">Opus</strong> — liability reduction</td>
+                    </tr>
+                    <tr>
+                        <td>Simple classification (agent)</td>
+                        <td style="text-align: center; opacity: 0.5;">Overkill</td>
+                        <td style="text-align: center; opacity: 0.3;">Way overkill</td>
+                        <td><strong style="color: #10b981;">Haiku</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 24px;">Opus as a Premium Add-On</h3>
+            <table style="margin-top: 8px;">
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th style="text-align: right;">Sonnet Base</th>
+                        <th style="text-align: right;">Opus Uplift</th>
+                        <th style="text-align: right;">Premium Charge</th>
+                        <th style="text-align: right;">Add-On Margin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Starter</td>
+                        <td style="text-align: right;">$48/mo</td>
+                        <td style="text-align: right;">+$32</td>
+                        <td style="text-align: right;">+$100/mo</td>
+                        <td style="text-align: right; color: #10b981;">$68 (68%)</td>
+                    </tr>
+                    <tr>
+                        <td>Professional</td>
+                        <td style="text-align: right;">$240/mo</td>
+                        <td style="text-align: right;">+$160</td>
+                        <td style="text-align: right;">+$300/mo</td>
+                        <td style="text-align: right; color: #10b981;">$140 (47%)</td>
+                    </tr>
+                    <tr>
+                        <td>Business</td>
+                        <td style="text-align: right;">$720/mo</td>
+                        <td style="text-align: right;">+$480</td>
+                        <td style="text-align: right;">+$750/mo</td>
+                        <td style="text-align: right; color: #10b981;">$270 (36%)</td>
+                    </tr>
+                    <tr>
+                        <td>Enterprise</td>
+                        <td style="text-align: right;">$2,400/mo</td>
+                        <td style="text-align: right;">+$1,600</td>
+                        <td style="text-align: right;" colspan="2" style="opacity: 0.6;">Included in enterprise pricing</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="slide-number">10</div>
+        </div>
+
+        <!-- Slide 11: Cost Optimization Roadmap -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Cost Optimization Roadmap</h2>
+
+            <div class="two-col" style="margin-top: 12px;">
+                <div>
+                    <h3 style="color: #10b981;">Already Built</h3>
+                    <table style="font-size: 15px;">
+                        <thead><tr><th>Optimization</th><th style="text-align: right;">Savings</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Ephemeral prompt caching</td>
+                                <td style="text-align: right; color: #10b981;">90% on 11.8K tokens/req</td>
+                            </tr>
+                            <tr>
+                                <td>Tool result compaction</td>
+                                <td style="text-align: right; color: #10b981;">~40% output reduction</td>
+                            </tr>
+                            <tr>
+                                <td>Parallel tool execution (6x)</td>
+                                <td style="text-align: right; color: #10b981;">Fewer API rounds</td>
+                            </tr>
+                            <tr>
+                                <td>Agent filtered toolset (13/42)</td>
+                                <td style="text-align: right; color: #10b981;">67% schema reduction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h3 style="color: #fbbf24;">Recommended — High Impact</h3>
+                    <table style="font-size: 15px;">
+                        <thead><tr><th>Optimization</th><th style="text-align: right;">Savings</th><th style="text-align: center;">Priority</th></tr></thead>
+                        <tbody>
+                            <tr class="highlight-row">
+                                <td><strong>Model routing</strong></td>
+                                <td style="text-align: right; color: #fbbf24;"><strong>40-60%</strong></td>
+                                <td style="text-align: center; color: #ef4444; font-weight: 700;">CRITICAL</td>
+                            </tr>
+                            <tr class="highlight-row">
+                                <td><strong>Haiku for agents</strong></td>
+                                <td style="text-align: right; color: #fbbf24;"><strong>65-70%</strong></td>
+                                <td style="text-align: center; color: #ef4444; font-weight: 700;">CRITICAL</td>
+                            </tr>
+                            <tr>
+                                <td>1-hour cache TTL</td>
+                                <td style="text-align: right;">5-15%</td>
+                                <td style="text-align: center;">High</td>
+                            </tr>
+                            <tr>
+                                <td>Batch API for agents</td>
+                                <td style="text-align: right;">50%</td>
+                                <td style="text-align: center;">High</td>
+                            </tr>
+                            <tr>
+                                <td>Conversation summarization</td>
+                                <td style="text-align: right;">30-50%</td>
+                                <td style="text-align: center;">Medium</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Conversation Summarization Impact</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 12px;">
+                <div class="stat-card" style="text-align: center; padding: 16px;">
+                    <div style="font-size: 13px; opacity: 0.5;">5 turns</div>
+                    <div style="font-size: 20px; font-weight: 700; margin: 8px 0;">3,500 tok</div>
+                    <div style="font-size: 13px; opacity: 0.4;">no change</div>
+                </div>
+                <div class="stat-card" style="text-align: center; padding: 16px;">
+                    <div style="font-size: 13px; opacity: 0.5;">10 turns</div>
+                    <div style="font-size: 20px; font-weight: 700; margin: 8px 0;">12K &rarr; 5K</div>
+                    <div style="font-size: 13px; color: #10b981;">58% savings</div>
+                </div>
+                <div class="stat-card success" style="text-align: center; padding: 16px;">
+                    <div style="font-size: 13px; opacity: 0.5;">20 turns</div>
+                    <div style="font-size: 20px; font-weight: 700; margin: 8px 0;">30K &rarr; 6K</div>
+                    <div style="font-size: 13px; color: #10b981;">80% savings</div>
+                </div>
+                <div class="stat-card success" style="text-align: center; padding: 16px;">
+                    <div style="font-size: 13px; opacity: 0.5;">30 turns</div>
+                    <div style="font-size: 20px; font-weight: 700; margin: 8px 0;">50K &rarr; 7K</div>
+                    <div style="font-size: 13px; color: #10b981;">86% savings</div>
+                </div>
+            </div>
+
+            <div class="slide-number">11</div>
+        </div>
+
+        <!-- Slide 12: 3-Year API Spend Forecast -->
+        <div class="slide slide-content">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>3-Year API Spend Forecast</h2>
+            <h3>Based on monetization strategy growth trajectory</h3>
+
+            <div class="three-col" style="margin-top: 20px;">
+                <div style="background: rgba(96, 165, 250, 0.06); padding: 28px; border-radius: 16px; border: 1px solid rgba(96, 165, 250, 0.15);">
+                    <div style="font-size: 20px; color: #60a5fa; margin-bottom: 16px; font-weight: 700;">YEAR 1 &mdash; 50 Customers</div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Monthly API</span>
+                        <span style="font-weight: 700;">$20,017</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual API</span>
+                        <span style="font-weight: 700;">~$240K</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual revenue</span>
+                        <span style="font-weight: 700;">~$1.8M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px;">
+                        <span style="opacity: 0.6;">Discount tier</span>
+                        <span style="font-weight: 700; color: #10b981;">15-20%</span>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px; font-size: 36px; font-weight: 900; color: #10b981;">87%</div>
+                    <div style="text-align: center; font-size: 14px; opacity: 0.5;">gross margin</div>
+                </div>
+
+                <div style="background: rgba(96, 165, 250, 0.08); padding: 28px; border-radius: 16px; border: 1px solid rgba(96, 165, 250, 0.2);">
+                    <div style="font-size: 20px; color: #60a5fa; margin-bottom: 16px; font-weight: 700;">YEAR 2 &mdash; 170 Customers</div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Monthly API</span>
+                        <span style="font-weight: 700;">$79,495</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual API</span>
+                        <span style="font-weight: 700;">~$954K</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual revenue</span>
+                        <span style="font-weight: 700;">~$5.7M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px;">
+                        <span style="opacity: 0.6;">Discount tier</span>
+                        <span style="font-weight: 700; color: #10b981;">25-30%</span>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px; font-size: 36px; font-weight: 900; color: #10b981;">83%</div>
+                    <div style="text-align: center; font-size: 14px; opacity: 0.5;">gross margin</div>
+                </div>
+
+                <div style="background: rgba(96, 165, 250, 0.12); padding: 28px; border-radius: 16px; border: 2px solid rgba(96, 165, 250, 0.3);">
+                    <div style="font-size: 20px; color: #60a5fa; margin-bottom: 16px; font-weight: 700;">YEAR 3 &mdash; 367 Customers</div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Monthly API</span>
+                        <span style="font-weight: 700;">$180,640</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual API</span>
+                        <span style="font-weight: 700;">~$2.17M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 15px;">
+                        <span style="opacity: 0.6;">Annual revenue</span>
+                        <span style="font-weight: 700;">~$13.2M</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px;">
+                        <span style="opacity: 0.6;">Discount tier</span>
+                        <span style="font-weight: 700; color: #10b981;">30%+</span>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px; font-size: 36px; font-weight: 900; color: #10b981;">80%</div>
+                    <div style="text-align: center; font-size: 14px; opacity: 0.5;">gross margin</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 24px;">
+                <strong>API spend as % of revenue:</strong>
+                Year 1: 13% &rarr; Year 2: 17% &rarr; Year 3: 16%<br>
+                Healthy and stable — enterprise discount growth offsets usage scaling.
+            </div>
+
+            <div class="slide-number">12</div>
+        </div>
+
+        <!-- Slide 13: Key Takeaways -->
+        <div class="slide slide-content" style="padding: 40px 80px;">
+            <div class="logo">ALTIUS <span>COST ANALYSIS</span></div>
+            <h2>Key Takeaways</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; width: 100%;">
+                <div class="stat-card success" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 8px;">1. STARTER & PROFESSIONAL ARE CASH COWS</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">84-92% gross margin. These tiers are the volume backbone. Minimal API costs, maximum profit per customer.</div>
+                </div>
+                <div class="stat-card" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #60a5fa; margin-bottom: 8px;">2. BUSINESS IS HEALTHY BUT AGENT-SENSITIVE</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">70-80% margin. Agent volume is the variable. Haiku for agents shifts margin from 63% to 77%.</div>
+                </div>
+                <div class="stat-card danger" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 8px;">3. FLAT-RATE ENTERPRISE BREAKS AT 500+ USERS</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Must use per-user pricing component. 5,000 users at $8,999 = $21K/mo loss. Structure as $5/user + platform fee.</div>
+                </div>
+                <div class="stat-card warn" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">4. MODEL ROUTING IS THE #1 OPTIMIZATION</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">29-40% chat cost reduction. Routes 60% of queries to Haiku, 35% to Sonnet, 5% to Opus. Unlocks large enterprise deals.</div>
+                </div>
+                <div class="stat-card warn" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">5. HAIKU FOR AGENTS IS NON-NEGOTIABLE</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Classification tasks don't need Sonnet reasoning. $0.012/doc vs $0.035/doc. 65-70% savings at scale.</div>
+                </div>
+                <div class="stat-card" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #60a5fa; margin-bottom: 8px;">6. NEGOTIATE ANTHROPIC DISCOUNT EARLY</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">At $100K run-rate (~Month 6), contact enterprise sales. Difference between 0% and 25% on $1M/yr = $250K saved.</div>
+                </div>
+                <div class="stat-card success" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 8px;">7. ON-PREMISE = ALWAYS BYOK</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Customer brings their own API key. Zero API cost to Altius. License revenue is ~90% pure margin.</div>
+                </div>
+                <div class="stat-card" style="padding: 18px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #60a5fa; margin-bottom: 8px;">8. OPUS = PREMIUM ADD-ON, NOT DEFAULT</div>
+                    <div style="font-size: 15px; opacity: 0.8; line-height: 1.5;">Sonnet handles 90%+ of use cases. Offer Opus as "Enhanced Analysis Mode" for enterprise. 1.67x cost, marginal quality uplift.</div>
+                </div>
+            </div>
+
+            <div class="slide-number">13</div>
+        </div>
+
+        <!-- Slide 14: Closing -->
+        <div class="slide slide-title" style="background: linear-gradient(135deg, #0f1f3d 0%, #0a0a0a 100%);">
+            <h1 style="font-size: 72px; color: #60a5fa;">Token Economics</h1>
+            <div class="tagline" style="font-size: 28px; margin-bottom: 50px;">Built for Margin at Every Scale</div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1000px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; font-weight: 900; color: #10b981;">92%</div>
+                    <div style="font-size: 16px; opacity: 0.6;">Starter margin</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; font-weight: 900; color: #10b981;">87%</div>
+                    <div style="font-size: 16px; opacity: 0.6;">Professional margin</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; font-weight: 900; color: #60a5fa;">77%</div>
+                    <div style="font-size: 16px; opacity: 0.6;">Business margin</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; font-weight: 900; color: #fbbf24;">70%</div>
+                    <div style="font-size: 16px; opacity: 0.6;">Enterprise margin</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 60px; max-width: 800px; text-align: center; font-size: 22px; line-height: 1.8; opacity: 0.8;">
+                <span style="color: #10b981; font-weight: 700;">&#9654;</span> Prompt caching saves 92% on fixed overhead<br>
+                <span style="color: #10b981; font-weight: 700;">&#9654;</span> Model routing cuts chat costs 40-60%<br>
+                <span style="color: #10b981; font-weight: 700;">&#9654;</span> Haiku agents save 65-70% on automation<br>
+                <span style="color: #10b981; font-weight: 700;">&#9654;</span> Enterprise discount saves $250K+/year by Year 2<br>
+                <span style="color: #fbbf24; font-weight: 700;">&#9654;</span> Large enterprise requires per-user pricing, not flat rate
+            </div>
+
+            <div style="margin-top: 60px; font-size: 16px; opacity: 0.4;">
+                Based on Anthropic API pricing as of February 2026<br>
+                All figures use Sonnet 4.5 with ephemeral prompt caching unless noted
+            </div>
+
+            <div class="slide-number">14</div>
+        </div>
+
+    </div>
+
+    <div class="nav-hint">&#8593; &#8595; Arrow keys &nbsp;|&nbsp; Space for next &nbsp;|&nbsp; Cmd+P to print PDF</div>
+
+    <script>
+        document.addEventListener('keydown', (e) => {
+            const slides = document.querySelectorAll('.slide');
+            const container = document.querySelector('.slide-container');
+            const currentSlide = Math.round(container.scrollTop / window.innerHeight);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                if (currentSlide < slides.length - 1) {
+                    slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentSlide > 0) {
+                    slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                slides[0].scrollIntoView({ behavior: 'smooth' });
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        setTimeout(() => {
+            document.querySelector('.nav-hint').style.opacity = '0';
+        }, 5000);
+
+        document.addEventListener('mousemove', (e) => {
+            if (e.clientY > window.innerHeight - 80) {
+                document.querySelector('.nav-hint').style.opacity = '0.35';
+            }
+        });
+    </script>
+</body>
+</html>

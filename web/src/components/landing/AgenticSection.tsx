@@ -36,15 +36,16 @@ export default function AgenticSection() {
               your OpenText Content Server
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-              Other platforms bolt a chatbot onto search. We built an AI agent that reasons, plans,
-              and executes multi-step content processes autonomously — chaining tool calls across
-              your entire Content Server without human hand-holding.
+              Other platforms offer conversational Q&A. Altius includes autonomous agents that
+              monitor folders 24/7, classify documents, extract data, and execute workflows — all
+              without human intervention. It's the difference between an assistant that answers
+              questions and one that does the work while you sleep.
             </p>
             <div className="mt-6 space-y-3">
-              <Differentiator text="Autonomous multi-step execution — not just Q&A" />
-              <Differentiator text="Chains searches, downloads, extractions, and actions in a single conversation" />
-              <Differentiator text="Reads scanned documents, reasons over workflow history, then takes action" />
-              <Differentiator text="No pre-built automations — the AI decides the optimal path in real time" />
+              <Differentiator text="Watched-folder automation — agents run 24/7 without human supervision" />
+              <Differentiator text="Multi-step workflows executed autonomously (search → classify → extract → route)" />
+              <Differentiator text="Rule-based processing for invoices, contracts, compliance, and records management" />
+              <Differentiator text="No pre-configured workflows — AI determines the optimal path based on context" />
             </div>
           </div>
 

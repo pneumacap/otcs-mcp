@@ -54,8 +54,12 @@ OTCSClient.prototype.search = async function (
         // Already in LQL mode - just append the type constraint
         query = `(${query}) AND ${subtypeFilter}`;
       } else {
-        // Wrap the original query as a quoted/grouped term and switch to complexquery
-        query = `${query} ${subtypeFilter}`;
+        // Must switch to complexquery for OTSubType filter.
+        // Preserve original search semantics: anywords → OR, allwords → AND
+        const words = query.trim().split(/\s+/).filter((w) => w.length > 0);
+        const joiner = lookfor === 'anywords' ? ' OR ' : ' AND ';
+        const wrappedQuery = words.length > 1 ? `(${words.join(joiner)})` : words[0] || '*';
+        query = `${wrappedQuery} AND ${subtypeFilter}`;
         lookfor = 'complexquery';
       }
 
@@ -79,7 +83,10 @@ OTCSClient.prototype.search = async function (
     } else if (lookfor === 'complexquery') {
       query = `(${query}) AND ${locationFilter}`;
     } else {
-      query = `${query} ${locationFilter}`;
+      const words = query.trim().split(/\s+/).filter((w) => w.length > 0);
+      const joiner = lookfor === 'anywords' ? ' OR ' : ' AND ';
+      const wrappedQuery = words.length > 1 ? `(${words.join(joiner)})` : words[0] || '*';
+      query = `${wrappedQuery} AND ${locationFilter}`;
       lookfor = 'complexquery';
     }
 

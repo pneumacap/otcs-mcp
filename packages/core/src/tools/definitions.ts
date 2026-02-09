@@ -31,7 +31,7 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
   },
   {
     name: 'otcs_browse',
-    description: 'List contents of a folder. Use folder_id=2000 for Enterprise Workspace root.',
+    description: 'List the contents of a folder by ID. This is the ONLY reliable way to see what is inside a folder. Returns all direct children (documents, folders, etc.) with their IDs, names, and types. Use folder_id=2000 for the Enterprise Workspace root.',
     schema: {
       type: 'object',
       properties: {
@@ -50,21 +50,11 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
   },
   {
     name: 'otcs_search',
-    description: `Enterprise search — the primary discovery tool. Searches document content, names, descriptions, and category metadata.
+    description: `Search for items by name, content, or metadata. Use this to FIND items when you don't have their ID. Do NOT use this to list folder contents — use otcs_browse for that.
 
-**Strategy depends on intent:**
-- **"Find all" / comprehensive discovery:** First search by keyword to locate the workspace/folder, then do query: "*" + location_id + filter_type: "documents" to get every document inside it. Keyword search alone misses documents without the search terms in indexed fields.
-- **Keyword / content search:** Use directly with keywords. Use mode: "anywords" for broad matching, "allwords" for strict. Add location_id to scope if needed.
-- **Structured queries:** Use mode: "complexquery" for LQL field-level queries (OTName:contract*, date ranges, MIME types).
-
-**Tips:**
-- Use **include_highlights: true** to see match context
-- Use **location_id** to scope to a specific folder/workspace subtree
-
-**LQL Examples (mode: "complexquery"):**
-- "OTName:contract*" | "OTName:invoice AND OTMIMEType:pdf" | "OTObjectDate:[2024-01-01 TO 2024-12-31]"
-
-**Filter Types:** Use filter_type to restrict results to specific object types (documents, folders, workspaces, workflows).`,
+**Modes:** "allwords" (default), "anywords" (broad), "exactphrase", "complexquery" (LQL field queries).
+**LQL examples:** "OTName:contract*", "OTName:invoice AND OTMIMEType:pdf", "OTObjectDate:[2024-01-01 TO 2024-12-31]"
+**Tips:** Use include_highlights for context. Use location_id to scope to a subtree. Use filter_type to restrict by object type.`,
     schema: {
       type: 'object',
       properties: {
@@ -156,7 +146,7 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
   },
   {
     name: 'otcs_node_action',
-    description: 'Perform action on a node: copy, move, rename, delete, or update_description.',
+    description: 'Perform action on a node: copy, move, rename, delete, or update_description. For copy/move, node_id is the item to copy/move and destination_id is the target folder.',
     schema: {
       type: 'object',
       properties: {
@@ -165,8 +155,8 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
           enum: ['copy', 'move', 'rename', 'delete', 'update_description'],
           description: 'Action to perform',
         },
-        node_id: { type: 'number', description: 'Node ID' },
-        destination_id: { type: 'number', description: 'Destination folder ID (for copy/move)' },
+        node_id: { type: 'number', description: 'The ID of the node to act on (the document/folder being copied, moved, renamed, or deleted)' },
+        destination_id: { type: 'number', description: 'Target folder ID where the node will be placed (required for copy/move)' },
         new_name: { type: 'string', description: 'New name (for rename, or optional for copy)' },
         description: {
           type: 'string',

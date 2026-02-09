@@ -342,31 +342,45 @@ OTCSClient.prototype.sendWorkflowTask = async function (
   this: OTCSClient,
   params: WorkflowTaskActionParams,
 ): Promise<void> {
-  const formData = new URLSearchParams();
+  const taskPath = `/v2/processes/${params.process_id}/subprocesses/${params.subprocess_id}/tasks/${params.task_id}`;
 
-  if (params.action) {
-    formData.append('action', params.action);
-  }
-  if (params.custom_action) {
-    formData.append('custom_action', params.custom_action);
-  }
-  if (params.comment) {
-    formData.append('comment', params.comment);
-  }
-
-  // Append workflow form field values
+  // Step 1: If form data provided, update attribute values first via formUpdate.
+  // OTCS requires a separate PUT with action=formUpdate before the task action.
+  // Skip empty/null values — OTCS rejects type-mismatched blanks (e.g. "" for integer fields).
   if (params.form_data) {
-    for (const [key, value] of Object.entries(params.form_data)) {
-      formData.append(key, String(value));
+    const cleanValues: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(params.form_data)) {
+      if (val === null || val === undefined || val === '') continue;
+      // Coerce numeric strings to numbers — OTCS integer fields reject string "0"
+      const num = Number(val);
+      cleanValues[key] = typeof val === 'string' && val.trim() !== '' && !isNaN(num) ? num : val;
+    }
+    if (Object.keys(cleanValues).length > 0) {
+      const updateBody = new URLSearchParams();
+      updateBody.append(
+        'body',
+        JSON.stringify({ action: 'formUpdate', values: cleanValues }),
+      );
+      await this.request<void>('PUT', taskPath, undefined, updateBody);
     }
   }
 
-  await this.request<void>(
-    'PUT',
-    `/v2/processes/${params.process_id}/subprocesses/${params.subprocess_id}/tasks/${params.task_id}`,
-    undefined,
-    formData,
-  );
+  // Step 2: Complete the task with the action/disposition and comment.
+  const actionBody: Record<string, unknown> = {};
+  if (params.action) {
+    actionBody.action = params.action;
+  }
+  if (params.custom_action) {
+    actionBody.custom_action = params.custom_action;
+  }
+  if (params.comment) {
+    actionBody.comment = params.comment;
+  }
+
+  const sendBody = new URLSearchParams();
+  sendBody.append('body', JSON.stringify(actionBody));
+
+  await this.request<void>('PUT', taskPath, undefined, sendBody);
 };
 
 OTCSClient.prototype.updateWorkflowStatus = async function (
@@ -511,13 +525,15 @@ OTCSClient.prototype.getWorkflowInfoFull = async function (
   const stepList = Array.isArray(results.stepList) ? results.stepList : [];
   const comments = Array.isArray(results.Comments) ? results.Comments : [];
   const auditInfo = Array.isArray(results.auditInfo) ? results.auditInfo : [];
-  const attributes = Array.isArray(results.Attributes) ? results.Attributes : [];
+  // Attributes can be a single object or an array — normalize to array
+  const rawAttrs = results.Attributes;
+  const attributes = Array.isArray(rawAttrs) ? rawAttrs : rawAttrs ? [rawAttrs] : [];
 
   // Extract attribute values into a flat object
   const attributeValues: Record<string, unknown> = {};
   for (const attr of attributes) {
-    const children = Array.isArray(attr?.Content?.Rootset?.Children)
-      ? attr.Content.Rootset.Children
+    const children = Array.isArray(attr?.Content?.RootSet?.Children)
+      ? attr.Content.RootSet.Children
       : [];
     for (const child of children) {
       if (child.Name && child.Value !== undefined) {

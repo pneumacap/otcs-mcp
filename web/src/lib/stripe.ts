@@ -14,7 +14,7 @@ export function getStripe(): Stripe {
 export const PLANS = {
   free: {
     name: 'Free',
-    messagesPerMonth: 50,
+    messagesPerMonth: 500,
     maxConnections: 5,
     toolProfile: 'core' as const,
   },

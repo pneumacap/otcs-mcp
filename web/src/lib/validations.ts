@@ -41,6 +41,30 @@ export const otcsConnectionSchema = z.object({
   tlsSkipVerify: z.boolean().optional().default(false),
 });
 
+// ── Agent Validation ──
+export const createAgentSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+  description: z.string().max(2000, 'Description too long').default(''),
+  enabled: z.boolean().default(true),
+  match: z.record(z.string(), z.unknown()).default({}),
+  instructions: z.string().max(10000).default(''),
+  extractFields: z.record(z.string(), z.string()).default({}),
+  actions: z.array(z.record(z.string(), z.unknown())).default([]),
+  watchFolders: z.array(z.number()).default([]),
+  tools: z.array(z.string()).default([]),
+  systemPrompt: z.string().max(5000).default(''),
+  model: z.string().max(100).default('claude-sonnet-4-5-20250929'),
+  maxRounds: z.number().int().min(1).max(50).default(15),
+  pollIntervalMs: z.number().int().min(5000).max(600000).default(30000),
+});
+
+export const updateAgentSchema = createAgentSchema.partial();
+
+export const generateAgentSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(2000),
+});
+
 // ── Stripe Checkout Validation ──
 export const checkoutSchema = z.object({
   plan: z.enum(['pro', 'enterprise']),

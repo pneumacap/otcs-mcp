@@ -1,85 +1,159 @@
 {
   "enabled": true,
   "pollIntervalMs": 30000,
-  "maxAgentRounds": 15,
-  "model": "claude-sonnet-4-5-20250929",
-  "watchFolders": [181144, 180922],
-  "tools": [
-    "otcs_search",
-    "otcs_download_content",
-    "otcs_get_node",
-    "otcs_browse",
-    "otcs_node_action",
-    "otcs_rm_holds",
-    "otcs_share",
-    "otcs_categories",
-    "otcs_start_workflow",
-    "otcs_workflow_task",
-    "otcs_workflow_form",
-    "otcs_get_assignments",
-    "otcs_workflow_tasks"
+  "maxAgentRounds": 20,
+  "model": "claude-3-5-haiku-20241022",
+  "watchFolders": [
+    181144,
+    179050,
+    180922
   ],
-  "systemPrompt": "You are an autonomous document processing agent for OpenText Content Server.",
+  "systemPrompt": "You are a legal compliance agent that processes subpoenas by extracting case details, organizing documents into structured folders, identifying responsive documents, applying legal holds, and notifying relevant parties.",
   "rules": [
     {
-      "name": "Subpoena response workflow",
-      "match": { "documentType": "subpoena" },
+      "name": "Subpoena Legal Hold and Notification",
+      "match": {
+        "documentType": "subpoena"
+      },
       "instructions": "",
       "extractFields": {
-        "employeeName": "full name of the person whose records are requested",
-        "employeeId": "employee ID number if mentioned, or null",
-        "caseNumber": "court case number",
-        "caseName": "case name (e.g. Johnson v. ABC Corporation)",
-        "court": "name of the court",
-        "responseDeadline": "deadline or timeframe for response",
-        "searchQueries": "JSON array of 1-3 LQL queries to find the employee's documents in the content management system. Use OTName field with wildcards to match filenames. Primary query should use employee ID if available. Example: [\"OTName:EMP12345*\", \"OTName:*JohnSmith*\"]",
-        "filterKeywords": "JSON array of 15-30 lowercase keywords that identify ONLY the specific document types the subpoena requests. Include synonyms and variations. Be thorough — if the subpoena asks for 'performance reviews' include: performance, review, evaluation. If it asks for 'disciplinary actions' include: disciplinary, warning, reprimand. If it asks for 'compensation' include: compensation, salary, bonus, paystub, payroll. If it asks for 'personnel file' include: personnel, offer, employment, hire. Cover every requested category with multiple keyword variations so no responsive document is missed."
+        "caseNumber": "Case number or matter reference",
+        "dateIssued": "Date the subpoena was issued",
+        "dateServed": "Date the subpoena was served",
+        "employeeId": "Employee ID or personnel number of the named person",
+        "personName": "Full name of the person being subpoenaed",
+        "returnDate": "Date by which documents must be produced",
+        "issuingCourt": "Court or authority issuing the subpoena",
+        "requestedDocuments": "List of specific document types or categories being requested (e.g., 'emails', 'contracts', 'expense reports'). Extract as comma-separated keywords for filtering search results."
       },
       "actions": [
         {
-          "type": "smart_search",
-          "queriesField": "searchQueries",
-          "filterField": "filterKeywords",
-          "filter": "documents",
-          "exclude": ["subpoena"]
+          "type": "categorize",
+          "category": "Subpoena",
+          "attributes": {
+            "Case Number": "{{caseNumber}}",
+            "Date Issued": "{{dateIssued}}",
+            "Date Served": "{{dateServed}}",
+            "Employee ID": "{{employeeId}}",
+            "Person Name": "{{personName}}",
+            "Return Date": "{{returnDate}}",
+            "Issuing Court": "{{issuingCourt}}",
+            "Requested Documents": "{{requestedDocuments}}"
+          },
+          "fallbackToDescription": true
         },
         {
+          "type": "update_description",
+          "fields": [
+            "personName",
+            "employeeId",
+            "caseNumber",
+            "issuingCourt",
+            "dateIssued",
+            "dateServed",
+            "returnDate",
+            "requestedDocuments"
+          ]
+        },
+        {
+          "name": "{{personName}}",
+          "type": "create_folder",
+          "parent": 174434
+        },
+        {
+          "type": "move",
+          "destination": "{{createdFolderId}}"
+        },
+        {
+          "name": "{{personName}} Responsive Documents",
+          "type": "create_folder",
+          "parent": "{{createdFolderId}}"
+        },
+        {
+          "type": "search",
+          "query": "{{employeeId}} {{personName}}",
+          "filter": "documents",
+          "exclude": [
+            "subpoena",
+            "legal hold"
+          ],
+          "filterField": "requestedDocuments"
+        },
+        {
+          "name": "{{caseNumber}} - {{personName}}",
           "type": "ensure_hold",
-          "name": "{{caseName}} - {{caseNumber}}",
-          "holdType": "Legal",
-          "comment": "Hold for case {{caseNumber}} — {{caseName}}"
+          "comment": "Legal hold for subpoena case {{caseNumber}} regarding {{personName}}",
+          "holdType": "Legal"
         },
         {
           "type": "apply_hold"
         },
         {
+          "type": "copy",
+          "destination": "{{createdFolderId}}"
+        },
+        {
+          "perm": 2,
           "type": "share",
-          "email": "coremmm100005@gmail.com",
-          "perm": 1,
-          "message": "Documents related to {{caseName}} ({{caseNumber}})"
+          "email": "coremmm10005@gmail.com",
+          "message": "This folder contains responsive documents for subpoena case {{caseNumber}} regarding {{personName}}. The documents have been placed under legal hold and collected based on the subpoena requirements."
         }
       ]
     },
     {
-      "name": "Contract approval workflow",
-      "match": {},
-      "instructions": "You are the first task assignee in the Altius Contract Approval Map workflow. STEP 1: Use otcs_start_workflow tool to start workflow ID 181308 with this contract document as doc_id. STEP 2: Use otcs_get_assignments to find your pending task, then use the returned subprocess_id and task_id for all subsequent workflow calls. STEP 3: Download and analyze the contract to extract these attributes: contractType, parties, counterparty, contractValue, startDate, endDate, renewalTerms, paymentTerms, keyObligations, liabilityTerms, terminationClauses. STEP 4: Perform comprehensive risk assessment analyzing: (a) Financial risk - value, payment terms, exposure; (b) Legal/Compliance risk - liability, indemnification, regulations; (c) Operational risk - obligations, SLAs, termination; (d) Counterparty risk - reliability indicators. STEP 5: Determine riskLevel (Low/Medium/High/Critical) and generate riskSummary (2-3 sentences). STEP 6: Set workflow attributes with extracted data (contractType, counterparty, contractValue, riskLevel, riskSummary, etc.). STEP 7: Determine disposition (approve/approve_with_conditions/request_additional_review/reject) based on risk level. STEP 8: Use otcs_workflow_task tool to complete this task with your disposition and comment summarizing: Contract: [Type] | Counterparty: [Name] | Value: [Amount] | Risk: [Level] | Summary: [Assessment].",
+      "name": "Enrich TIF files with metadata description",
+      "match": {
+        "fileExtension": ".tif,.tiff"
+      },
+      "instructions": "",
       "extractFields": {
-        "contractType": "type or category of contract (e.g., NDA, Service Agreement, License Agreement, Purchase Agreement, Employment Contract, Vendor Agreement)",
-        "parties": "JSON array of all parties involved in the contract",
-        "counterparty": "primary external party or vendor name",
-        "contractValue": "total contract value or financial commitment including currency",
-        "startDate": "contract effective/start date in YYYY-MM-DD format",
-        "endDate": "contract expiration/end date in YYYY-MM-DD format",
-        "renewalTerms": "auto-renewal clauses, renewal conditions, notice periods",
-        "paymentTerms": "payment schedule, milestone dates, payment conditions",
-        "keyObligations": "JSON array of critical obligations and performance requirements",
-        "liabilityTerms": "liability caps, indemnification clauses, warranty disclaimers",
-        "terminationClauses": "early termination rights, notice periods, penalties",
-        "riskLevel": "overall risk assessment (Low/Medium/High/Critical)",
-        "riskSummary": "concise 2-3 sentence summary of identified risks and key concerns",
-        "disposition": "recommended action (Approve/Approve with conditions/Request review/Reject)"
-      }
+        "detailedDescription": "Extract a comprehensive 3-5 sentence description that captures all important information from this document. Include: document type, all person/company names, dates, monetary amounts, account numbers, compliance or regulatory status, and any other key facts. Write as a clear, readable paragraph suitable for a metadata description field. Be thorough and specific."
+      },
+      "actions": [
+        {
+          "type": "update_description",
+          "template": "{{detailedDescription}}"
+        }
+      ]
+    },
+    {
+      "name": "Start Contract Risk Review Workflow",
+      "match": {
+        "documentType": "agreement,contract,mou,letter of intent,terms of service,nda"
+      },
+      "instructions": "",
+      "extractFields": {
+        "disposition": "Based on the risk analysis, return exactly 'Approve ' (with trailing space) for low or medium risk contracts, or exactly 'Reject' for high risk contracts. Must be one of these two exact strings.",
+        "riskSummary": "A comprehensive risk analysis covering: key findings, legal concerns, financial exposure, termination clauses, liability limitations, and overall risk level (Low/Medium/High). Be thorough and specific.",
+        "contractDate": "The date the contract was signed in YYYY-MM-DD format",
+        "counterparty": "The name of the other contracting party, truncated to maximum 32 characters",
+        "contractValue": "The total monetary value as an integer only (no decimals, currency symbols, or commas)",
+        "effectiveDate": "The date the contract takes effect in YYYY-MM-DD format",
+        "expirationDate": "The date the contract expires in YYYY-MM-DD format"
+      },
+      "actions": [
+        {
+          "mode": "direct",
+          "type": "start_workflow",
+          "comment": "Contract Risk Review: {{counterparty}}",
+          "workflow_id": 181308
+        },
+        {
+          "type": "get_workflow_tasks"
+        },
+        {
+          "type": "complete_task",
+          "comment": "{{riskSummary}}",
+          "form_data": {
+            "WorkflowForm_2": "{{contractDate}}",
+            "WorkflowForm_3": "{{effectiveDate}}",
+            "WorkflowForm_4": "{{expirationDate}}",
+            "WorkflowForm_5": "{{contractValue}}",
+            "WorkflowForm_6": "{{counterparty}}"
+          },
+          "custom_action": "{{disposition}}"
+        }
+      ]
     }
   ]
 }
