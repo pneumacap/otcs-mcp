@@ -13,7 +13,7 @@ import { handleToolCall } from '@otcs/core/tools/handler';
 import { getSuggestion, compactToolResult } from '@otcs/core/tools/utils';
 import { SYSTEM_PROMPT } from './system-prompt';
 
-const MAX_TOOL_ROUNDS = 10;
+const MAX_TOOL_ROUNDS = 25;
 
 // SSE event types
 export type SSEEvent =

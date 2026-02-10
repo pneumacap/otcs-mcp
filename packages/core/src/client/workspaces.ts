@@ -28,6 +28,9 @@ declare module './base.js' {
       workspaceId: number,
       properties: Record<string, unknown>,
     ): Promise<{ updated: number[]; failed: number[] }>;
+    /** @internal */ buildCategoryNameMap(
+      workspaceId: number,
+    ): Promise<Map<string, string>>;
     getWorkspace(workspaceId: number): Promise<WorkspaceInfo>;
     searchWorkspaces(options?: WorkspaceSearchOptions): Promise<WorkspaceSearchResult>;
     getWorkspaceRelations(workspaceId: number): Promise<WorkspaceRelation[]>;
@@ -223,6 +226,7 @@ OTCSClient.prototype.applyWorkspaceBusinessProperties = async function (
 ): Promise<{ updated: number[]; failed: number[] }> {
   // Group properties by category ID
   const categorizedValues: Record<number, CategoryValues> = {};
+  const unresolvedEntries: Array<[string, unknown]> = [];
 
   for (const [key, value] of Object.entries(properties)) {
     // Format 1: flat key like "11150_28"
@@ -255,8 +259,31 @@ OTCSClient.prototype.applyWorkspaceBusinessProperties = async function (
       continue;
     }
 
-    // Unrecognised key format -- skip with warning
-    console.warn(`applyWorkspaceBusinessProperties: skipping unrecognised key "${key}"`);
+    // Collect unrecognised keys for name-based resolution
+    unresolvedEntries.push([key, value]);
+  }
+
+  // Attempt to resolve friendly-name keys (e.g. "Equipment_Number" → "10596_2_1_6")
+  if (unresolvedEntries.length > 0) {
+    const nameMap = await this.buildCategoryNameMap(workspaceId);
+
+    for (const [key, value] of unresolvedEntries) {
+      const normalized = key.replace(/[_\s\-\/().]/g, '').toLowerCase();
+      const resolvedKey = nameMap.get(normalized);
+
+      if (resolvedKey) {
+        const catMatch = resolvedKey.match(/^(\d+)_/);
+        if (catMatch) {
+          const categoryId = parseInt(catMatch[1], 10);
+          if (!categorizedValues[categoryId]) {
+            categorizedValues[categoryId] = {};
+          }
+          categorizedValues[categoryId][resolvedKey] = value;
+        }
+      } else {
+        console.warn(`applyWorkspaceBusinessProperties: could not resolve key "${key}"`);
+      }
+    }
   }
 
   const updated: number[] = [];
@@ -282,6 +309,58 @@ OTCSClient.prototype.applyWorkspaceBusinessProperties = async function (
   }
 
   return { updated, failed };
+};
+
+/**
+ * Build a map of normalised attribute names → category key IDs for a workspace.
+ * Used to resolve friendly-name keys (e.g. "EquipmentNumber") to proper
+ * category keys (e.g. "10596_2_1_6") when the LLM passes human-readable names.
+ */
+OTCSClient.prototype.buildCategoryNameMap = async function (
+  this: OTCSClient,
+  workspaceId: number,
+): Promise<Map<string, string>> {
+  const nameMap = new Map<string, string>();
+
+  const addAttrs = (attrs: Array<{ key: string; name?: string; children?: any[] }>) => {
+    for (const attr of attrs) {
+      if (attr.name) {
+        const normalized = attr.name.replace(/[_\s\-\/().]/g, '').toLowerCase();
+        nameMap.set(normalized, attr.key);
+      }
+      if (attr.children) {
+        addAttrs(attr.children);
+      }
+    }
+  };
+
+  // Strategy 1: try workspace metadata form (returns all categories at once)
+  try {
+    const metadataForm = await this.getWorkspaceMetadataForm(workspaceId);
+    for (const cat of metadataForm.categories) {
+      addAttrs(cat.attributes);
+    }
+    if (nameMap.size > 0) return nameMap;
+  } catch {
+    // Fall through to strategy 2
+  }
+
+  // Strategy 2: enumerate categories and fetch each form individually
+  try {
+    const categoriesResponse = await this.getCategories(workspaceId);
+    for (const cat of categoriesResponse.categories) {
+      try {
+        const form = await this.getCategoryCreateForm(workspaceId, cat.id);
+        addAttrs(form.attributes);
+      } catch {
+        // Skip this category
+      }
+    }
+  } catch {
+    // No categories available
+  }
+
+  return nameMap;
 };
 
 OTCSClient.prototype.getWorkspace = async function (
@@ -375,11 +454,10 @@ OTCSClient.prototype.addWorkspaceRelation = async function (
   relatedWorkspaceId: number,
   relationType?: string,
 ): Promise<WorkspaceRelation> {
+  const effectiveRelType = relationType || 'child';
   const formData = new URLSearchParams();
   formData.append('rel_bw_id', relatedWorkspaceId.toString());
-  if (relationType) {
-    formData.append('rel_type', relationType);
-  }
+  formData.append('rel_type', effectiveRelType);
 
   const response = await this.request<any>(
     'POST',
@@ -391,7 +469,7 @@ OTCSClient.prototype.addWorkspaceRelation = async function (
   const props = response?.results?.data?.properties || response?.results || response;
   return {
     rel_id: props.rel_id || props.id || relatedWorkspaceId,
-    rel_type: relationType || 'related',
+    rel_type: effectiveRelType,
     workspace_id: relatedWorkspaceId,
     workspace_name: props.name || '',
     workspace_type_name: props.wksp_type_name,

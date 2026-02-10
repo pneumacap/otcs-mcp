@@ -44,19 +44,41 @@ export const categoryHandlers: Record<string, HandlerFn> = {
       }
       case 'add': {
         if (!category_id) throw new Error('category_id required');
-        const added = await client.addCategory(node_id, category_id, values);
-        return {
-          ...added,
-          message: `Category ${category_id} added`,
-          values_set: values ? Object.keys(values) : [],
-        };
+        try {
+          const added = await client.addCategory(node_id, category_id, values);
+          return {
+            ...added,
+            message: `Category ${category_id} added`,
+            values_set: values ? Object.keys(values) : [],
+          };
+        } catch (err: any) {
+          // If category already exists and values were provided, auto-fallback to update
+          const msg = err.message || '';
+          if (values && Object.keys(values).length > 0 && /already|exist|duplicate/i.test(msg)) {
+            const updated = await client.updateCategory(node_id, category_id, values);
+            return {
+              ...updated,
+              message: `Category ${category_id} already applied — updated with provided values`,
+              values_updated: Object.keys(values),
+            };
+          }
+          throw err;
+        }
       }
       case 'update': {
-        if (!category_id || !values) throw new Error('category_id and values required');
-        const updated = await client.updateCategory(node_id, category_id, values);
+        if (!values) throw new Error('values required for update');
+        // Auto-infer category_id from value keys (e.g. "10596_2_1_6" → 10596)
+        let effectiveCategoryId = category_id;
+        if (!effectiveCategoryId) {
+          const firstKey = Object.keys(values)[0];
+          const m = firstKey?.match(/^(\d+)_/);
+          if (m) effectiveCategoryId = parseInt(m[1], 10);
+        }
+        if (!effectiveCategoryId) throw new Error('category_id required (could not infer from value keys)');
+        const updated = await client.updateCategory(node_id, effectiveCategoryId, values);
         return {
           ...updated,
-          message: `Category ${category_id} updated`,
+          message: `Category ${effectiveCategoryId} updated`,
           values_updated: Object.keys(values),
         };
       }
