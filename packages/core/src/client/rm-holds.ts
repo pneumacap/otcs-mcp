@@ -171,21 +171,24 @@ OTCSClient.prototype.applyRMHoldBatch = async function (
   const failed: Array<{ node_id: number; error: string }> = [];
   let successCount = 0;
 
-  const maxConcurrency = 5;
-  for (let i = 0; i < nodeIds.length; i += maxConcurrency) {
-    const batch = nodeIds.slice(i, i + maxConcurrency);
-    const batchResults = await Promise.all(
-      batch.map(async (nodeId) => {
-        try {
-          await this.applyRMHold(nodeId, holdId);
-          return { success: true, nodeId };
-        } catch (error: any) {
-          failed.push({ node_id: nodeId, error: error?.message || String(error) });
-          return { success: false, nodeId };
-        }
-      }),
-    );
-    successCount += batchResults.filter((r) => r.success).length;
+  // Sequential with retry — OTCS servers behind reverse proxies (IIS/Apache)
+  // reject concurrent POSTs to the holds endpoint and corrupt the connection pool.
+  for (const nodeId of nodeIds) {
+    let lastError = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.applyRMHold(nodeId, holdId);
+        successCount++;
+        lastError = '';
+        break;
+      } catch (error: any) {
+        lastError = error?.message || String(error);
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 250));
+      }
+    }
+    if (lastError) {
+      failed.push({ node_id: nodeId, error: lastError });
+    }
   }
 
   return {
@@ -203,21 +206,24 @@ OTCSClient.prototype.removeRMHoldBatch = async function (
   const failed: Array<{ node_id: number; error: string }> = [];
   let successCount = 0;
 
-  const maxConcurrency = 5;
-  for (let i = 0; i < nodeIds.length; i += maxConcurrency) {
-    const batch = nodeIds.slice(i, i + maxConcurrency);
-    const batchResults = await Promise.all(
-      batch.map(async (nodeId) => {
-        try {
-          await this.removeRMHold(nodeId, holdId);
-          return { success: true, nodeId };
-        } catch (error: any) {
-          failed.push({ node_id: nodeId, error: error?.message || String(error) });
-          return { success: false, nodeId };
-        }
-      }),
-    );
-    successCount += batchResults.filter((r) => r.success).length;
+  // Sequential with retry — OTCS servers behind reverse proxies (IIS/Apache)
+  // reject concurrent DELETEs and corrupt the connection pool.
+  for (const nodeId of nodeIds) {
+    let lastError = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.removeRMHold(nodeId, holdId);
+        successCount++;
+        lastError = '';
+        break;
+      } catch (error: any) {
+        lastError = error?.message || String(error);
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 250));
+      }
+    }
+    if (lastError) {
+      failed.push({ node_id: nodeId, error: lastError });
+    }
   }
 
   return {

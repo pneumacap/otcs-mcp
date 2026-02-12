@@ -1,8 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { remarkIcons, InlineIcon } from '@/lib/remark-icons';
 import ToolCallDisplay from './ToolCallDisplay';
+import ToolCallGroup from './ToolCallGroup';
 import ChartBlock, { ChartConfig } from './ChartBlock';
 
 export interface ToolCall {
@@ -25,7 +28,7 @@ export interface Message {
   parts?: MessagePart[]; // assistant messages use ordered parts
 }
 
-const mdComponents: Components = {
+const mdComponents: Components & Record<string, unknown> = {
   pre({ children }) {
     return <>{children}</>;
   },
@@ -47,7 +50,44 @@ const mdComponents: Components = {
     // Default inline/block code rendering
     return <code className={className}>{children}</code>;
   },
+  'icon-inline': InlineIcon,
 };
+
+type RenderSegment =
+  | { type: 'text'; text: string; index: number }
+  | { type: 'tool_call'; toolCall: ToolCall }
+  | { type: 'tool_call_group'; name: string; toolCalls: ToolCall[] };
+
+function groupParts(parts: MessagePart[]): RenderSegment[] {
+  const segments: RenderSegment[] = [];
+  let run: ToolCall[] = [];
+
+  const flushRun = () => {
+    if (run.length === 0) return;
+    if (run.length === 1) {
+      segments.push({ type: 'tool_call', toolCall: run[0] });
+    } else {
+      segments.push({ type: 'tool_call_group', name: run[0].name, toolCalls: [...run] });
+    }
+    run = [];
+  };
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.type === 'tool_call') {
+      if (run.length > 0 && run[0].name !== part.toolCall.name) {
+        flushRun();
+      }
+      run.push(part.toolCall);
+    } else {
+      flushRun();
+      segments.push({ type: 'text', text: part.text, index: i });
+    }
+  }
+  flushRun();
+
+  return segments;
+}
 
 interface MessageBubbleProps {
   message: Message;
@@ -68,6 +108,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
   // Assistant message — render parts in order
   const parts = message.parts || [];
+  const segments = useMemo(() => groupParts(parts), [parts]);
 
   return (
     <div className="flex gap-3">
@@ -75,26 +116,33 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         OT
       </div>
       <div className="min-w-0 flex-1 space-y-2">
-        {parts.map((part, i) => {
-          if (part.type === 'tool_call') {
+        {segments.map((seg) => {
+          if (seg.type === 'tool_call_group') {
             return (
-              <ToolCallDisplay
-                key={part.toolCall.id}
-                name={part.toolCall.name}
-                args={part.toolCall.args}
-                result={part.toolCall.result}
-                isError={part.toolCall.isError}
-                isLoading={part.toolCall.isLoading}
+              <ToolCallGroup
+                key={`group-${seg.toolCalls[0].id}`}
+                toolCalls={seg.toolCalls}
               />
             );
           }
-
-          // text part — only render if non-empty
-          if (!part.text.trim()) return null;
+          if (seg.type === 'tool_call') {
+            return (
+              <ToolCallDisplay
+                key={seg.toolCall.id}
+                name={seg.toolCall.name}
+                args={seg.toolCall.args}
+                result={seg.toolCall.result}
+                isError={seg.toolCall.isError}
+                isLoading={seg.toolCall.isLoading}
+              />
+            );
+          }
+          // text segment — only render if non-empty
+          if (!seg.text.trim()) return null;
           return (
-            <div key={`text-${i}`} className="assistant-prose">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                {part.text}
+            <div key={`text-${seg.index}`} className="assistant-prose">
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkIcons]} components={mdComponents}>
+                {seg.text}
               </ReactMarkdown>
             </div>
           );

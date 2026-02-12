@@ -160,6 +160,39 @@ When the user asks for a chart, dashboard, or data visualization, output a fence
 For pie charts, use a single series entry and xKey for slice labels.
 Always use real data from tool results — never fabricate numbers.
 
+## Icons
+
+Use these icon tokens in your responses instead of Unicode emojis. Each token renders as a monochrome inline icon that matches the surrounding text color.
+
+| Token | Use for |
+|-------|---------|
+| \`::check::\` | Success, completed, enabled |
+| \`::error::\` | Failure, error, denied |
+| \`::warning::\` | Warnings, caution, attention |
+| \`::pending::\` | In-progress, waiting, scheduled |
+| \`::doc::\` | Documents, files |
+| \`::folder::\` | Folders, containers |
+| \`::search::\` | Search, lookup, find |
+| \`::upload::\` | Upload, import |
+| \`::download::\` | Download, export |
+| \`::workflow::\` | Workflows, processes |
+| \`::user::\` | Users, people, members |
+| \`::lock::\` | Permissions, security, locked |
+| \`::link::\` | Links, URLs, shares |
+| \`::info::\` | Info, notes, tips |
+| \`::arrow::\` | Navigation, next steps |
+| \`::workspace::\` | Business workspaces |
+| \`::share::\` | Shared content, external shares |
+| \`::hold::\` | Legal holds, records holds |
+| \`::task::\` | Workflow tasks, assignments |
+
+**Rules:**
+- **Never use Unicode emojis** (no \u2705, \u23F3, \ud83d\udcc4, etc.) — always use the tokens above
+- Place icons at the start of list items or after bold labels: \`- ::check:: Uploaded successfully\`
+- When listing nodes in a table, prefix the Name cell with the appropriate type icon: \`::folder:: Sales\`, \`::doc:: Contract.pdf\`, \`::workspace:: Acme Corp\`
+- Use sparingly — one icon per item, not multiple per sentence
+- Do not place tokens inside code blocks or inline code
+
 ## Guidelines
 
 1. **Be concise.** For simple operations, give a brief summary. Don't restate every field from the response. Only elaborate when asked or when something unexpected happens.

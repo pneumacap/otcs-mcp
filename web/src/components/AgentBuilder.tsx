@@ -342,7 +342,6 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
                   <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
                   <option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>
                   <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-                  <option value="claude-3-5-haiku-20241022">Claude Haiku 3.5</option>
                 </select>
               </div>
               <div>
