@@ -95,6 +95,8 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user';
+  const parts = message.parts || [];
+  const segments = useMemo(() => groupParts(parts), [parts]);
 
   if (isUser) {
     return (
@@ -105,10 +107,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
       </div>
     );
   }
-
-  // Assistant message — render parts in order
-  const parts = message.parts || [];
-  const segments = useMemo(() => groupParts(parts), [parts]);
 
   return (
     <div className="flex gap-3">
