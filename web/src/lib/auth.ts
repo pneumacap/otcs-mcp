@@ -65,56 +65,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log(`[OTDS Auth] Attempting auth to ${otdsBase} for user ${username}`);
 
         try {
-          // Try OAuth 2.0 password grant flow first (modern OTDS)
-          const tokenEndpoint = `${otdsBase}/otdsws/oauth2/token`;
-          console.log(`[OTDS Auth] POST ${tokenEndpoint}`);
+          // Authenticate via /otdsws/v1/authentication/credentials
+          const legacyEndpoint = `${otdsBase}/otdsws/v1/authentication/credentials`;
+          console.log(`[OTDS Auth] POST ${legacyEndpoint}`);
 
-          const formData = new URLSearchParams();
-          formData.append('grant_type', 'password');
-          formData.append('username', username);
-          formData.append('password', password);
-
-          let authRes = await fetch(tokenEndpoint, {
+          let authRes = await fetch(legacyEndpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ user_name: username, password }),
           });
 
           let ticket: string | undefined;
 
           if (authRes.ok) {
             const authData = await authRes.json();
-            ticket = authData?.access_token || authData?.ticket;
-            console.log(`[OTDS Auth] OAuth token obtained`);
-          } else {
-            // Fallback: try legacy /otdsws/v1/authentication/credentials with JSON
-            console.log(`[OTDS Auth] OAuth failed (${authRes.status}), trying legacy endpoint`);
-            const legacyEndpoint = `${otdsBase}/otdsws/v1/authentication/credentials`;
-
-            authRes = await fetch(legacyEndpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userName: username, password }),
-            });
-
-            if (!authRes.ok) {
-              // Try alternate field name
-              console.log(`[OTDS Auth] Legacy failed (${authRes.status}), trying alternate fields`);
-              authRes = await fetch(legacyEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_name: username, password }),
-              });
-            }
-
-            if (!authRes.ok) {
-              const errorText = await authRes.text().catch(() => 'unknown');
-              console.log(`[OTDS Auth] All attempts failed: ${authRes.status} - ${errorText}`);
-              return null;
-            }
-
-            const authData = await authRes.json();
             ticket = authData?.ticket || authData?.token;
+            console.log(`[OTDS Auth] Ticket obtained for ${authData?.user_id || username}`);
+          } else {
+            const errorText = await authRes.text().catch(() => 'unknown');
+            console.log(`[OTDS Auth] Auth failed (${authRes.status}): ${errorText}`);
+            return null;
           }
 
           if (!ticket) {
@@ -126,13 +96,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           let name = username;
           let email = `${username}@otds`;
           try {
-            const profileRes = await fetch(`${otdsUrl}/users/${encodeURIComponent(username)}`, {
-              headers: { OTDSTicket: ticket },
-            });
+            const profileRes = await fetch(
+              `${otdsBase}/otdsws/v1/users/${encodeURIComponent(username)}`,
+              { headers: { OTDSTicket: ticket, Accept: 'application/json' } },
+            );
             if (profileRes.ok) {
               const profile = await profileRes.json();
               name = profile.name || profile.display_name || username;
               email = profile.email || email;
+              console.log(`[OTDS Auth] Profile fetched: ${name} <${email}>`);
             }
           } catch {
             // Profile fetch is best-effort
