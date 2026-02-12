@@ -72,16 +72,28 @@ export async function POST(request: NextRequest) {
       .map((b) => b.text)
       .join('');
 
+    console.log('[agent-generate] Raw AI response:', text.slice(0, 500));
+
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error('[agent-generate] No JSON found in response');
       return NextResponse.json(
         { error: 'Failed to generate agent configuration. Please try again.' },
         { status: 500 },
       );
     }
 
-    const generated = JSON.parse(jsonMatch[0]);
+    let generated;
+    try {
+      generated = JSON.parse(jsonMatch[0]);
+    } catch (parseErr: any) {
+      console.error('[agent-generate] JSON parse error:', parseErr.message, '\nExtracted:', jsonMatch[0].slice(0, 300));
+      return NextResponse.json(
+        { error: 'Failed to parse generated configuration. Please try again.' },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       generated,
