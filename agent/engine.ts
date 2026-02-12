@@ -5,6 +5,8 @@
  *   1. From the CLI via poller.ts (reads agent-config.json)
  *   2. From the web app via /api/agents/run (reads DB)
  *
+ * Pure agentic: download doc text → build prompt → run agent loop.
+ *
  * Usage:
  *   const engine = createEngine(config, client);
  *   await engine.start();   // begins polling
@@ -17,16 +19,9 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { OTCSClient } from "../packages/core/src/client/otcs-client.js";
 import { NodeTypes } from "../packages/core/src/types/core.js";
-import { type AgentConfig, type Rule } from "./config.js";
+import { type AgentConfig } from "./config.js";
 import { runAgentLoop } from "./agent-loop.js";
-import {
-  downloadDocument,
-  classifyAndExtract,
-  matchRule,
-  collectAllExtractFields,
-  executeActions,
-  type WorkflowRule,
-} from "./workflows.js";
+import { downloadDocument } from "./workflows.js";
 import { computeCost } from "../packages/core/src/llm/cost.js";
 import { log, logError, logEntry, type LogEntry } from "./logger.js";
 
@@ -34,6 +29,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const LAST_POLL_FILE = resolve(__dirname, "logs", ".last-poll");
+
+// ── Parallel map with concurrency limit (no external deps) ──
+
+async function pMap<T, R>(items: T[], fn: (item: T) => Promise<R>, concurrency: number): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let i = 0;
+  async function next(): Promise<void> {
+    const idx = i++;
+    if (idx >= items.length) return;
+    results[idx] = await fn(items[idx]);
+    await next();
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => next()));
+  return results;
+}
 
 // ── Types ──
 
@@ -46,7 +56,7 @@ export interface EngineStatus {
   outputTokens: number;
   totalCost: number;
   watchFolders: number[];
-  rulesCount: number;
+  agentsCount: number;
   pollIntervalMs: number;
   lastPollAt: string | null;
   recentLogs: string[];
@@ -56,20 +66,6 @@ export interface EngineHandle {
   start: () => Promise<void>;
   stop: () => void;
   status: () => EngineStatus;
-}
-
-// ── Convert config Rule to WorkflowRule ──
-
-function toWorkflowRules(rules: Rule[]): WorkflowRule[] {
-  return rules.map((r) => ({
-    name: r.name,
-    match: r.match as Record<string, string>,
-    actions: r.actions,
-    extractFields: r.extractFields,
-    excludePatterns: r.excludePatterns,
-    instructions: r.instructions,
-    shareEmail: r.shareEmail,
-  }));
 }
 
 // ── Engine Factory ──
@@ -100,10 +96,6 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
     documentsProcessed: 0,
   };
 
-  // Pre-compute rules
-  const workflowRules = toWorkflowRules(config.rules);
-  const allExtractFields = collectAllExtractFields(workflowRules);
-
   // Internal log wrapper that also captures recent logs
   function elog(msg: string): void {
     log(msg);
@@ -129,148 +121,96 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
     }
   }
 
+  // ── Pick the best agent for a document ──
+  // For now: use the first agent. Per-agent watchFolders can scope this.
+
+  function pickAgent(folderId: number) {
+    // If an agent has watchFolders that include this folder, prefer it
+    for (const agent of config.agents) {
+      if (agent.watchFolders && agent.watchFolders.includes(folderId)) {
+        return agent;
+      }
+    }
+    // Default to first agent
+    return config.agents[0];
+  }
+
   // ── Process a single document ──
 
   async function processDocument(
     nodeId: number,
     nodeName: string,
     mimeType: string,
+    folderId: number,
   ): Promise<LogEntry> {
     const startTime = Date.now();
+    const agent = pickAgent(folderId);
 
-    // Step 1: Download (free)
-    elog(`  [1/4] Downloading document...`);
+    // Step 1: Download document text
+    elog(`  [1/2] Downloading document...`);
     const documentText = await downloadDocument(client, nodeId);
 
-    // Step 2: Classify & extract (1 LLM call)
-    elog(`  [2/4] Classifying (LLM)...`);
-    const { extraction, usage } = await classifyAndExtract(
+    // Step 2: Run agentic loop
+    const instructions = agent.instructions || "Determine the appropriate action for this document.";
+    const baseSystemPrompt = agent.systemPrompt || config.systemPrompt || "You are an autonomous document processing agent for OpenText Content Server.";
+    const systemPrompt = baseSystemPrompt + "\n\nBe concise. Output only the classification and a 1-2 sentence summary. Do not use markdown headers, bullet points, or verbose explanations.";
+    const toolFilter = agent.tools || config.tools;
+
+    const userMessage = [
+      `New document uploaded: "${nodeName}" (ID: ${nodeId}, MIME: ${mimeType}).`,
+      `Document text (first 8000 chars):\n${documentText.slice(0, 8000)}`,
+      `\nInstructions:\n${instructions}`,
+    ].join("\n\n");
+
+    elog(`  [2/2] Running agentic loop (agent: "${agent.name}")...`);
+    const agentResult = await runAgentLoop(
+      client,
       config.anthropicApiKey,
+      [{ role: "user", content: userMessage }],
+      systemPrompt,
+      config.maxAgentRounds,
       config.anthropicModel,
-      documentText,
-      allExtractFields,
+      toolFilter,
     );
 
-    elog(`  → Type: ${extraction.documentType}`);
-    elog(`  → Summary: ${extraction.summary}`);
-    for (const [k, v] of Object.entries(extraction)) {
-      if (k !== "documentType" && k !== "summary" && v) {
-        elog(`  → ${k}: ${v}`);
-      }
-    }
+    const durationMs = Date.now() - startTime;
+    const docCost = computeCost(
+      agentResult.usage.inputTokens,
+      agentResult.usage.outputTokens,
+      agentResult.usage.cacheReadTokens,
+      agentResult.usage.cacheWriteTokens,
+    );
 
-    // Step 3: Match rule (free)
-    const matchedRule = matchRule(extraction, workflowRules, { name: nodeName, mimeType });
+    sessionUsage.inputTokens += agentResult.usage.inputTokens;
+    sessionUsage.outputTokens += agentResult.usage.outputTokens;
+    sessionUsage.cacheReadTokens += agentResult.usage.cacheReadTokens;
+    sessionUsage.cacheWriteTokens += agentResult.usage.cacheWriteTokens;
+    sessionUsage.cost += docCost;
+    sessionUsage.documentsProcessed++;
 
-    if (matchedRule) {
-      elog(`  [3/4] Matched rule: "${matchedRule.name}"`);
-    } else {
-      elog(`  [3/4] No rule matched`);
-    }
+    const totalTokens = agentResult.usage.inputTokens + agentResult.usage.outputTokens;
+    elog(`  Done in ${durationMs}ms — ${agentResult.rounds} round(s), ${totalTokens} tokens, cost=$${docCost.toFixed(4)}`);
 
-    // Step 4: Execute
-    if (matchedRule?.actions && matchedRule.actions.length > 0) {
-      // Programmatic path (free)
-      elog(`  [4/4] Executing ${matchedRule.actions.length} programmatic action(s)...`);
-      const { steps } = await executeActions(
-        client, matchedRule.actions, extraction, nodeId, nodeName,
-      );
-
-      const durationMs = Date.now() - startTime;
-      const totalTokens = usage.input + usage.output;
-      const docCost = computeCost(usage.input, usage.output, usage.cacheRead, usage.cacheWrite);
-
-      sessionUsage.inputTokens += usage.input;
-      sessionUsage.outputTokens += usage.output;
-      sessionUsage.cacheReadTokens += usage.cacheRead;
-      sessionUsage.cacheWriteTokens += usage.cacheWrite;
-      sessionUsage.cost += docCost;
-      sessionUsage.documentsProcessed++;
-
-      elog(`  Done (programmatic) in ${durationMs}ms — 1 LLM call (${totalTokens} tokens), ${steps.length} API calls, cost=$${docCost.toFixed(4)}`);
-
-      return {
-        timestamp: new Date().toISOString(),
-        nodeId,
-        nodeName,
-        action: matchedRule.name,
-        toolCalls: [
-          { name: "classify", args: { documentType: extraction.documentType }, result: `${totalTokens} tokens` },
-          ...steps.map((s) => ({ name: s.name, args: s.args, result: s.result })),
-        ],
-        result: `Matched "${matchedRule.name}". Type: ${extraction.documentType}. ${extraction.summary}`,
-        durationMs,
-        usage: {
-          inputTokens: usage.input,
-          outputTokens: usage.output,
-          cacheReadTokens: usage.cacheRead,
-          cacheWriteTokens: usage.cacheWrite,
-          cost: docCost,
-        },
-      };
-    } else {
-      // Agentic fallback
-      const instructions = matchedRule?.instructions || "Determine the appropriate action for this document.";
-      const userMessage = [
-        `New document uploaded: "${nodeName}" (ID: ${nodeId}, type: ${mimeType}).`,
-        `Classification: ${JSON.stringify(extraction)}`,
-        instructions,
-      ].join("\n\n");
-
-      elog(`  [4/4] No programmatic actions — falling back to agentic loop...`);
-      const agentResult = await runAgentLoop(
-        client,
-        config.anthropicApiKey,
-        [{ role: "user", content: userMessage }],
-        config.systemPrompt,
-        config.maxAgentRounds,
-        config.anthropicModel,
-        config.tools,
-      );
-
-      const durationMs = Date.now() - startTime;
-      const classifyTokens = usage.input + usage.output;
-      const agentTokens = agentResult.usage.inputTokens + agentResult.usage.outputTokens;
-
-      const totalInput = usage.input + agentResult.usage.inputTokens;
-      const totalOutput = usage.output + agentResult.usage.outputTokens;
-      const totalCacheRead = usage.cacheRead + agentResult.usage.cacheReadTokens;
-      const totalCacheWrite = usage.cacheWrite + agentResult.usage.cacheWriteTokens;
-      const docCost = computeCost(totalInput, totalOutput, totalCacheRead, totalCacheWrite);
-
-      sessionUsage.inputTokens += totalInput;
-      sessionUsage.outputTokens += totalOutput;
-      sessionUsage.cacheReadTokens += totalCacheRead;
-      sessionUsage.cacheWriteTokens += totalCacheWrite;
-      sessionUsage.cost += docCost;
-      sessionUsage.documentsProcessed++;
-
-      elog(`  Done (agentic) in ${durationMs}ms — ${agentResult.rounds} round(s), ${classifyTokens + agentTokens} total tokens, cost=$${docCost.toFixed(4)}`);
-
-      return {
-        timestamp: new Date().toISOString(),
-        nodeId,
-        nodeName,
-        action: matchedRule?.name || "agentic-fallback",
-        toolCalls: [
-          { name: "classify", args: { documentType: extraction.documentType }, result: `${classifyTokens} tokens` },
-          ...agentResult.toolCalls.map((tc) => ({
-            name: tc.name,
-            args: tc.args,
-            result: tc.result.slice(0, 500),
-          })),
-        ],
-        result: agentResult.finalText.slice(0, 1000),
-        durationMs,
-        usage: {
-          inputTokens: totalInput,
-          outputTokens: totalOutput,
-          cacheReadTokens: totalCacheRead,
-          cacheWriteTokens: totalCacheWrite,
-          cost: docCost,
-        },
-      };
-    }
+    return {
+      timestamp: new Date().toISOString(),
+      nodeId,
+      nodeName,
+      action: agent.name,
+      toolCalls: agentResult.toolCalls.map((tc) => ({
+        name: tc.name,
+        args: tc.args,
+        result: tc.result.slice(0, 500),
+      })),
+      result: agentResult.finalText.slice(0, 1000),
+      durationMs,
+      usage: {
+        inputTokens: agentResult.usage.inputTokens,
+        outputTokens: agentResult.usage.outputTokens,
+        cacheReadTokens: agentResult.usage.cacheReadTokens,
+        cacheWriteTokens: agentResult.usage.cacheWriteTokens,
+        cost: docCost,
+      },
+    };
   }
 
   // ── Poll a single folder ──
@@ -312,9 +252,9 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
 
     if (newItems.length === 0) return 0;
 
-    elog(`  ${newItems.length} new item(s) found in folder ${folderId}`);
+    elog(`  ${newItems.length} new item(s) found in folder ${folderId} (concurrency: ${config.concurrency})`);
 
-    for (const item of newItems) {
+    await pMap(newItems, async (item) => {
       const nodeId = item.id as number;
       const nodeName = (item.name as string) || `Node ${nodeId}`;
       const mimeType = (item.mime_type as string) || "unknown";
@@ -322,7 +262,7 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
       elog(`  Processing: ${nodeName} (ID: ${nodeId})`);
 
       try {
-        const entry = await processDocument(nodeId, nodeName, mimeType);
+        const entry = await processDocument(nodeId, nodeName, mimeType, folderId);
         logEntry(entry);
         processedIds.add(nodeId);
       } catch (err: any) {
@@ -333,12 +273,9 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
         }
         logError(`Failed to process ${nodeName} (ID: ${nodeId}): ${err.message}${isTransient ? " (will retry next poll)" : ""}`);
       }
-    }
+    }, config.concurrency);
 
     // Save current wall-clock time AFTER processing is complete.
-    // Using item modify_date would cause reprocessing on restart because
-    // our actions (update_description, categorize) bump the doc's modify_date
-    // past the saved timestamp.
     saveLastPollTimestamp(new Date().toISOString());
 
     return newItems.length;
@@ -407,7 +344,7 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
       running = true;
       startedAt = new Date().toISOString();
 
-      elog(`Engine starting — ${workflowRules.length} rules, ${config.watchFolders.length} folders, poll every ${config.pollIntervalMs / 1000}s`);
+      elog(`Engine starting — ${config.agents.length} agent(s), ${config.watchFolders.length} folder(s), poll every ${config.pollIntervalMs / 1000}s`);
 
       await baseline();
       await doPoll();
@@ -435,7 +372,7 @@ export function createEngine(config: AgentConfig, client: OTCSClient, options?: 
         outputTokens: sessionUsage.outputTokens,
         totalCost: sessionUsage.cost,
         watchFolders: config.watchFolders,
-        rulesCount: workflowRules.length,
+        agentsCount: config.agents.length,
         pollIntervalMs: config.pollIntervalMs,
         lastPollAt,
         recentLogs: [...recentLogs],

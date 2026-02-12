@@ -9,12 +9,12 @@ export interface TokenUsage {
   cache_creation_input_tokens: number;
 }
 
-// Anthropic Sonnet 4.5 pricing per token
+// Anthropic Haiku 4.5 pricing per token
 const PRICING = {
-  input: 3 / 1_000_000, // $3/MTok
-  output: 15 / 1_000_000, // $15/MTok
-  cache_read: 0.3 / 1_000_000, // $0.30/MTok
-  cache_write: 3.75 / 1_000_000, // $3.75/MTok
+  input: 1 / 1_000_000, // $1/MTok
+  output: 5 / 1_000_000, // $5/MTok
+  cache_read: 0.1 / 1_000_000, // $0.10/MTok
+  cache_write: 1.25 / 1_000_000, // $1.25/MTok
 };
 
 function formatTokens(n: number): string {

@@ -180,11 +180,11 @@ export async function POST(request: NextRequest) {
       // Log + persist usage
       if (rounds > 0) {
         // Pricing per MTok by model
-        const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';
+        const model = process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
         const isHaiku = model.includes('haiku');
         const pricing = isHaiku
-          ? { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 }
-          : { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // Sonnet default
+          ? { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 } // Haiku default
+          : { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // Sonnet
         const cost =
           Math.max(0, usageTotals.input - usageTotals.cache_read - usageTotals.cache_write) *
             (pricing.input / 1_000_000) +

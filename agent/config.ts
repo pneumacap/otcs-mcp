@@ -10,19 +10,12 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export interface Action {
-  type: "search" | "smart_search" | "ensure_hold" | "apply_hold" | "share" | "move" | "categorize" | "update_description" | "create_folder";
-  [key: string]: unknown;
-}
-
-export interface Rule {
+export interface AgentDef {
   name: string;
-  match: Record<string, unknown>;
   instructions: string;
-  actions?: Action[];          // Programmatic actions — if present, uses workflow engine (1 LLM call)
-  extractFields?: string[] | Record<string, string>;  // Array or { field: hint } for custom LLM prompts
-  excludePatterns?: string[];  // Patterns to exclude from search results
-  shareEmail?: string;         // Email for sharing
+  systemPrompt?: string;
+  tools?: string[];
+  watchFolders?: number[];
 }
 
 export interface AgentConfig {
@@ -31,7 +24,7 @@ export interface AgentConfig {
   maxAgentRounds: number;
   watchFolders: number[];
   systemPrompt: string;
-  rules: Rule[];
+  agents: AgentDef[];
   // Derived from env vars
   anthropicApiKey: string;
   otcsBaseUrl: string;
@@ -40,6 +33,7 @@ export interface AgentConfig {
   anthropicModel: string;
   tlsSkipVerify: boolean;
   tools?: string[]; // If set, only include these tools (by name)
+  concurrency: number; // Max parallel document processing (default: 3)
 }
 
 export function loadConfig(): AgentConfig {
@@ -81,7 +75,7 @@ export function loadConfig(): AgentConfig {
     maxAgentRounds: raw.maxAgentRounds ?? 10,
     watchFolders,
     systemPrompt: raw.systemPrompt ?? "",
-    rules: raw.rules ?? [],
+    agents: raw.agents ?? [],
     anthropicApiKey,
     otcsBaseUrl,
     otcsUsername,
@@ -89,5 +83,6 @@ export function loadConfig(): AgentConfig {
     anthropicModel: raw.model || process.env.AGENT_MODEL || "claude-sonnet-4-5-20250929",
     tlsSkipVerify,
     tools: raw.tools as string[] | undefined,
+    concurrency: raw.concurrency ?? 3,
   };
 }

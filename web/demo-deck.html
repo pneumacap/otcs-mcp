@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sub-Zero Engineering Change Package — OpenText Content Server Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-card: rgba(255,255,255,0.04);
+    --bg-card-hover: rgba(255,255,255,0.07);
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-purple: #8b5cf6;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --accent-orange: #f97316;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck { height: 100vh; width: 100vw; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 4vh 6vw;
+    opacity: 0; transform: translateX(60px); pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit-left { opacity: 0; transform: translateX(-60px); }
+  .slide.exit-right { opacity: 0; transform: translateX(60px); }
+
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(139,92,246,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 60%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .slide-number { position: absolute; top: 3vh; right: 4vw; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.1em; }
+
+  .tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.2rem; }
+  .tag-blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.2); }
+  .tag-cyan { background: rgba(6,182,212,0.12); color: var(--accent-cyan); border: 1px solid rgba(6,182,212,0.2); }
+  .tag-purple { background: rgba(139,92,246,0.12); color: var(--accent-purple); border: 1px solid rgba(139,92,246,0.2); }
+  .tag-emerald { background: rgba(16,185,129,0.12); color: var(--accent-emerald); border: 1px solid rgba(16,185,129,0.2); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-rose { background: rgba(244,63,94,0.12); color: var(--accent-rose); border: 1px solid rgba(244,63,94,0.2); }
+  .tag-orange { background: rgba(249,115,22,0.12); color: var(--accent-orange); border: 1px solid rgba(249,115,22,0.2); }
+
+  h1 { font-size: clamp(2.2rem, 4.5vw, 3.8rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1rem; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.025em; margin-bottom: 0.8rem; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .subtitle { font-size: clamp(1rem, 1.5vw, 1.25rem); color: var(--text-secondary); line-height: 1.6; max-width: 680px; margin-bottom: 2rem; }
+
+  .gradient-text { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .gradient-emerald { background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  .card-grid { display: grid; gap: 1rem; margin-top: 1.5rem; }
+  .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem; transition: background 0.2s, border-color 0.2s, transform 0.2s; }
+  .card:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+  .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 0.8rem; }
+  .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; }
+
+  .value-box { margin-top: 1.2rem; padding: 1rem 1.4rem; border-radius: 12px; border-left: 3px solid; font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); }
+  .value-box strong { color: var(--text-primary); font-weight: 600; }
+  .value-box.blue { background: rgba(59,130,246,0.06); border-color: var(--accent-blue); }
+  .value-box.cyan { background: rgba(6,182,212,0.06); border-color: var(--accent-cyan); }
+  .value-box.purple { background: rgba(139,92,246,0.06); border-color: var(--accent-purple); }
+  .value-box.emerald { background: rgba(16,185,129,0.06); border-color: var(--accent-emerald); }
+  .value-box.amber { background: rgba(245,158,11,0.06); border-color: var(--accent-amber); }
+  .value-box.rose { background: rgba(244,63,94,0.06); border-color: var(--accent-rose); }
+  .value-box.orange { background: rgba(249,115,22,0.06); border-color: var(--accent-orange); }
+
+  .demo-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 1rem; font-size: 0.82rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .demo-table th { background: rgba(255,255,255,0.04); padding: 10px 14px; text-align: left; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  .demo-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .demo-table tr:last-child td { border-bottom: none; }
+  .demo-table td:first-child { color: var(--text-primary); font-weight: 500; }
+
+  .flow { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+  .flow-node { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); background: var(--bg-card); white-space: nowrap; }
+  .flow-arrow { color: var(--text-muted); font-size: 1.1rem; flex-shrink: 0; }
+  .flow-node.blue { border-color: rgba(59,130,246,0.3); color: var(--accent-blue); }
+  .flow-node.purple { border-color: rgba(139,92,246,0.3); color: var(--accent-purple); }
+  .flow-node.emerald { border-color: rgba(16,185,129,0.3); color: var(--accent-emerald); }
+  .flow-node.amber { border-color: rgba(245,158,11,0.3); color: var(--accent-amber); }
+  .flow-node.rose { border-color: rgba(244,63,94,0.3); color: var(--accent-rose); }
+  .flow-node.orange { border-color: rgba(249,115,22,0.3); color: var(--accent-orange); }
+
+  .stat-row { display: flex; gap: 2rem; margin: 1.5rem 0; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
+  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+
+  .search-result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; font-size: 0.8rem; }
+  .search-result .sr-name { font-weight: 600; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .search-result .sr-type { font-size: 0.65rem; padding: 2px 8px; border-radius: 100px; background: rgba(255,255,255,0.06); color: var(--text-muted); font-weight: 500; }
+  .search-result .sr-highlight { color: var(--text-secondary); line-height: 1.5; }
+  .search-result .sr-highlight mark { background: rgba(245,158,11,0.2); color: var(--accent-amber); padding: 0 3px; border-radius: 3px; font-weight: 600; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+  .split-wide { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2.5rem; align-items: start; }
+
+  .nav { position: fixed; bottom: 3vh; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 1rem; z-index: 100; background: rgba(10,14,26,0.85); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 100px; padding: 8px 20px; }
+  .nav button { background: none; border: 1px solid var(--border); color: var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .nav button:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
+  .nav-dots { display: flex; gap: 6px; }
+  .nav-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); opacity: 0.3; cursor: pointer; transition: all 0.3s; }
+  .nav-dot.active { opacity: 1; background: var(--accent-blue); box-shadow: 0 0 8px rgba(59,130,246,0.4); }
+
+  .title-slide { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .title-slide h1 { font-size: clamp(2.5rem, 5vw, 4.2rem); margin-bottom: 1.2rem; }
+  .title-slide .subtitle { text-align: center; max-width: 720px; }
+  .logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+  .logo-mark { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; }
+  .logo-text { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.04em; }
+
+  @media (max-width: 900px) {
+    .card-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    .split, .split-wide { grid-template-columns: 1fr; }
+    .flow { justify-content: center; }
+  }
+  @media (max-width: 600px) {
+    .card-grid.cols-2, .card-grid.cols-3 { grid-template-columns: 1fr; }
+    .stat-row { flex-wrap: wrap; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
+<div class="deck" id="deck">
+
+  <!-- ─────────────── SLIDE 0: TITLE ─────────────── -->
+  <div class="slide title-slide active" data-slide="0">
+    <div class="slide-number">00 / 10</div>
+    <div class="logo-row">
+      <div class="logo-mark">OT</div>
+      <div class="logo-text">OpenText Content Server</div>
+    </div>
+    <h1><span class="gradient-text">Engineering Change Package</span></h1>
+    <p class="subtitle">
+      Lifecycle state control, version control, and controlled distribution of engineering documents across Manufacturing, Quality, and Field Service.
+    </p>
+    <div style="display:flex; gap:0.8rem; flex-wrap:wrap; justify-content:center; margin-top:0.5rem;">
+      <span class="tag tag-blue">Workspaces</span>
+      <span class="tag tag-cyan">Categories &amp; Attributes</span>
+      <span class="tag tag-purple">Relations</span>
+      <span class="tag tag-emerald">Version Control</span>
+      <span class="tag tag-amber">Enterprise Search</span>
+    </div>
+    <div class="stat-row" style="margin-top:2.5rem; justify-content:center;">
+      <div class="stat"><div class="stat-value gradient-text">5</div><div class="stat-label">Workspaces</div></div>
+      <div class="stat"><div class="stat-value gradient-text">7</div><div class="stat-label">Documents</div></div>
+      <div class="stat"><div class="stat-value gradient-text">6</div><div class="stat-label">Relations</div></div>
+      <div class="stat"><div class="stat-value gradient-text">2</div><div class="stat-label">Revisions</div></div>
+      <div class="stat"><div class="stat-value gradient-text">8</div><div class="stat-label">Steps</div></div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 1: Equipment Workspace ─────────────── -->
+  <div class="slide" data-slide="1">
+    <div class="slide-number">01 / 10</div>
+    <span class="tag tag-blue">Step 1 — Create Workspace + Set Metadata</span>
+    <h2>Create Equipment Master Record</h2>
+    <p class="subtitle">The Mechanical Engineer establishes the single source of truth for the compressor discharge valve with structured metadata.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-blue" style="margin-bottom:0.8rem;">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">⬡</div>
+          <h3>Engineer creates an Equipment workspace</h3>
+          <p>A new workspace — <strong style="color:var(--text-primary);">EQUIP-20001 Compressor Discharge Valve</strong> — is created from the Equipment template. Content Server automatically provisions 12 governed folders (Warranties, Manuals, Technical Drawings, Inspection Reports, and more).</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">◈</div>
+          <h3>Engineer sets the business properties</h3>
+          <p>Structured metadata is applied to the workspace:<br>
+          <strong style="color:var(--text-primary);">Equipment Number</strong> = EQUIP-20001<br>
+          <strong style="color:var(--text-primary);">Description</strong> = Compressor Discharge Valve<br>
+          <strong style="color:var(--text-primary);">Status</strong> = Active<br>
+          <strong style="color:var(--text-primary);">Manufacturer</strong> = Copeland</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box blue">
+          <strong>Master Data Governance</strong> — The Equipment workspace is the anchor of the entire change package. Structured category attributes make this asset searchable, reportable, and auditable. Every downstream document, change order, and service bulletin will trace back to this single controlled record.
+        </div>
+        <div class="value-box cyan" style="margin-top:0.8rem;">
+          <strong>Template-Driven Compliance</strong> — The workspace template automatically provisions the correct folder structure, ensuring every Equipment record follows the same governed pattern. No ad-hoc folder creation, no inconsistency across assets.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 2: Upload Spec ─────────────── -->
+  <div class="slide" data-slide="2">
+    <div class="slide-number">02 / 10</div>
+    <span class="tag tag-cyan">Step 2 — Browse + Upload</span>
+    <h2>Upload Released Engineering Spec</h2>
+    <p class="subtitle">The Engineer browses the workspace folder structure and uploads the controlled specification into the Technical Drawings folder.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-cyan" style="margin-bottom:0.8rem;">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📂</div>
+          <h3>Engineer browses the workspace folders</h3>
+          <p>The workspace contains template-provisioned folders organized by document type — Warranties, Manuals, Technical Drawings, Pictures &amp; Videos, and Inspection Reports. The Engineer navigates to <strong style="color:var(--text-primary);">03 - Technical Drawings</strong> as the correct location for engineering specifications.</p>
+        </div>
+        <div class="card card-blue">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">📄</div>
+          <h3>Engineer uploads the released specification</h3>
+          <p>Uploads <strong style="color:var(--text-primary);">Valve_Spec_Rev_A.txt</strong> — the full engineering specification with design parameters (450 PSI, 316 Stainless Steel, Viton FKM seal, 50,000 cycle life), quality requirements, and approval signatures.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box cyan">
+          <strong>Controlled Distribution</strong> — The released spec is filed in a governed folder where Manufacturing, Quality, and Field Service can access the authoritative Rev A baseline. Content Server's repository eliminates uncontrolled copies — everyone references the same single version.
+        </div>
+        <div class="value-box blue" style="margin-top:0.8rem;">
+          <strong>Structured Content Model</strong> — Template-provisioned folders ensure documents are organized consistently across every Equipment workspace. Engineers always know where to find — and where to file — technical drawings, manuals, and inspection records.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 3: ECN + Relations ─────────────── -->
+  <div class="slide" data-slide="3">
+    <div class="slide-number">03 / 10</div>
+    <span class="tag tag-purple">Step 3 — Create + Link + Upload</span>
+    <h2>Create Engineering Change Notification</h2>
+    <p class="subtitle">The Change Control Board formalizes the change with a Notification workspace, links it to the Equipment, and attaches the supporting documentation.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-purple" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(139,92,246,0.12); color:var(--accent-purple);">⬡</div>
+          <h3>Change Board creates a Notification workspace</h3>
+          <p>A new workspace — <strong style="color:var(--text-primary);">ECN-2026-001 Discharge Valve Redesign</strong> — is created from the Notification template to formalize the engineering change.</p>
+        </div>
+        <div class="card card-blue" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">🔗</div>
+          <h3>Change Board links the ECN to Equipment</h3>
+          <p>A workspace relation is created between the ECN and the Equipment record, establishing bidirectional traceability between the change and the asset it modifies.</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📄</div>
+          <h3>Engineer uploads change documentation</h3>
+          <p>Two documents are filed into the Notification folder: the <strong style="color:var(--text-primary);">Impact Assessment</strong> (cross-functional Manufacturing/Quality/Field Service analysis) and the <strong style="color:var(--text-primary);">Change Request</strong> (formal authorization with four-party approval).</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box purple">
+          <strong>Change Control Governance</strong> — The ECN creates a formal, auditable change record. The Impact Assessment documents cross-functional analysis (2 assembly stations affected, 127 field units, +3 day lead time), while the Change Request captures the engineering justification (2.3% failure rate &rarr; &lt;0.2% projected) and four-party approval chain.
+        </div>
+        <div class="value-box blue" style="margin-top:0.8rem;">
+          <strong>Workspace Relations</strong> — The link creates a navigable connection. From the ECN, stakeholders can instantly reach the Equipment it modifies. From the Equipment, they can see all associated change notifications. This is the backbone of traceability.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 4: Version Control ─────────────── -->
+  <div class="slide" data-slide="4">
+    <div class="slide-number">04 / 10</div>
+    <span class="tag tag-emerald">Step 4 — Version Control</span>
+    <h2>Add Rev B — Supersede Rev A</h2>
+    <p class="subtitle">The Engineer adds a new version of the specification, archiving the prior revision while promoting the updated design as the controlled current version.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-emerald" style="margin-bottom:0.8rem;">
+          <div class="card-icon" style="background:rgba(16,185,129,0.12); color:var(--accent-emerald);">↑</div>
+          <h3>Engineer adds a new version of the spec</h3>
+          <p><strong style="color:var(--text-primary);">Valve_Spec_Rev_B.txt</strong> is added as version 2 to the existing document. Rev A is automatically archived as version 1. Rev B includes the PTFE seal redesign, updated groove geometry, increased cycle life (50K &rarr; 75K), and new quality holds (FAI, seal compression test at 2x rated pressure).</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📋</div>
+          <h3>Engineer verifies the version history</h3>
+          <p>The version history confirms both revisions are preserved: Version 1 (Rev A, Initial Release) and Version 2 (Rev B, ECN-2026-001 Redesign) — each with timestamps, descriptions, and the original file content intact.</p>
+        </div>
+
+        <div class="flow" style="margin-top:1rem;">
+          <div class="flow-node" style="opacity:0.5;">Rev A (v1) — Archived</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node emerald" style="border-width:2px;">Rev B (v2) — Current</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box emerald">
+          <strong>Revision Control &amp; Audit Trail</strong> — Rev A is never deleted — it's preserved as a prior version. Any auditor or engineer can retrieve the exact spec that was in effect at any point in time. This is how regulated industries maintain compliance: every change is versioned, never overwritten.
+        </div>
+        <div class="value-box cyan" style="margin-top:0.8rem;">
+          <strong>Single Document, Multiple Revisions</strong> — The document reference stays the same. Any link, bookmark, or reference to this spec automatically resolves to the current Rev B, while the complete version history remains accessible. No broken links, no orphaned files.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 5: Production Order ─────────────── -->
+  <div class="slide" data-slide="5">
+    <div class="slide-number">05 / 10</div>
+    <span class="tag tag-amber">Step 5 — Create + Link + Upload</span>
+    <h2>Create Production Order</h2>
+    <p class="subtitle">Manufacturing Engineering launches the production execution record, links it to both Equipment and ECN, and uploads revised work instructions for the shop floor.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-amber" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(245,158,11,0.12); color:var(--accent-amber);">⬡</div>
+          <h3>Mfg Engineer creates a Production Order workspace</h3>
+          <p>A new workspace — <strong style="color:var(--text-primary);">PO-700001 Valve Assembly Update</strong> — is created from the Production Order template, which provisions folders for Work Instructions, Safety Data Sheets, Production Records, and more.</p>
+        </div>
+        <div class="card card-blue" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">🔗</div>
+          <h3>Mfg Engineer links PO to Equipment and ECN</h3>
+          <p>Two workspace relations are created — PO &rarr; Equipment <strong style="color:var(--text-primary);">and</strong> PO &rarr; ECN — establishing a three-way traceability chain between what's being built, why it changed, and how to build it.</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📄</div>
+          <h3>Mfg Engineer uploads revised work instructions</h3>
+          <p>Uploads <strong style="color:var(--text-primary);">WI-7001 Rev B Valve Assembly</strong> into the Work Instructions folder — includes PTFE seal assembly steps, Krytox lubricant requirement, dual pressure tests, and FAI quality holds.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box amber">
+          <strong>Manufacturing Execution Control</strong> — The Production Order creates a closed-loop record linking what's being built (Equipment), why it changed (ECN), and how to build it (Work Instruction). Manufacturing can only access the current approved version, eliminating the risk of building to an obsolete spec.
+        </div>
+        <div class="value-box blue" style="margin-top:0.8rem;">
+          <strong>Multi-Relation Traceability</strong> — Dual relations mean a production engineer can navigate from the shop floor work instruction to both the engineering justification and the master equipment record in two clicks. No searching, no guessing.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 6: Maintenance Order ─────────────── -->
+  <div class="slide" data-slide="6">
+    <div class="slide-number">06 / 10</div>
+    <span class="tag tag-rose">Step 6 — Field Service Distribution</span>
+    <h2>Create Maintenance Order + Service Bulletin</h2>
+    <p class="subtitle">The Field Service Manager extends the change package to field operations with a work order for retrofitting 127 installed units.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-rose" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(244,63,94,0.12); color:var(--accent-rose);">⬡</div>
+          <h3>Field Service Manager creates a Maintenance Order</h3>
+          <p>A new workspace — <strong style="color:var(--text-primary);">WO-600001 Field Retrofit</strong> — is created from the Maintenance Order template to track the field retrofit campaign.</p>
+        </div>
+        <div class="card card-blue" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">🔗</div>
+          <h3>Field Service Manager links WO to Equipment and ECN</h3>
+          <p>Two workspace relations connect the work order to both the Equipment being serviced and the ECN that authorized the change.</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📄</div>
+          <h3>Field Service Manager uploads the Service Bulletin</h3>
+          <p>Uploads <strong style="color:var(--text-primary);">SB-2026-001 Field Retrofit Bulletin</strong> — includes LOCKOUT/TAGOUT requirements, 8-step retrofit procedure, required parts list, and mandatory training prerequisite (TRN-2026-045).</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box rose">
+          <strong>Controlled Field Distribution</strong> — The Service Bulletin is a safety-critical document. By governing it in Content Server, Sub-Zero ensures every field technician accesses the same approved procedure with mandatory safety requirements. No email attachments, no outdated printouts.
+        </div>
+        <div class="value-box purple" style="margin-top:0.8rem;">
+          <strong>Last-Mile Traceability</strong> — Field technicians can trace from their retrofit procedure &rarr; the ECN that authorized it &rarr; the engineering spec that defines the new design &rarr; the equipment master record. The entire chain of custody is navigable, auditable, and complete.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 7: Vendor ─────────────── -->
+  <div class="slide" data-slide="7">
+    <div class="slide-number">07 / 10</div>
+    <span class="tag tag-orange">Step 7 — Supply Chain Governance</span>
+    <h2>Create Vendor Record + Part Spec</h2>
+    <p class="subtitle">Procurement closes the supply chain loop by creating the Copeland vendor workspace, linking it to the Equipment, and filing the OEM part specification.</p>
+
+    <div class="split">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-orange" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(249,115,22,0.12); color:var(--accent-orange);">⬡</div>
+          <h3>Procurement creates a Vendor workspace</h3>
+          <p>A new workspace — <strong style="color:var(--text-primary);">VENDOR-Copeland</strong> — is created from the Vendor template, which provisions folders for Vendor Information, Certificates, Commercial Documents, and Invoices.</p>
+        </div>
+        <div class="card card-blue" style="margin-bottom:0.6rem;">
+          <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">🔗</div>
+          <h3>Procurement links Vendor to Equipment</h3>
+          <p>A workspace relation connects Copeland to the Equipment record it supplies, creating a navigable link between the vendor and the asset.</p>
+        </div>
+        <div class="card card-cyan">
+          <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">📄</div>
+          <h3>Procurement uploads the OEM part spec</h3>
+          <p>Uploads <strong style="color:var(--text-primary);">Copeland PTE-0045 PTFE Seal Spec</strong> into the Vendor Information folder — includes material specifications (PTFE/silicone, ASTM D4159), dimensional tolerances, 900 PSI pressure rating, 100K cycle life, and RoHS/REACH compliance.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Business Value</h3>
+        <div class="value-box orange">
+          <strong>Supply Chain Traceability</strong> — Copeland's OEM part spec is now a governed document linked directly to the Equipment it serves. Procurement, Quality, and Incoming Inspection can trace the vendor specification back through the Equipment to the ECN that drove the part change.
+        </div>
+        <div class="value-box amber" style="margin-top:0.8rem;">
+          <strong>Eliminating Tribal Knowledge</strong> — Material certifications, dimensional requirements, chemical compatibility data, and packaging specs are all captured in the system of record — not in someone's email inbox or a shared drive folder that may or may not be current.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 8: Enterprise Search ─────────────── -->
+  <div class="slide" data-slide="8">
+    <div class="slide-number">08 / 10</div>
+    <span class="tag tag-amber">Step 8 — Enterprise Search</span>
+    <h2>Search: Full Package Traceability</h2>
+    <p class="subtitle">An Auditor searches for "discharge valve redesign" and instantly surfaces the entire change package — workspaces, documents, and full-text content highlights.</p>
+
+    <div class="split-wide">
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">Search Results with Highlights</h3>
+        <div class="search-result">
+          <div class="sr-name">ECN-2026-001 Discharge Valve Redesign <span class="sr-type">Notification</span></div>
+          <div class="sr-highlight"><mark>Redesign</mark> of compressor <mark>discharge valve</mark> to address field reliability concerns</div>
+        </div>
+        <div class="search-result">
+          <div class="sr-name">Change_Request_ECN-2026-001.txt <span class="sr-type">Document</span></div>
+          <div class="sr-highlight"><mark>Redesign</mark> compressor <mark>discharge valve</mark> seal from Viton FKM…failure rate 2.3%…PTFE projected &lt;0.2%</div>
+        </div>
+        <div class="search-result">
+          <div class="sr-name">Impact_Assessment_ECN-2026-001.txt <span class="sr-type">Document</span></div>
+          <div class="sr-highlight">New tooling required for revised <mark>valve</mark> body geometry…127 units require upgrade</div>
+        </div>
+        <div class="search-result">
+          <div class="sr-name">WI-7001_Rev_B_Valve_Assembly.txt <span class="sr-type">Document</span></div>
+          <div class="sr-highlight"><mark>Valve</mark> Assembly — Compressor <mark>Discharge Valve</mark> EQUIP-20001 Per ECN-2026-001</div>
+        </div>
+        <div class="search-result">
+          <div class="sr-name">SB-2026-001_Field_Retrofit_Bulletin.txt <span class="sr-type">Document</span></div>
+          <div class="sr-highlight">All Sub-Zero systems with Copeland <mark>discharge valve</mark> Rev A…127 units…PTFE seal handling training</div>
+        </div>
+        <div class="search-result">
+          <div class="sr-name">Valve_Spec_Rev_B.txt <span class="sr-type">Document v2</span></div>
+          <div class="sr-highlight">Performance requirements for the compressor <mark>discharge valve</mark>…PTFE-encapsulated O-ring</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;">What Happens</h3>
+        <div class="card card-amber" style="margin-bottom:1rem;">
+          <div class="card-icon" style="background:rgba(245,158,11,0.12); color:var(--accent-amber);">🔍</div>
+          <h3>Auditor searches for "discharge valve redesign"</h3>
+          <p>A single enterprise search returns all 5 workspaces and all 7 documents with full-text content snippets showing exactly where and why each result matched — spanning Engineering, Manufacturing, Field Service, and Procurement content.</p>
+        </div>
+        <div class="value-box amber">
+          <strong>Enterprise Discovery</strong> — Content Server's full-text index reaches deep into document content, not just file names or metadata. An auditor, engineer, or field technician can discover the complete change history — from root cause to field retrofit — in a single query.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 9: Traceability Map ─────────────── -->
+  <div class="slide" data-slide="9">
+    <div class="slide-number">09 / 10</div>
+    <span class="tag tag-purple">Change Package Architecture</span>
+    <h2>Complete Traceability Map</h2>
+    <p class="subtitle">Every workspace, document, version, and relation created during this demo — and who performed each action.</p>
+
+    <div class="flow" style="justify-content:center; margin:1rem 0 1.5rem;">
+      <div class="flow-node orange">Vendor — Copeland</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node blue" style="border-width:2px;">Equipment — EQUIP-20001</div>
+      <div class="flow-arrow">&larr;</div>
+      <div class="flow-node purple">ECN-2026-001</div>
+    </div>
+    <div class="flow" style="justify-content:center; margin-bottom:1.5rem;">
+      <div class="flow-node amber">Production Order — PO-700001</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-node blue" style="border-width:2px;">Equipment</div>
+      <div class="flow-arrow">+ &rarr;</div>
+      <div class="flow-node purple">ECN</div>
+      <div class="flow-arrow">&larr;</div>
+      <div class="flow-node rose">Maintenance — WO-600001</div>
+    </div>
+
+    <div style="overflow-x:auto;">
+    <table class="demo-table">
+      <thead>
+        <tr>
+          <th>Workspace</th>
+          <th>Type</th>
+          <th>Documents</th>
+          <th>Relations</th>
+          <th>Actions Performed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--accent-blue);">EQUIP-20001</td>
+          <td>Equipment</td>
+          <td>Valve Spec (Rev A &rarr; Rev B, 2 versions)</td>
+          <td>Master record (anchor)</td>
+          <td>Create workspace, set metadata, browse folders, upload spec, add new version</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent-purple);">ECN-2026-001</td>
+          <td>Notification</td>
+          <td>Impact Assessment, Change Request</td>
+          <td>&rarr; Equipment</td>
+          <td>Create workspace, link to Equipment, upload 2 documents</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent-amber);">PO-700001</td>
+          <td>Production Order</td>
+          <td>WI-7001 Rev B Work Instruction</td>
+          <td>&rarr; Equipment, &rarr; ECN</td>
+          <td>Create workspace, link to Equipment + ECN, upload work instruction</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent-rose);">WO-600001</td>
+          <td>Maintenance Order</td>
+          <td>SB-2026-001 Service Bulletin</td>
+          <td>&rarr; Equipment, &rarr; ECN</td>
+          <td>Create workspace, link to Equipment + ECN, upload service bulletin</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent-orange);">VENDOR-Copeland</td>
+          <td>Vendor</td>
+          <td>PTE-0045 PTFE Seal Spec</td>
+          <td>&rarr; Equipment</td>
+          <td>Create workspace, link to Equipment, upload part spec</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ─────────────── SLIDE 10: Summary ─────────────── -->
+  <div class="slide" data-slide="10">
+    <div class="slide-number">10 / 10</div>
+    <span class="tag tag-emerald">Summary</span>
+    <h2><span class="gradient-emerald">Five Pillars of Document Governance</span></h2>
+    <p class="subtitle">Every capability demonstrated maps to a core governance requirement for regulated manufacturing environments.</p>
+
+    <div class="card-grid cols-3" style="margin-top:0.5rem;">
+      <div class="card card-blue">
+        <div class="card-icon" style="background:rgba(59,130,246,0.12); color:var(--accent-blue);">⬡</div>
+        <h3>Lifecycle State Control</h3>
+        <p>Equipment metadata (Status, Manufacturer) governs the asset through its lifecycle. The ECN formalizes change authorization with cross-functional approvals across Engineering, Quality, Manufacturing, and Field Service.</p>
+      </div>
+      <div class="card card-emerald">
+        <div class="card-icon" style="background:rgba(16,185,129,0.12); color:var(--accent-emerald);">↑</div>
+        <h3>Version Control</h3>
+        <p>Rev A archived as version 1, Rev B promoted as version 2 with full change history. No overwriting, no data loss — a complete audit trail preserving every revision that was ever in effect.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="card-icon" style="background:rgba(139,92,246,0.12); color:var(--accent-purple);">🔗</div>
+        <h3>Traceability</h3>
+        <p>Workspace relations create a connected graph: Equipment &larr; ECN &larr; Production Order / Maintenance Order / Vendor. Every artifact is linked, navigable, and auditable from any entry point.</p>
+      </div>
+      <div class="card card-rose">
+        <div class="card-icon" style="background:rgba(244,63,94,0.12); color:var(--accent-rose);">📄</div>
+        <h3>Controlled Distribution</h3>
+        <p>Every document filed in governed folders. Manufacturing gets work instructions, Quality gets inspection parameters, Field Service gets service bulletins — all from one system of record.</p>
+      </div>
+      <div class="card card-amber">
+        <div class="card-icon" style="background:rgba(245,158,11,0.12); color:var(--accent-amber);">🔍</div>
+        <h3>Enterprise Search</h3>
+        <p>A single search surfaces the entire change package with full-text content highlights. Auditors, engineers, and field technicians discover complete change history in seconds — ready for FDA, ISO, or internal audit.</p>
+      </div>
+      <div class="card card-cyan">
+        <div class="card-icon" style="background:rgba(6,182,212,0.12); color:var(--accent-cyan);">◈</div>
+        <h3>AI-Powered Automation</h3>
+        <p>Every operation in this demo was orchestrated by an AI agent via natural language — the same actions that take hours of manual navigation in the Content Server UI were completed in minutes through conversational interaction.</p>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2rem; color:var(--text-muted); font-size:0.8rem;">
+      Built with <strong style="color:var(--text-secondary);">OpenText Content Server</strong> — enterprise workspace management, document control, and full-text search.
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <button onclick="prev()" aria-label="Previous slide">&#8249;</button>
+  <div class="nav-dots" id="navDots"></div>
+  <button onclick="next()" aria-label="Next slide">&#8250;</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('navDots');
+  let current = 0;
+  const total = slides.length;
+
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goTo(n) {
+    if (n < 0 || n >= total || n === current) return;
+    const dir = n > current ? 1 : -1;
+
+    // Exit current slide
+    slides[current].classList.remove('active');
+    slides[current].classList.add(dir > 0 ? 'exit-left' : 'exit-right');
+
+    const prevIdx = current;
+    current = n;
+
+    // Position incoming slide at its start point with no transition
+    const nextSlide = slides[current];
+    nextSlide.style.transition = 'none';
+    nextSlide.style.transform = dir > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+    nextSlide.style.opacity = '0';
+
+    // Force reflow so the browser registers the starting position
+    nextSlide.offsetHeight;
+
+    // Re-enable transition, add active, clear inline overrides to animate in
+    nextSlide.style.transition = '';
+    nextSlide.style.transform = '';
+    nextSlide.style.opacity = '';
+    nextSlide.classList.add('active');
+
+    // Clean up exited slide
+    setTimeout(() => {
+      slides[prevIdx].classList.remove('exit-left', 'exit-right');
+    }, 500);
+
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+  });
+</script>
+
+</body>
+</html>

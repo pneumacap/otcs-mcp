@@ -9,10 +9,7 @@ interface Agent {
   name: string;
   description: string;
   enabled: boolean;
-  match: Record<string, unknown>;
   instructions: string;
-  extractFields: Record<string, string>;
-  actions: Record<string, unknown>[];
   watchFolders: number[];
   tools: string[];
   systemPrompt: string;
@@ -51,14 +48,10 @@ export default function AgentsPage() {
   // Test run state
   const [testingAgent, setTestingAgent] = useState<string | null>(null);
   const [testNodeId, setTestNodeId] = useState('');
-  const [testMode, setTestMode] = useState<'dry' | 'live'>('dry');
   const [testRunning, setTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<{
     steps: { step: string; status: string; detail: string; durationMs: number }[];
-    extraction?: Record<string, unknown>;
-    matched?: boolean;
     nodeName?: string;
-    mode?: string;
     usage?: { inputTokens: number; outputTokens: number; costUsd?: number };
     agentToolCalls?: { name: string; args: Record<string, unknown>; result: string; isError: boolean }[];
     agentSummary?: string;
@@ -241,7 +234,7 @@ export default function AgentsPage() {
       return;
     }
 
-    if (testMode === 'live' && !confirm('Live run will execute real actions on your content server. Continue?')) {
+    if (!confirm('This will execute real actions on your content server. Continue?')) {
       return;
     }
 
@@ -253,7 +246,7 @@ export default function AgentsPage() {
       const res = await fetch(`/api/agents/${agentId}/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId, mode: testMode }),
+        body: JSON.stringify({ nodeId }),
       });
 
       const data = await res.json();
@@ -511,26 +504,10 @@ export default function AgentsPage() {
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0 ml-4">
-                      {/* Match badge */}
-                      {agent.match && Object.keys(agent.match).length > 0 && (
-                        <span className="rounded-md bg-purple-50 px-2 py-1 text-[10px] font-medium text-purple-700 dark:bg-purple-950/30 dark:text-purple-400">
-                          {Object.values(agent.match).join(', ')}
-                        </span>
-                      )}
-
-                      {/* Actions count badge */}
-                      {(agent.actions as unknown[]).length > 0 && (
-                        <span className="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
-                          {(agent.actions as unknown[]).length} action{(agent.actions as unknown[]).length !== 1 ? 's' : ''}
-                        </span>
-                      )}
-
                       {/* Agentic badge */}
-                      {(agent.actions as unknown[]).length === 0 && agent.instructions && (
-                        <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
-                          Agentic
-                        </span>
-                      )}
+                      <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                        Agentic
+                      </span>
 
                       {/* Test */}
                       <button
@@ -599,39 +576,9 @@ export default function AgentsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
                         </svg>
                         <span className="text-xs font-semibold text-green-800 dark:text-green-300">
-                          Test Run — dry run this agent against a document
+                          Test Run — execute agent against a document
                         </span>
                       </div>
-
-                      {/* Mode toggle */}
-                      <div className="mb-3 flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800 w-fit">
-                        <button
-                          onClick={() => setTestMode('dry')}
-                          className={`rounded-md px-3 py-1 text-[11px] font-semibold transition-all ${
-                            testMode === 'dry'
-                              ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                          }`}
-                        >
-                          Dry Run
-                        </button>
-                        <button
-                          onClick={() => setTestMode('live')}
-                          className={`rounded-md px-3 py-1 text-[11px] font-semibold transition-all ${
-                            testMode === 'live'
-                              ? 'bg-amber-500 text-white shadow-sm'
-                              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                          }`}
-                        >
-                          Live Run
-                        </button>
-                      </div>
-
-                      {testMode === 'live' && (
-                        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
-                          Live mode will execute real actions on your content server (update descriptions, apply categories, etc.)
-                        </div>
-                      )}
 
                       <div className="flex gap-2">
                         <input
@@ -647,21 +594,15 @@ export default function AgentsPage() {
                         <button
                           onClick={() => handleTestRun(agent.id)}
                           disabled={testRunning || !testNodeId.trim()}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-all disabled:opacity-50 ${
-                            testMode === 'live'
-                              ? 'bg-amber-500 hover:bg-amber-600'
-                              : 'bg-green-600 hover:bg-green-700'
-                          }`}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-green-700 disabled:opacity-50"
                         >
                           {testRunning ? (
                             <>
                               <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                              {testMode === 'live' ? 'Executing...' : 'Running...'}
+                              Running...
                             </>
-                          ) : testMode === 'live' ? (
-                            'Execute Live'
                           ) : (
-                            'Run Test'
+                            'Test'
                           )}
                         </button>
                       </div>
@@ -719,25 +660,6 @@ export default function AgentsPage() {
                             </div>
                           ))}
 
-                          {/* Extraction results */}
-                          {testResult.extraction && (
-                            <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                              <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
-                                Extracted Fields
-                              </span>
-                              <div className="mt-2 space-y-1.5">
-                                {Object.entries(testResult.extraction).map(([k, v]) => (
-                                  <div key={k} className="flex gap-2 text-xs">
-                                    <span className="shrink-0 font-mono font-semibold text-gray-700 dark:text-gray-300">{k}:</span>
-                                    <span className="text-gray-600 dark:text-gray-400">
-                                      {typeof v === 'object' ? JSON.stringify(v) : String(v ?? 'null')}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
                           {/* Tool calls from live run */}
                           {testResult.agentToolCalls && testResult.agentToolCalls.length > 0 && (
                             <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
@@ -785,18 +707,6 @@ export default function AgentsPage() {
 
                           {/* Summary bar */}
                           <div className="mt-2 flex items-center gap-3 rounded-lg bg-gray-100 px-3 py-2 text-[11px] dark:bg-gray-800">
-                            <span className={`font-semibold ${testResult.matched ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                              {testResult.matched ? 'MATCHED' : 'NO MATCH'}
-                            </span>
-                            {testResult.mode && (
-                              <span className={`rounded px-1.5 py-0.5 font-bold ${
-                                testResult.mode === 'live'
-                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'
-                                  : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                              }`}>
-                                {testResult.mode === 'live' ? 'LIVE' : 'DRY'}
-                              </span>
-                            )}
                             {testResult.agentRounds !== undefined && (
                               <span className="text-gray-500 dark:text-gray-400">
                                 {testResult.agentRounds} round(s)
@@ -825,43 +735,6 @@ export default function AgentsPage() {
                   {expandedAgent === agent.id && (
                     <div className="border-t border-gray-100 px-4 pb-4 pt-3 dark:border-gray-800">
                       <div className="grid grid-cols-2 gap-4 text-xs">
-                        {/* Match */}
-                        {agent.match && Object.keys(agent.match).length > 0 && (
-                          <div>
-                            <span className="font-medium text-gray-500 dark:text-gray-400">Match criteria</span>
-                            <pre className="mt-1 rounded-lg bg-gray-50 p-2 font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                              {JSON.stringify(agent.match, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-
-                        {/* Extract fields */}
-                        {agent.extractFields && Object.keys(agent.extractFields).length > 0 && (
-                          <div>
-                            <span className="font-medium text-gray-500 dark:text-gray-400">
-                              Extract fields ({Object.keys(agent.extractFields).length})
-                            </span>
-                            <div className="mt-1 space-y-1">
-                              {Object.entries(agent.extractFields).map(([k, v]) => (
-                                <div key={k} className="rounded-lg bg-gray-50 px-2 py-1 dark:bg-gray-800">
-                                  <span className="font-mono font-medium text-gray-900 dark:text-gray-100">{k}</span>
-                                  <span className="ml-1 text-gray-500 dark:text-gray-400">— {v}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        {(agent.actions as unknown[]).length > 0 && (
-                          <div>
-                            <span className="font-medium text-gray-500 dark:text-gray-400">Actions</span>
-                            <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-gray-50 p-2 font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                              {JSON.stringify(agent.actions, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-
                         {/* Instructions */}
                         {agent.instructions && (
                           <div className="col-span-2">
@@ -869,6 +742,26 @@ export default function AgentsPage() {
                             <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-gray-50 p-2 font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                               {agent.instructions}
                             </pre>
+                          </div>
+                        )}
+
+                        {/* System prompt */}
+                        {agent.systemPrompt && (
+                          <div className="col-span-2">
+                            <span className="font-medium text-gray-500 dark:text-gray-400">System Prompt</span>
+                            <p className="mt-1 rounded-lg bg-gray-50 p-2 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                              {agent.systemPrompt}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Tools */}
+                        {(agent.tools as string[]).length > 0 && (
+                          <div>
+                            <span className="font-medium text-gray-500 dark:text-gray-400">Tools</span>
+                            <p className="mt-1 text-gray-700 dark:text-gray-300">
+                              {(agent.tools as string[]).join(', ')}
+                            </p>
                           </div>
                         )}
 

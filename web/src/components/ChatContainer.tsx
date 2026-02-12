@@ -546,7 +546,7 @@ export default function ChatContainer() {
 
       {/* Footer */}
       <div className="border-t border-gray-100 bg-white/80 px-4 py-2 text-center backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
-        <p className="text-[11px] text-gray-400 dark:text-gray-600">Powered by Claude Sonnet 4.5</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-600">Powered by Claude Haiku 4.5</p>
       </div>
     </div>
   );

@@ -123,38 +123,41 @@ export async function runAgentLoop(
       break;
     }
 
-    // Execute all tool calls
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-
+    // Execute all tool calls in parallel
     for (const block of toolUseBlocks) {
-      const toolArgs = block.input as Record<string, unknown>;
-      log(`  → Tool: ${block.name}(${JSON.stringify(toolArgs).slice(0, 120)})`);
-
-      let resultContent: string;
-      let isError = false;
-      try {
-        const result = await handleToolCall(client, block.name, toolArgs);
-        resultContent = compactToolResult(block.name, result);
-      } catch (err: any) {
-        isError = true;
-        const errorMsg = err.message || String(err);
-        resultContent = JSON.stringify({
-          error: true,
-          message: errorMsg,
-          suggestion: getSuggestion(errorMsg),
-        });
-        log(`  → Error: ${errorMsg}`);
-      }
-
-      allToolCalls.push({ name: block.name, args: toolArgs, result: resultContent, isError });
-
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: block.id,
-        content: resultContent,
-        is_error: isError,
-      });
+      log(`  → Tool: ${block.name}(${JSON.stringify(block.input).slice(0, 120)})`);
     }
+
+    const toolResults = await Promise.all(
+      toolUseBlocks.map(async (block) => {
+        const toolArgs = block.input as Record<string, unknown>;
+
+        let resultContent: string;
+        let isError = false;
+        try {
+          const result = await handleToolCall(client, block.name, toolArgs);
+          resultContent = compactToolResult(block.name, result);
+        } catch (err: any) {
+          isError = true;
+          const errorMsg = err.message || String(err);
+          resultContent = JSON.stringify({
+            error: true,
+            message: errorMsg,
+            suggestion: getSuggestion(errorMsg),
+          });
+          log(`  → Error: ${errorMsg}`);
+        }
+
+        allToolCalls.push({ name: block.name, args: toolArgs, result: resultContent, isError });
+
+        return {
+          type: "tool_result" as const,
+          tool_use_id: block.id,
+          content: resultContent,
+          is_error: isError,
+        };
+      })
+    );
 
     // Append assistant message and tool results for next round
     currentMessages.push({ role: "assistant", content: response.content });

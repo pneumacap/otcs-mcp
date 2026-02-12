@@ -138,7 +138,7 @@ function parseLogLine(line: string): void {
   if (line.includes('Poll #')) {
     agentState.pollCount++;
   }
-  if (line.includes('Done (programmatic)') || line.includes('Done (agentic)')) {
+  if (line.includes('Done in')) {
     agentState.documentsProcessed++;
     // Extract cost from "cost=$0.0031"
     const costMatch = line.match(/cost=\$([0-9.]+)/);
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
 
-    if (!config.enabled || config.rules.length === 0) {
+    if (!config.enabled || config.agents.length === 0) {
       return NextResponse.json({ error: 'No enabled agents found. Create and enable at least one agent.' }, { status: 400 });
     }
 
@@ -223,7 +223,8 @@ export async function POST(request: NextRequest) {
       model: config.anthropicModel,
       watchFolders: config.watchFolders,
       systemPrompt: config.systemPrompt,
-      rules: config.rules,
+      agents: config.agents,
+      concurrency: config.concurrency,
       ...(config.tools ? { tools: config.tools } : {}),
     };
 
@@ -296,7 +297,7 @@ export async function POST(request: NextRequest) {
       status: 'started',
       startedAt: agentState.startedAt,
       watchFolders: config.watchFolders,
-      rulesCount: config.rules.length,
+      agentsCount: config.agents.length,
       pollIntervalMs: config.pollIntervalMs,
       pid: child.pid,
     });

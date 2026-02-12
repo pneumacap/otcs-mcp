@@ -169,14 +169,8 @@ export const agents = pgTable(
     name: text('name').notNull(),
     description: text('description').notNull().default(''),
     enabled: boolean('enabled').notNull().default(true),
-    // Document matching criteria (e.g. { "documentType": "subpoena" })
-    match: jsonb('match').notNull().default({}),
     // AI-generated detailed instructions for the agent loop
     instructions: text('instructions').notNull().default(''),
-    // Fields to extract from documents: { fieldName: "hint for extraction" }
-    extractFields: jsonb('extract_fields').notNull().default({}),
-    // Programmatic action sequence: [{ type: "search", ... }, ...]
-    actions: jsonb('actions').notNull().default([]),
     // OTCS folder IDs to watch for new uploads
     watchFolders: jsonb('watch_folders').notNull().default([]),
     // Allowed tool names (empty = all tools)
@@ -184,7 +178,7 @@ export const agents = pgTable(
     // Override system prompt (empty = use default)
     systemPrompt: text('system_prompt').notNull().default(''),
     // Model to use
-    model: text('model').notNull().default('claude-sonnet-4-5-20250929'),
+    model: text('model').notNull().default('claude-haiku-4-5-20251001'),
     // Max agent rounds for agentic fallback
     maxRounds: integer('max_rounds').notNull().default(15),
     // Poll interval in ms

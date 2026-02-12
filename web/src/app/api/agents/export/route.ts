@@ -35,7 +35,7 @@ export async function GET() {
   // Merge all agents into a single agent-config.json format
   const allWatchFolders = new Set<number>();
   const allTools = new Set<string>();
-  const rules: Record<string, unknown>[] = [];
+  const agentDefs: Record<string, unknown>[] = [];
 
   for (const agent of enabledAgents) {
     const watchFolders = agent.watchFolders as number[];
@@ -44,12 +44,12 @@ export async function GET() {
     const tools = agent.tools as string[];
     for (const t of tools) allTools.add(t);
 
-    rules.push({
+    agentDefs.push({
       name: agent.name,
-      match: agent.match,
       instructions: agent.instructions,
-      extractFields: agent.extractFields,
-      actions: agent.actions,
+      systemPrompt: agent.systemPrompt || undefined,
+      tools: tools.length > 0 ? tools : undefined,
+      watchFolders: watchFolders.length > 0 ? watchFolders : undefined,
     });
   }
 
@@ -60,13 +60,13 @@ export async function GET() {
     enabled: enabledAgents.length > 0,
     pollIntervalMs: first?.pollIntervalMs ?? 30000,
     maxAgentRounds: first?.maxRounds ?? 15,
-    model: first?.model ?? 'claude-sonnet-4-5-20250929',
+    model: first?.model ?? 'claude-haiku-4-5-20251001',
     watchFolders: [...allWatchFolders],
     tools: allTools.size > 0 ? [...allTools] : undefined,
     systemPrompt:
       first?.systemPrompt ||
       'You are an autonomous document processing agent for OpenText Content Server.',
-    rules,
+    agents: agentDefs,
   };
 
   return NextResponse.json(config);

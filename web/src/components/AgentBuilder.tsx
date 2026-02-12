@@ -8,10 +8,7 @@ interface Agent {
   name: string;
   description: string;
   enabled: boolean;
-  match: Record<string, unknown>;
   instructions: string;
-  extractFields: Record<string, string>;
-  actions: Record<string, unknown>[];
   watchFolders: number[];
   tools: string[];
   systemPrompt: string;
@@ -26,37 +23,28 @@ interface AgentBuilderProps {
   onCancel: () => void;
 }
 
-type Step = 'describe' | 'review' | 'configure';
+type Step = 'describe' | 'configure';
 
 export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderProps) {
   const isEditing = !!agent;
 
   // Step management
-  const [step, setStep] = useState<Step>(isEditing ? 'review' : 'describe');
+  const [step, setStep] = useState<Step>(isEditing ? 'describe' : 'describe');
 
-  // Step 1: Describe
+  // Step 1: Describe + AI-generated config
   const [name, setName] = useState(agent?.name ?? '');
   const [description, setDescription] = useState(agent?.description ?? '');
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState('');
-
-  // Step 2: Review AI-generated config
-  const [match, setMatch] = useState<Record<string, unknown>>(agent?.match ?? {});
   const [instructions, setInstructions] = useState(agent?.instructions ?? '');
-  const [extractFields, setExtractFields] = useState<Record<string, string>>(
-    agent?.extractFields ?? {},
-  );
-  const [actions, setActions] = useState<Record<string, unknown>[]>(
-    (agent?.actions as Record<string, unknown>[]) ?? [],
-  );
   const [tools, setTools] = useState<string[]>((agent?.tools as string[]) ?? []);
   const [systemPrompt, setSystemPrompt] = useState(agent?.systemPrompt ?? '');
 
-  // Step 3: Configure
+  // Step 2: Configure
   const [watchFoldersInput, setWatchFoldersInput] = useState(
     (agent?.watchFolders as number[])?.join(', ') ?? '',
   );
-  const [model, setModel] = useState(agent?.model ?? 'claude-sonnet-4-5-20250929');
+  const [model, setModel] = useState(agent?.model ?? 'claude-haiku-4-5-20251001');
   const [maxRounds, setMaxRounds] = useState(agent?.maxRounds ?? 15);
   const [pollInterval, setPollInterval] = useState((agent?.pollIntervalMs ?? 30000) / 1000);
   const [enabled, setEnabled] = useState(agent?.enabled ?? true);
@@ -84,13 +72,9 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
       }
 
       const g = data.generated;
-      setMatch(g.match || {});
       setInstructions(g.instructions || '');
-      setExtractFields(g.extractFields || {});
-      setActions(g.actions || []);
       setTools(g.tools || []);
       setSystemPrompt(g.systemPrompt || '');
-      setStep('review');
     } catch (err: any) {
       setGenError(err.message || 'Generation failed');
     } finally {
@@ -112,10 +96,7 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
         name: name.trim(),
         description: description.trim(),
         enabled,
-        match,
         instructions,
-        extractFields,
-        actions,
         watchFolders,
         tools,
         systemPrompt,
@@ -130,39 +111,7 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
     }
   }
 
-  // ── Field editor helpers ──
-
-  function addExtractField() {
-    const key = prompt('Field name (e.g., "contractValue"):');
-    if (!key) return;
-    const hint = prompt('Extraction hint (what should AI look for?):') || 'extract if present';
-    setExtractFields((prev) => ({ ...prev, [key]: hint }));
-  }
-
-  function removeExtractField(key: string) {
-    setExtractFields((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }
-
-  function addAction() {
-    setActions((prev) => [...prev, { type: 'search', query: '' }]);
-  }
-
-  function removeAction(index: number) {
-    setActions((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateAction(index: number, value: string) {
-    try {
-      const parsed = JSON.parse(value);
-      setActions((prev) => prev.map((a, i) => (i === index ? parsed : a)));
-    } catch {
-      // Don't update on invalid JSON
-    }
-  }
+  const hasConfig = !!instructions;
 
   const inputClass =
     'w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-[13px] outline-none transition-colors placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:ring-1 focus:ring-blue-400/30 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-600 dark:focus:border-blue-500 dark:focus:bg-gray-800';
@@ -200,13 +149,12 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
       {/* Steps indicator */}
       <div className="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="mx-auto flex max-w-4xl">
-          {(['describe', 'review', 'configure'] as Step[]).map((s, i) => (
+          {(['describe', 'configure'] as Step[]).map((s, i) => (
             <button
               key={s}
               onClick={() => {
                 if (s === 'describe') setStep(s);
-                else if (s === 'review' && (instructions || Object.keys(extractFields).length > 0)) setStep(s);
-                else if (s === 'configure' && (instructions || Object.keys(extractFields).length > 0)) setStep(s);
+                else if (s === 'configure' && hasConfig) setStep(s);
               }}
               className={`flex-1 border-b-2 px-4 py-3 text-center text-xs font-medium transition-colors ${
                 step === s
@@ -217,7 +165,7 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
               <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold dark:bg-gray-800">
                 {i + 1}
               </span>
-              {s === 'describe' ? 'Describe' : s === 'review' ? 'Review & Edit' : 'Configure & Save'}
+              {s === 'describe' ? 'Describe' : 'Configure & Save'}
             </button>
           ))}
         </div>
@@ -229,8 +177,8 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
           <div className="space-y-6">
             <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                Describe what you want this agent to do in plain English. Altius will generate the
-                matching criteria, extraction fields, and action sequence automatically.
+                Describe what you want this agent to do in plain English. Altius will generate
+                the instructions, system prompt, and tool list automatically.
               </p>
             </div>
 
@@ -250,8 +198,8 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={`Describe the automation in detail. For example:\n\n"When a new invoice is uploaded, extract the vendor name, invoice number, amount, and due date. Then categorize the document and move it to the Accounts Payable folder. If the amount exceeds $10,000, start the high-value approval workflow."\n\nThe more detail you provide, the better the generated config will be.`}
-                rows={8}
+                placeholder={`Describe the automation in detail. For example:\n\n"When a new subpoena is uploaded, read it, search for all referenced documents, place them on a legal hold, and share the results with the legal team."\n\nThe more detail you provide, the better the generated instructions will be.`}
+                rows={6}
                 className={textareaClass}
               />
             </div>
@@ -282,221 +230,70 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
                   </>
                 )}
               </button>
-
-              {isEditing && (
-                <button
-                  onClick={() => setStep('review')}
-                  className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                >
-                  Skip to Edit
-                </button>
-              )}
             </div>
+
+            {/* Show generated/editable config inline after generation (or when editing) */}
+            {hasConfig && (
+              <div className="space-y-6 border-t border-gray-200 pt-6 dark:border-gray-800">
+                {/* Instructions */}
+                <section>
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Agent Instructions
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Step-by-step instructions the AI agent will follow for each document
+                    </p>
+                  </div>
+                  <textarea
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                    rows={10}
+                    className={textareaClass}
+                    placeholder="Detailed instructions for the AI agent..."
+                  />
+                </section>
+
+                {/* System prompt */}
+                <section>
+                  <label className={labelClass}>System Prompt</label>
+                  <input
+                    type="text"
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    className={inputClass}
+                    placeholder="A concise description of the agent's role"
+                  />
+                </section>
+
+                {/* Tools */}
+                <section>
+                  <label className={labelClass}>
+                    Allowed Tools <span className="font-normal text-gray-400">(comma-separated, empty = all)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={tools.join(', ')}
+                    onChange={(e) => setTools(e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+                    className={inputClass}
+                    placeholder="otcs_search, otcs_download_content, otcs_get_node, ..."
+                  />
+                </section>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={() => setStep('configure')}
+                    className="rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
+                  >
+                    Next: Configure & Save
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── Step 2: Review & Edit ── */}
-        {step === 'review' && (
-          <div className="space-y-6">
-            {/* Match criteria */}
-            <section>
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Match Criteria</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Document classification must match these values to trigger this agent
-                  </p>
-                </div>
-              </div>
-              <textarea
-                value={JSON.stringify(match, null, 2)}
-                onChange={(e) => {
-                  try {
-                    setMatch(JSON.parse(e.target.value));
-                  } catch { /* ignore invalid JSON while typing */ }
-                }}
-                rows={3}
-                className={textareaClass}
-                placeholder='{ "documentType": "invoice" }'
-              />
-            </section>
-
-            {/* Extract fields */}
-            <section>
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Extraction Fields
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Fields the AI will extract from each document
-                  </p>
-                </div>
-                <button
-                  onClick={addExtractField}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                >
-                  + Add Field
-                </button>
-              </div>
-              <div className="space-y-2">
-                {Object.entries(extractFields).map(([key, hint]) => (
-                  <div
-                    key={key}
-                    className="flex items-start gap-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <code className="text-xs font-semibold text-gray-900 dark:text-white">
-                        {key}
-                      </code>
-                      <input
-                        type="text"
-                        value={hint}
-                        onChange={(e) =>
-                          setExtractFields((prev) => ({ ...prev, [key]: e.target.value }))
-                        }
-                        className="mt-1 w-full rounded border-0 bg-gray-50 px-2 py-1 text-xs text-gray-600 outline-none focus:ring-1 focus:ring-blue-400/30 dark:bg-gray-800 dark:text-gray-300"
-                      />
-                    </div>
-                    <button
-                      onClick={() => removeExtractField(key)}
-                      className="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-                {Object.keys(extractFields).length === 0 && (
-                  <p className="text-xs text-gray-400 italic">No extraction fields defined</p>
-                )}
-              </div>
-            </section>
-
-            {/* Actions */}
-            <section>
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Programmatic Actions
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Actions executed automatically after extraction (no extra LLM calls)
-                  </p>
-                </div>
-                <button
-                  onClick={addAction}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                >
-                  + Add Action
-                </button>
-              </div>
-              <div className="space-y-2">
-                {actions.map((action, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
-                  >
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
-                          {i + 1}
-                        </span>
-                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                          {(action.type as string) || 'action'}
-                        </span>
-                      </div>
-                      <textarea
-                        value={JSON.stringify(action, null, 2)}
-                        onChange={(e) => updateAction(i, e.target.value)}
-                        rows={4}
-                        className={textareaClass}
-                      />
-                    </div>
-                    <button
-                      onClick={() => removeAction(i)}
-                      className="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-                {actions.length === 0 && (
-                  <p className="text-xs text-gray-400 italic">
-                    No programmatic actions — agent will use the AI loop with instructions
-                  </p>
-                )}
-              </div>
-            </section>
-
-            {/* Instructions (for agentic fallback) */}
-            <section>
-              <div className="mb-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  AI Instructions
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {actions.length > 0
-                    ? 'Used as fallback if programmatic actions fail'
-                    : 'Step-by-step instructions for the AI agent loop'}
-                </p>
-              </div>
-              <textarea
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                rows={6}
-                className={textareaClass}
-                placeholder="Detailed instructions for the AI agent..."
-              />
-            </section>
-
-            {/* System prompt */}
-            <section>
-              <label className={labelClass}>System Prompt</label>
-              <input
-                type="text"
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                className={inputClass}
-                placeholder="A concise description of the agent's role"
-              />
-            </section>
-
-            {/* Tools */}
-            <section>
-              <label className={labelClass}>
-                Allowed Tools <span className="font-normal text-gray-400">(comma-separated, empty = all)</span>
-              </label>
-              <input
-                type="text"
-                value={tools.join(', ')}
-                onChange={(e) => setTools(e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
-                className={inputClass}
-                placeholder="otcs_search, otcs_download_content, otcs_get_node, ..."
-              />
-            </section>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={() => setStep('describe')}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setStep('configure')}
-                className="rounded-lg bg-gradient-to-r from-[#1a6aff] to-[#00008b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
-              >
-                Next: Configure & Save
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Configure & Save ── */}
+        {/* ── Step 2: Configure & Save ── */}
         {step === 'configure' && (
           <div className="space-y-6">
             {/* Summary card */}
@@ -504,16 +301,13 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{name}</h3>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{description}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {match && Object.keys(match).length > 0 && (
-                  <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 dark:bg-purple-950/30 dark:text-purple-400">
-                    matches: {JSON.stringify(match)}
+                {tools.length > 0 && (
+                  <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+                    {tools.length} tool{tools.length !== 1 ? 's' : ''}
                   </span>
                 )}
-                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
-                  {Object.keys(extractFields).length} fields
-                </span>
-                <span className="rounded-md bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400">
-                  {actions.length} actions
+                <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                  Agentic
                 </span>
               </div>
             </div>
@@ -545,6 +339,7 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
                   onChange={(e) => setModel(e.target.value)}
                   className={inputClass}
                 >
+                  <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
                   <option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>
                   <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
                   <option value="claude-3-5-haiku-20241022">Claude Haiku 3.5</option>
@@ -603,7 +398,7 @@ export default function AgentBuilder({ agent, onSave, onCancel }: AgentBuilderPr
             {/* Buttons */}
             <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={() => setStep('review')}
+                onClick={() => setStep('describe')}
                 className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 Back

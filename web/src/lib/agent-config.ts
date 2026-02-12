@@ -18,12 +18,12 @@ export interface AgentConfigFromDB {
   maxAgentRounds: number;
   watchFolders: number[];
   systemPrompt: string;
-  rules: {
+  agents: {
     name: string;
-    match: Record<string, unknown>;
     instructions: string;
-    extractFields: Record<string, string> | string[];
-    actions: { type: string; [key: string]: unknown }[];
+    systemPrompt?: string;
+    tools?: string[];
+    watchFolders?: number[];
   }[];
   anthropicApiKey: string;
   anthropicModel: string;
@@ -32,6 +32,7 @@ export interface AgentConfigFromDB {
   otcsPassword: string;
   tlsSkipVerify: boolean;
   tools?: string[];
+  concurrency: number;
 }
 
 export async function buildConfigForOrg(orgId: string): Promise<AgentConfigFromDB> {
@@ -53,7 +54,7 @@ export async function buildConfigForOrg(orgId: string): Promise<AgentConfigFromD
   // Merge into config shape
   const allWatchFolders = new Set<number>();
   const allTools = new Set<string>();
-  const rules: AgentConfigFromDB['rules'] = [];
+  const agentDefs: AgentConfigFromDB['agents'] = [];
 
   for (const agent of enabledAgents) {
     const watchFolders = agent.watchFolders as number[];
@@ -62,12 +63,12 @@ export async function buildConfigForOrg(orgId: string): Promise<AgentConfigFromD
     const tools = agent.tools as string[];
     for (const t of tools) allTools.add(t);
 
-    rules.push({
+    agentDefs.push({
       name: agent.name,
-      match: agent.match as Record<string, unknown>,
       instructions: agent.instructions,
-      extractFields: agent.extractFields as Record<string, string>,
-      actions: (agent.actions as { type: string; [key: string]: unknown }[]) || [],
+      systemPrompt: agent.systemPrompt || undefined,
+      tools: tools.length > 0 ? tools : undefined,
+      watchFolders: watchFolders.length > 0 ? watchFolders : undefined,
     });
   }
 
@@ -81,13 +82,14 @@ export async function buildConfigForOrg(orgId: string): Promise<AgentConfigFromD
     systemPrompt:
       first?.systemPrompt ||
       'You are an autonomous document processing agent for OpenText Content Server.',
-    rules,
+    agents: agentDefs,
     anthropicApiKey: env.ANTHROPIC_API_KEY,
-    anthropicModel: first?.model ?? 'claude-sonnet-4-5-20250929',
+    anthropicModel: first?.model ?? 'claude-haiku-4-5-20251001',
     otcsBaseUrl: conn.baseUrl,
     otcsUsername: conn.username,
     otcsPassword: decrypt(conn.passwordEncrypted),
     tlsSkipVerify: conn.tlsSkipVerify ?? false,
     ...(allTools.size > 0 ? { tools: [...allTools] } : {}),
+    concurrency: 3,
   };
 }

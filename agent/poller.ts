@@ -29,7 +29,7 @@ async function main(): Promise<void> {
 
   log(`Watching folders: [${config.watchFolders.join(", ")}]`);
   log(`Poll interval: ${config.pollIntervalMs / 1000}s`);
-  log(`Rules: ${config.rules.length}`);
+  log(`Agents: ${config.agents.length}`);
   log(`Model: ${config.anthropicModel}`);
 
   // Create OTCS client and authenticate

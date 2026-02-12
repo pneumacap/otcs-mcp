@@ -1,159 +1,61 @@
 {
   "enabled": true,
   "pollIntervalMs": 30000,
-  "maxAgentRounds": 20,
-  "model": "claude-3-5-haiku-20241022",
+  "maxAgentRounds": 15,
+  "model": "claude-sonnet-4-5-20250929",
   "watchFolders": [
     181144,
-    179050,
-    180922
+    179050
   ],
-  "systemPrompt": "You are a legal compliance agent that processes subpoenas by extracting case details, organizing documents into structured folders, identifying responsive documents, applying legal holds, and notifying relevant parties.",
-  "rules": [
+  "systemPrompt": "You are a demo agent for OpenText Content Server, showcasing Sub-Zero Group plant maintenance workspace capabilities through a scripted, narrated demonstration.",
+  "agents": [
     {
-      "name": "Subpoena Legal Hold and Notification",
-      "match": {
-        "documentType": "subpoena"
-      },
-      "instructions": "",
-      "extractFields": {
-        "caseNumber": "Case number or matter reference",
-        "dateIssued": "Date the subpoena was issued",
-        "dateServed": "Date the subpoena was served",
-        "employeeId": "Employee ID or personnel number of the named person",
-        "personName": "Full name of the person being subpoenaed",
-        "returnDate": "Date by which documents must be produced",
-        "issuingCourt": "Court or authority issuing the subpoena",
-        "requestedDocuments": "List of specific document types or categories being requested (e.g., 'emails', 'contracts', 'expense reports'). Extract as comma-separated keywords for filtering search results."
-      },
-      "actions": [
-        {
-          "type": "categorize",
-          "category": "Subpoena",
-          "attributes": {
-            "Case Number": "{{caseNumber}}",
-            "Date Issued": "{{dateIssued}}",
-            "Date Served": "{{dateServed}}",
-            "Employee ID": "{{employeeId}}",
-            "Person Name": "{{personName}}",
-            "Return Date": "{{returnDate}}",
-            "Issuing Court": "{{issuingCourt}}",
-            "Requested Documents": "{{requestedDocuments}}"
-          },
-          "fallbackToDescription": true
-        },
-        {
-          "type": "update_description",
-          "fields": [
-            "personName",
-            "employeeId",
-            "caseNumber",
-            "issuingCourt",
-            "dateIssued",
-            "dateServed",
-            "returnDate",
-            "requestedDocuments"
-          ]
-        },
-        {
-          "name": "{{personName}}",
-          "type": "create_folder",
-          "parent": 174434
-        },
-        {
-          "type": "move",
-          "destination": "{{createdFolderId}}"
-        },
-        {
-          "name": "{{personName}} Responsive Documents",
-          "type": "create_folder",
-          "parent": "{{createdFolderId}}"
-        },
-        {
-          "type": "search",
-          "query": "{{employeeId}} {{personName}}",
-          "filter": "documents",
-          "exclude": [
-            "subpoena",
-            "legal hold"
-          ],
-          "filterField": "requestedDocuments"
-        },
-        {
-          "name": "{{caseNumber}} - {{personName}}",
-          "type": "ensure_hold",
-          "comment": "Legal hold for subpoena case {{caseNumber}} regarding {{personName}}",
-          "holdType": "Legal"
-        },
-        {
-          "type": "apply_hold"
-        },
-        {
-          "type": "copy",
-          "destination": "{{createdFolderId}}"
-        },
-        {
-          "perm": 2,
-          "type": "share",
-          "email": "coremmm10005@gmail.com",
-          "message": "This folder contains responsive documents for subpoena case {{caseNumber}} regarding {{personName}}. The documents have been placed under legal hold and collected based on the subpoena requirements."
-        }
+      "name": "Subzero Demo Agent",
+      "instructions": "You are a demo agent for OpenText Content Server showcasing Sub-Zero Group plant maintenance capabilities. Follow these steps in order, narrating business value after each:\n\n1. AUTHENTICATE: Use otcs_members current to verify session\n\n2. CREATE EQUIPMENT WORKSPACES: Use otcs_create_folder with template 17235 to create 3 equipment workspaces:\n   - EQUIP-10001 Compressor Assembly (Madison plant)\n   - EQUIP-10002 Evaporator Coil (Fitchburg plant)\n      - EQUIP-10003 Condensing Unit (Madison plant)\n   Narrate: \"Sub-Zero has 8+ siloed systems. Equipment workspaces centralize all asset data—PM records, specs, quality events, vendor docs—in one governed location.\"\n\n3. SET METADATA: Use otcs_categories update with category 10596 on each equipment workspace. Set: Equipment Number (EQUIP-1000X), Description, Status=Active, Manufacturer (Embraco/Danfoss/Tecumseh), Serial Number (SN-2024-XXX), Plant (Madison/Fitchburg), Cost Center (CC-MFG-100X).\n   Narrate: \"Structured metadata enables filtering by plant, status, manufacturer—critical for multi-site operations.\"\n\n4. SHOW AUTO-GENERATED STRUCTURE: Use otcs_get_node with metadata=true on one equipment workspace to show auto-created folders (Documents, Quality Events, Vendor Info). Use otcs_browse to show folder tree.\n   Narrate: \"Template-based workspaces auto-generate consistent folder structures and role-based permissions.\"\n\n5. CREATE MAINTENANCE ORDER: Use otcs_create_folder with template 17218 to create MO-400001 Quarterly PM workspace. Use otcs_node_action workspace_relations to link MO to EQUIP-10001.\n   Narrate: \"Linking MOs to Equipment creates audit trails. Quality teams can trace non-conformances back to PM history.\"\n\n6. UPLOAD PM DOCUMENTS: Use otcs_upload to add 3 documents to MO-400001:\n   - PM_Work_Order_Report.pdf (completed checklist with torque values, refrigerant levels)\n   - Vibration_Analysis.xlsx (trending data showing bearing wear)\n   - Inspection_Checklist.pdf (sign-off by technician)\n   Narrate: \"65% of Sub-Zero's docs are on network drives. Workspaces replace scattered files with governed repositories.\"\n\n7. ADD VERSION: Use otcs_versions add to create version 2 of PM_Work_Order_Report.pdf with supervisor review notes added.\n   Narrate: \"Version control tracks document evolution—critical for FDA compliance and corrective action tracking.\"\n\n8. CREATE FUNCTIONAL LOCATION: Use otcs_create_folder with template 17201 to create FLOC-1000-MFG-CMP (Compressor Area). Link to EQUIP-10001 via workspace_relations.\n   Narrate: \"Functional locations map equipment to plant floor layout—enables root cause analysis across co-located assets.\"\n\n9. CREATE NOTIFICATION: Use otcs_create_folder with template 17275 to create NOTIF-500001 (Discharge Pressure Non-Conformance). Link to both EQUIP-10001 and MO-400001. Upload NCR_CAPA_Report.pdf with root cause analysis.\n   Narrate: \"Quality events link to equipment and PM history. Auditors get one-click access to all evidence.\"\n\n10. CREATE VENDOR WORKSPACE: Use otcs_create_folder with template 17323 to create Embraco vendor workspace. Upload Compressor_Service_Manual.pdf. Link to EQUIP-10001.\n    Narrate: \"Vendor workspaces centralize manuals, certs, contracts. Technicians find service docs without calling procurement.\"\n\n11. CROSS-WORKSPACE SEARCH: Use otcs_search with query 'discharge pressure compressor' to demonstrate discovery across Equipment, MO, Notification workspaces. Show highlighted snippets.\n    Narrate: \"Unified search across workspaces replaces 8+ system logins. Find all related docs in 3 seconds vs. 30 minutes.\"\n\n12. WAVE 1 CONTEXT: Explain Wave 1 (Q2 2026) covers PM, Legal, GRC, HR—foundational systems. Wave 2 (2027-28) adds PLM integration for engineering change orders.\n\n13. OFFER CLEANUP: Ask if user wants to delete demo workspaces. Use otcs_node_action delete on each workspace ID if confirmed.\n\nAVOID: workspace_roles add_member, categories GET on workspaces, workspace_metadata get_form, workflow_status by_status. Use draft mode only for workflows.",
+      "systemPrompt": "You are a demo agent for OpenText Content Server, showcasing Sub-Zero Group plant maintenance workspace capabilities through a scripted, narrated demonstration.",
+      "tools": [
+        "otcs_members",
+        "otcs_create_folder",
+        "otcs_categories",
+        "otcs_get_node",
+        "otcs_browse",
+        "otcs_node_action",
+        "otcs_upload",
+        "otcs_versions",
+        "otcs_search"
       ]
     },
     {
-      "name": "Enrich TIF files with metadata description",
-      "match": {
-        "fileExtension": ".tif,.tiff"
-      },
+      "name": "subpoena hold",
       "instructions": "",
-      "extractFields": {
-        "detailedDescription": "Extract a comprehensive 3-5 sentence description that captures all important information from this document. Include: document type, all person/company names, dates, monetary amounts, account numbers, compliance or regulatory status, and any other key facts. Write as a clear, readable paragraph suitable for a metadata description field. Be thorough and specific."
-      },
-      "actions": [
-        {
-          "type": "update_description",
-          "template": "{{detailedDescription}}"
-        }
+      "systemPrompt": "Extract key preservation requirements from subpoenas and execute legal holds. Parse document descriptions, date ranges, keywords, and identifiers to guide targeted document searches.",
+      "watchFolders": [
+        181144
       ]
     },
     {
-      "name": "Start Contract Risk Review Workflow",
-      "match": {
-        "documentType": "agreement,contract,mou,letter of intent,terms of service,nda"
-      },
-      "instructions": "",
-      "extractFields": {
-        "disposition": "Based on the risk analysis, return exactly 'Approve ' (with trailing space) for low or medium risk contracts, or exactly 'Reject' for high risk contracts. Must be one of these two exact strings.",
-        "riskSummary": "A comprehensive risk analysis covering: key findings, legal concerns, financial exposure, termination clauses, liability limitations, and overall risk level (Low/Medium/High). Be thorough and specific.",
-        "contractDate": "The date the contract was signed in YYYY-MM-DD format",
-        "counterparty": "The name of the other contracting party, truncated to maximum 32 characters",
-        "contractValue": "The total monetary value as an integer only (no decimals, currency symbols, or commas)",
-        "effectiveDate": "The date the contract takes effect in YYYY-MM-DD format",
-        "expirationDate": "The date the contract expires in YYYY-MM-DD format"
-      },
-      "actions": [
-        {
-          "mode": "direct",
-          "type": "start_workflow",
-          "comment": "Contract Risk Review: {{counterparty}}",
-          "workflow_id": 181308
-        },
-        {
-          "type": "get_workflow_tasks"
-        },
-        {
-          "type": "complete_task",
-          "comment": "{{riskSummary}}",
-          "form_data": {
-            "WorkflowForm_2": "{{contractDate}}",
-            "WorkflowForm_3": "{{effectiveDate}}",
-            "WorkflowForm_4": "{{expirationDate}}",
-            "WorkflowForm_5": "{{contractValue}}",
-            "WorkflowForm_6": "{{counterparty}}"
-          },
-          "custom_action": "{{disposition}}"
-        }
+      "name": "Content Enrichment (TIFs)",
+      "instructions": "1. Read and analyze the full text content of the uploaded document.\n2. Determine the document type and content category based on the document text. If classification is clear and confident, proceed to step 3; otherwise, note that classification was not possible.\n3. Generate a concise summary of the document (2-3 sentences) capturing the key points, purpose, and main content.\n4. Use otcs_get_node to retrieve the current node/document metadata.\n5. Use otcs_node_action to update the document's description field with your classification findings and summary in the format: 'Classification: [type]. Summary: [summary text]'.\n6. If the document has applicable categories, use otcs_categories to apply the relevant category tags.\n7. Complete the processing and log the classification and summary update.",
+      "systemPrompt": "You are a Content Enrichment Agent specialized in analyzing TIF documents. Your role is to read document content, classify it, create summaries, and enrich document metadata with these findings.",
+      "tools": [
+        "otcs_get_node",
+        "otcs_node_action",
+        "otcs_categories"
+      ],
+      "watchFolders": [
+        179050
       ]
     }
+  ],
+  "tools": [
+    "otcs_members",
+    "otcs_create_folder",
+    "otcs_categories",
+    "otcs_get_node",
+    "otcs_browse",
+    "otcs_node_action",
+    "otcs_upload",
+    "otcs_versions",
+    "otcs_search"
   ]
 }
